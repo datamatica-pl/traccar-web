@@ -30,11 +30,23 @@ public enum CommandType implements IsSerializable {
     rebootDevice,
     movementAlarm,
     sendSms,
+    setDefenseTime,
+    getParams,
+    setSOSNumbers,
+    deleteSOSNumber,
+    setCenterNumber,
+    factorySettings,
     CUSTOM;
 
     public static final String KEY_FREQUENCY = "frequency";
     public static final String KEY_TIMEZONE = "timezone";
     public static final String KEY_RADIUS = "radius";
     public static final String KEY_PHONE_NUMBER = "phoneNumber";
+    public static final String KEY_DEFENSE_TIME = "defenseTime";
     public static final String KEY_MESSAGE = "message";
+    public static final String KEY_SOS_NUMBER_1 = "SOSNumber1";
+    public static final String KEY_SOS_NUMBER_2 = "SOSNumber2";
+    public static final String KEY_SOS_NUMBER_3 = "SOSNumber3";
+    public static final String KEY_SOS_NUMBER = "SOSNumber";
+    public static final String KEY_CENTER_NUMBER = "centerNumber";
 }

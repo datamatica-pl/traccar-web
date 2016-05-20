@@ -57,7 +57,9 @@ public class CommandController implements ContentController, DeviceView.CommandH
                        int frequency,
                        int timezone,
                        int radius,
-                       String phoneNumber, String message,
+                       String phoneNumber,
+                       String message,
+                       HashMap<String, Object> extendedAttributes,
                        String rawCommand) {
         Command command = new Command();
         command.setType(type);
@@ -77,6 +79,25 @@ public class CommandController implements ContentController, DeviceView.CommandH
                 command.getAttributes().put(CommandType.KEY_PHONE_NUMBER, phoneNumber);
                 command.getAttributes().put(CommandType.KEY_MESSAGE, message);
                 break;
+            case setDefenseTime:
+                command.getAttributes().put(CommandType.KEY_DEFENSE_TIME,
+                        extendedAttributes.get(CommandType.KEY_DEFENSE_TIME));
+                break;
+            case setSOSNumbers:
+                command.getAttributes().put(CommandType.KEY_SOS_NUMBER_1,
+                        extendedAttributes.get(CommandType.KEY_SOS_NUMBER_1));
+                command.getAttributes().put(CommandType.KEY_SOS_NUMBER_2,
+                        extendedAttributes.get(CommandType.KEY_SOS_NUMBER_2));
+                command.getAttributes().put(CommandType.KEY_SOS_NUMBER_3,
+                        extendedAttributes.get(CommandType.KEY_SOS_NUMBER_3));
+                break;
+            case deleteSOSNumber:
+                command.getAttributes().put(CommandType.KEY_SOS_NUMBER,
+                        extendedAttributes.get(CommandType.KEY_SOS_NUMBER));
+                break;
+            case setCenterNumber:
+                command.getAttributes().put(CommandType.KEY_CENTER_NUMBER,
+                        extendedAttributes.get(CommandType.KEY_CENTER_NUMBER));
             case CUSTOM:
                 command.setCommand(rawCommand);
                 break;

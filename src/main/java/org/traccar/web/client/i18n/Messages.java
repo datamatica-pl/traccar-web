@@ -558,4 +558,16 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String arrowSize();
 
     String allowCommandsOnlyForAdmins();
+    
+    String defenseTime();
+    
+    String SOSNumber1();
+    
+    String SOSNumber2();
+    
+    String SOSNumber3();
+    
+    String SOSNumber();
+    
+    String centerNumber();
 }

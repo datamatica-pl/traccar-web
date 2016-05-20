@@ -37,6 +37,7 @@ import org.traccar.web.shared.model.CommandType;
 import org.traccar.web.shared.model.Device;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class CommandDialog {
     private static CommandDialogUiBinder uiBinder = GWT.create(CommandDialogUiBinder.class);
@@ -51,6 +52,7 @@ public class CommandDialog {
                     int timeZone,
                     int radius,
                     String phoneNumber, String message,
+                    HashMap<String, Object> extendedAttributes,
                     String rawCommand);
     }
 
@@ -101,6 +103,42 @@ public class CommandDialog {
 
     @UiField
     TextField message;
+
+    @UiField
+    FieldLabel lblDefenseTime;
+
+    @UiField
+    TextField defenseTime;
+
+    @UiField
+    FieldLabel lblSOSNumber1;
+
+    @UiField
+    FieldLabel lblSOSNumber2;
+
+    @UiField
+    FieldLabel lblSOSNumber3;
+
+    @UiField
+    FieldLabel lblSOSNumber;
+    
+    @UiField
+    FieldLabel lblCenterNumber;
+
+    @UiField
+    TextField SOSNumber1;
+
+    @UiField
+    TextField SOSNumber2;
+
+    @UiField
+    TextField SOSNumber3;
+
+    @UiField
+    TextField SOSNumber;
+
+    @UiField
+    TextField centerNumber;
 
     @UiField
     TextField customMessage;
@@ -162,6 +200,22 @@ public class CommandDialog {
         lblMessage.setVisible(type == CommandType.sendSms);
         message.setVisible(type == CommandType.sendSms);
 
+        lblDefenseTime.setVisible(type == CommandType.setDefenseTime);
+        defenseTime.setVisible(type == CommandType.setDefenseTime);
+
+        lblSOSNumber1.setVisible(type == CommandType.setSOSNumbers);
+        lblSOSNumber2.setVisible(type == CommandType.setSOSNumbers);
+        lblSOSNumber3.setVisible(type == CommandType.setSOSNumbers);
+        SOSNumber1.setVisible(type == CommandType.setSOSNumbers);
+        SOSNumber2.setVisible(type == CommandType.setSOSNumbers);
+        SOSNumber3.setVisible(type == CommandType.setSOSNumbers);
+        
+        lblCenterNumber.setVisible(type == CommandType.setCenterNumber);
+        centerNumber.setVisible(type == CommandType.setCenterNumber);
+
+        lblSOSNumber.setVisible(type == CommandType.deleteSOSNumber);
+        SOSNumber.setVisible(type == CommandType.deleteSOSNumber);
+
         window.forceLayout();
     }
 
@@ -191,6 +245,28 @@ public class CommandDialog {
         if (this.radius.getCurrentValue() != null) {
             radius = this.radius.getCurrentValue();
         }
+
+        HashMap<String, Object> extendedAttributes = new HashMap();
+
+        if (this.defenseTime.getCurrentValue() != null) {
+            extendedAttributes.put(CommandType.KEY_DEFENSE_TIME, this.defenseTime.getCurrentValue());
+        }
+        if (this.SOSNumber1.getCurrentValue() != null) {
+            extendedAttributes.put(CommandType.KEY_SOS_NUMBER_1, this.SOSNumber1.getCurrentValue());
+        }
+        if (this.SOSNumber2.getCurrentValue() != null) {
+            extendedAttributes.put(CommandType.KEY_SOS_NUMBER_2, this.SOSNumber2.getCurrentValue());
+        }
+        if (this.SOSNumber3.getCurrentValue() != null) {
+            extendedAttributes.put(CommandType.KEY_SOS_NUMBER_3, this.SOSNumber3.getCurrentValue());
+        }
+        if (this.SOSNumber.getCurrentValue() != null) {
+            extendedAttributes.put(CommandType.KEY_SOS_NUMBER, this.SOSNumber.getCurrentValue());
+        }
+        if (this.centerNumber.getCurrentValue() != null) {
+            extendedAttributes.put(CommandType.KEY_CENTER_NUMBER, this.centerNumber.getCurrentValue());
+        }
+
         commandHandler.onSend(device,
                 typeCombo.getCurrentValue(),
                 frequency,
@@ -198,6 +274,7 @@ public class CommandDialog {
                 radius,
                 phoneNumber.getCurrentValue(),
                 message.getCurrentValue(),
+                extendedAttributes,
                 customMessage.getCurrentValue());
     }
 

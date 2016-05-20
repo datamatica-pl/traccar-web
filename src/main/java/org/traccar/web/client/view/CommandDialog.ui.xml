@@ -82,12 +82,55 @@
                 </form:FieldLabel>
             </container:child>
             <container:child layoutData="{verticalLayoutData}">
+                <form:FieldLabel text="{i18n.SOSNumber1}" ui:field="lblSOSNumber1" visible="false" labelWidth="120">
+                    <form:widget>
+                        <form:TextField ui:field="SOSNumber1" />
+                    </form:widget>
+                </form:FieldLabel>
+            </container:child>
+            <container:child layoutData="{verticalLayoutData}">
+                <form:FieldLabel text="{i18n.SOSNumber2}" ui:field="lblSOSNumber2" visible="false" labelWidth="120">
+                    <form:widget>
+                        <form:TextField ui:field="SOSNumber2" />
+                    </form:widget>
+                </form:FieldLabel>
+            </container:child>
+            <container:child layoutData="{verticalLayoutData}">
+                <form:FieldLabel text="{i18n.SOSNumber3}" ui:field="lblSOSNumber3" visible="false" labelWidth="120">
+                    <form:widget>
+                        <form:TextField ui:field="SOSNumber3" />
+                    </form:widget>
+                </form:FieldLabel>
+            </container:child>
+            <container:child layoutData="{verticalLayoutData}">
+                <form:FieldLabel text="{i18n.SOSNumber}" ui:field="lblSOSNumber" visible="false" labelWidth="120" title="{i18n.SOSNumber}">
+                    <form:widget>
+                        <form:TextField ui:field="SOSNumber" />
+                    </form:widget>
+                </form:FieldLabel>
+            </container:child>
+            <container:child layoutData="{verticalLayoutData}">
+                <form:FieldLabel text="{i18n.centerNumber}" ui:field="lblCenterNumber" visible="false" labelWidth="120" title="{i18n.centerNumber}">
+                    <form:widget>
+                        <form:TextField ui:field="centerNumber" />
+                    </form:widget>
+                </form:FieldLabel>
+            </container:child>
+            <container:child layoutData="{verticalLayoutData}">
                 <form:FieldLabel text="{i18n.customMessage}" ui:field="lblCustomMessage" visible="false" labelWidth="120">
                     <form:widget>
                         <form:TextField ui:field="customMessage" />
                     </form:widget>
                 </form:FieldLabel>
             </container:child>
+            <container:child layoutData="{verticalLayoutData}">
+                <form:FieldLabel text="{i18n.defenseTime}" ui:field="lblDefenseTime" visible="false" labelWidth="120">
+                    <form:widget>
+                        <form:TextField ui:field="defenseTime" />
+                    </form:widget>
+                </form:FieldLabel>
+            </container:child>
+
         </container:VerticalLayoutContainer>
 
         <gxt:button>
