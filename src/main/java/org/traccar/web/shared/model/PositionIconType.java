@@ -22,41 +22,38 @@ public enum PositionIconType implements IsSerializable {
     iconOffline("marker-green.png", true, "marker-white.png", false, 21, 25),
     iconArchive("marker-gold.png", true, "marker-blue.png", true, 21, 25),
 
-    sedanLatest("sedan-green.png", "sedan-red.png", 53, 20),
-    sedanOffline("sedan-green.png", "sedan-white.png", 53, 20),
+    humanLatest("GTS_pointer_human.png", "GTS_pointer_human.png", 36, 48),
+    humanOffline("GTS_pointer_human.png", "GTS_pointer_human.png", 36, 48),
 
-    universalLatest("universal-green.png", "universal-red.png", 48, 20),
-    universalOffline("universal-green.png", "universal-white.png", 48, 20),
+    containerLatest("GTS_pointer_container.png", "GTS_pointer_container.png", 36, 48),
+    containerOffline("GTS_pointer_container.png", "GTS_pointer_container.png", 36, 48),
 
-    minivanLatest("minivan-green.png", "minivan-red.png", 36, 20),
-    minivanOffline("minivan-green.png", "minivan-white.png", 36, 20),
+    motoLatest("GTS_pointer_moto.png", "GTS_pointer_moto.png", 36, 48),
+    motoOffline("GTS_pointer_moto.png", "GTS_pointer_moto.png", 36, 48),
 
-    bicycleLatest("bicycle-green.png", "bicycle-red.png", 41, 25),
-    bicycleOffline("bicycle-green.png", "bicycle-gray.png", 41, 25),
+    bicycleLatest("GTS_pointer_bike.png", "GTS_pointer_bike.png", 36, 48),
+    bicycleOffline("GTS_pointer_bike.png", "GTS_pointer_bike.png", 36, 48),
 
-    busLatest("bus-green.png", "bus-red.png", 42, 20),
-    busOffline("bus-green.png", "bus-white.png", 42, 20),
+    petLatest("GTS_pointer_pet.png", "GTS_pointer_pet.png", 36, 48),
+    petOffline("GTS_pointer_pet.png", "GTS_pointer_pet.png", 36, 48),
 
-    carTruckLatest("car-truck-green.png", "car-truck-red.png", 63, 25),
-    carTruckOffline("car-truck-green.png", "car-truck-white.png", 63, 25),
+    carTruckLatest("GTS_pointer_car.png", "GTS_pointer_car.png", 36, 48),
+    carTruckOffline("GTS_pointer_car.png", "GTS_pointer_car.png", 36, 48),
 
-    longTruckLatest("long-truck-green.png", "long-truck-red.png", 63, 25),
-    longTruckOffline("long-truck-green.png", "long-truck-white.png", 63, 25),
+    longTruckLatest("GTS_pointer_truck.png", "GTS_pointer_truck.png", 36, 48),
+    longTruckOffline("GTS_pointer_truck.png", "GTS_pointer_truck.png", 36, 48),
 
-    planeLatest("plane-green.png", "plane-red.png", 55, 25),
-    planeOffline("plane-green.png", "plane-white.png", 55, 25),
+    pickupLatest("GTS_pointer_pickup.png", "GTS_pointer_pickup.png", 36, 48),
+    pickupOffline("GTS_pointer_pickup.png", "GTS_pointer_pickup.png", 36, 48),
 
-    shipLatest("ship-green.png", "ship-red.png", 62, 25),
-    shipOffline("ship-green.png", "ship-white.png", 62, 25),
+    shipLatest("GTS_pointer_boat.png", "GTS_pointer_boat.png", 36, 48),
+    shipOffline("GTS_pointer_boat.png", "GTS_pointer_boat.png", 36, 48),
 
-    trainLatest("train-green.png", "train-red.png", 86, 25),
-    trainOffline("train-green.png", "train-white.png", 86, 25),
+    quadLatest("GTS_pointer_quad.png", "GTS_pointer_quad.png", 36, 48),
+    quadOffline("GTS_pointer_quad.png", "GTS_pointer_quad.png", 36, 48),
 
-    truckLatest("truck-green.png", "truck-red.png", 30, 20),
-    truckOffline("truck-green.png", "truck-white.png", 30, 20),
-
-    phoneLatest("phone-green.png", "phone-red.png", 12, 20),
-    phoneOffline("phone-green.png", "phone-white.png", 12, 20),
+    tracktorLatest("GTS_pointer_tractor.png", "GTS_pointer_tractor.png", 36, 48),
+    tractorOffline("GTS_pointer_tractor.png", "GTS_pointer_tractor.png", 36, 48),
 
     dotArchive("dot-orange.png", "dot-orange.png", 13, 14);
 
