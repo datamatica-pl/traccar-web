@@ -2,11 +2,12 @@
 <ui:UiBinder
     xmlns:ui="urn:ui:com.google.gwt.uibinder"
     xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
-  	xmlns:container="urn:import:com.sencha.gxt.widget.core.client.container"
+    xmlns:container="urn:import:com.sencha.gxt.widget.core.client.container"
     xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
     xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
     xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid"
-  	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button">
+    xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
+    xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu">
 
   <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" field="toolBarRowData">
     <ui:attributes width="1" height="-1" />
@@ -88,7 +89,15 @@
                 <button:TextButton ui:field="saveButton" text="{i18n.save}" />
                 <button:TextButton ui:field="removeButton" text="{i18n.remove}" enabled="false" />
                 <toolbar:FillToolItem />
-                <button:TextButton ui:field="generateButton" text="{i18n.generate}" />
+                <button:TextButton ui:field="previewButton" text="{i18n.preview}" />
+                <button:TextButton text="{i18n.generate}" ui:field="generateButton">
+                    <button:menu>
+                      <menu:Menu>
+                        <menu:MenuItem text=".html" ui:field="generateHtml"/>
+                        <menu:MenuItem text=".csv" ui:field="generateCsv"/>
+                      </menu:Menu>
+                    </button:menu>
+                </button:TextButton>
             </toolbar:ToolBar>
         </container:child>
         <container:child layoutData="{reportsGridLayoutData}">
@@ -118,9 +127,6 @@
                             </container:child>
                             <container:child layoutData="{verticalLayoutData}">
                                 <form:CheckBox ui:field="disableFilter" boxLabel="{i18n.disableFilter}" enabled="false" />
-                            </container:child>
-                            <container:child layoutData="{verticalLayoutData}">
-                                <form:CheckBox ui:field="preview" boxLabel="{i18n.preview}" />
                             </container:child>
                         </container:VerticalLayoutContainer>
                     </gxt:ContentPanel>

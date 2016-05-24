@@ -26,16 +26,17 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
-public class ReportRenderer {
+public class HtmlReportRenderer implements IReportRenderer {
     final HttpServletResponse response;
     final PrintWriter writer;
 
-    public ReportRenderer(HttpServletResponse response) throws IOException {
+    public HtmlReportRenderer(HttpServletResponse response) throws IOException {
         this.response = response;
         response.setCharacterEncoding("UTF-8");
         this.writer = response.getWriter();
     }
 
+    @Override
     public String getFilename(Report report) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
         return report.getName() +
@@ -46,6 +47,7 @@ public class ReportRenderer {
                 ".html";
     }
 
+    @Override
     public void start(Report report) throws IOException {
         response.setContentType("text/html;charset=UTF-8");
         if (!report.isPreview()) {
@@ -71,86 +73,79 @@ public class ReportRenderer {
         line("</head>").line("<body>").line("<div class=\"container\">");
     }
 
+    @Override
     public void end(Report report) throws IOException {
         line("</div>").line("</body>").line("</html>");
     }
 
+    @Override
     public void h1(String text) {
         line("<h1>" + text + "</h1>");
     }
 
+    @Override
     public void h2(String text) {
         line("<h2>" + text + "</h2>");
     }
 
+    @Override
     public void h3(String text) {
         line("<h3>" + text + "</h3>");
     }
 
+    @Override
     public void text(String text) {
         writer.write(text);
     }
 
+    @Override
     public void bold(String text) {
         writer.write("<strong>");
         writer.write(text);
         writer.write("</strong>");
     }
 
+    @Override
     public void panelStart() {
         line("<div class=\"panel panel-default\">");
     }
 
+    @Override
     public void panelEnd() {
         line("</div>");
     }
 
+    @Override
     public void panelHeadingStart() {
         line("<div class=\"panel-heading\">");
     }
 
+    @Override
     public void panelHeadingEnd() {
         line("</div>");
     }
 
+    @Override
     public void panelBodyStart() {
         line("<div class=\"panel-body\">");
     }
 
+    @Override
     public void panelBodyEnd() {
         line("</div>");
     }
 
+    @Override
     public void paragraphStart() {
         writer.write("<p>");
     }
 
+    @Override
     public void paragraphEnd() {
         line("</p>");
     }
-
-    static class TableStyle {
-        private boolean hover;
-        private boolean condensed;
-
-        TableStyle hover() {
-            this.hover = true;
-            return this;
-        }
-
-        TableStyle condensed() {
-            this.condensed = true;
-            return this;
-        }
-
-        @Override
-        public String toString() {
-            return "class=\"table" +
-                    (hover ? " table-hover" : "") +
-                    (condensed ? " table-condensed" : "") + "\"";
-        }
-    }
-
+    
+    @Override
     public void tableStart(TableStyle style) {
         if (style == null) {
             line("<table>");
@@ -159,39 +154,22 @@ public class ReportRenderer {
         }
     }
 
+    @Override
     public void tableEnd() {
         line("</table>");
     }
 
+    @Override
     public void tableHeadStart() {
         line("<thead>");
     }
 
+    @Override
     public void tableHeadEnd() {
         line("</thead>");
     }
 
-    static class CellStyle {
-        int colspan;
-        int rowspan;
-
-        CellStyle colspan(int colspan) {
-            this.colspan = colspan;
-            return this;
-        }
-
-        CellStyle rowspan(int rowspan) {
-            this.rowspan = rowspan;
-            return this;
-        }
-
-        @Override
-        public String toString() {
-            return (colspan == 0 ? "" : ("colspan=\"" + colspan + "\"")) +
-                   (rowspan == 0 ? "" : (" rowspan=\"" + rowspan + "\""));
-        }
-    }
-
+    @Override
     public void tableHeadCellStart(CellStyle style) {
         if (style == null) {
             line("<th>");
@@ -200,26 +178,32 @@ public class ReportRenderer {
         }
     }
 
+    @Override
     public void tableHeadCellEnd() {
         line("</th>");
     }
 
+    @Override
     public void tableBodyStart() {
         line("<tbody>");
     }
 
+    @Override
     public void tableBodyEnd() {
         line("</tbody>");
     }
 
+    @Override
     public void tableRowStart() {
         line("<tr>");
     }
 
+    @Override
     public void tableRowEnd() {
         line("</tr>");
     }
 
+    @Override
     public void tableCellStart(CellStyle style) {
         if (style == null) {
             line("<td>");
@@ -228,10 +212,12 @@ public class ReportRenderer {
         }
     }
 
+    @Override
     public void tableCellEnd() {
         line("</td>");
     }
 
+    @Override
     public void link(String url, String target, String text) {
         writer.write("<a href=\"");
         writer.write(url);
@@ -248,6 +234,7 @@ public class ReportRenderer {
 
     int mapCount;
 
+    @Override
     public void mapWithRoute(List<Position> positions, UserSettings.MapType mapType, int zoomLevel, String width, String height) {
         String mapId = "map-" + mapCount++;
         line("<div id=\"" + mapId + "\" style=\"width: " + width + "; height: " + height + ";\"></div>");
@@ -287,7 +274,7 @@ public class ReportRenderer {
         line("</script>");
     }
 
-    private ReportRenderer line(String html) {
+    private HtmlReportRenderer line(String html) {
         writer.println(html);
         return this;
     }

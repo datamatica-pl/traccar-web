@@ -107,7 +107,6 @@ public class ReportEV extends ReportGenerator {
             tableHeadCellEnd();
         }
 
-        tableRowEnd();
         tableHeadEnd();
 
         Stats stats = new Stats();
@@ -132,6 +131,7 @@ public class ReportEV extends ReportGenerator {
             tableCellStart();
             mapLink(event.getPosition().getLatitude(), event.getPosition().getLongitude());
             tableCellEnd();
+            tableRowEnd();
 
             stats.update(event);
         }

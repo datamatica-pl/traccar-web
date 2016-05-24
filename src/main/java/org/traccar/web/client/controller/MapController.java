@@ -191,6 +191,8 @@ public class MapController implements ContentController, MapView.MapHandler, Dev
                         }
                     }
                     latestPositionMap.put(device.getId(), position);
+                    if(!ApplicationContext.getInstance().isRecordingTrace(device))
+                        clearTrackTrace(device);
                 }
                 updateTimer.schedule(ApplicationContext.getInstance().getApplicationSettings().getUpdateInterval());
             }
@@ -263,7 +265,7 @@ public class MapController implements ContentController, MapView.MapHandler, Dev
         }
         List<Position> withTime = track.getTimePositions(ApplicationContext.getInstance().getUserSettings().getTimePrintInterval());
         mapView.showArchiveTime(withTime);
-        mapView.showArchiveArrows(withTime, track.getStyle().getTrackColor());
+        mapView.showArchiveArrows(track.getPositions(), track.getStyle().getTrackColor());
     }
 
     public void selectArchivePosition(Position position) {
@@ -318,5 +320,9 @@ public class MapController implements ContentController, MapView.MapHandler, Dev
         } else {
             mapView.clearLatestPosition(deviceId);
         }
+    }
+    
+    public void clearTrackTrace(Device device) {
+        mapView.clearLatestTrackPositions(device);
     }
 }

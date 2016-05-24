@@ -60,6 +60,17 @@ public class Report implements IsSerializable {
     public void setType(ReportType type) {
         this.type = type;
     }
+    
+    @Transient
+    private ReportFormat format;
+    
+    public ReportFormat getFormat() {
+        return format;
+    }
+    
+    public void setFormat(ReportFormat format) {
+        this.format = format;
+    }
 
     @GwtTransient
     @ManyToMany(fetch = FetchType.LAZY)

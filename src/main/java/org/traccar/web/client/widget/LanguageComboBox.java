@@ -23,7 +23,7 @@ import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 
 import java.util.Arrays;
-
+      
 public class LanguageComboBox extends ComboBox<String> {
     public LanguageComboBox() {
         super(new ListStore<>(new ModelKeyProvider<String>() {
@@ -38,7 +38,9 @@ public class LanguageComboBox extends ComboBox<String> {
             }
         });
 
-        getStore().addAll(Arrays.asList(LocaleInfo.getAvailableLocaleNames()));
+        getStore().clear();
+        getStore().add("pl");
+        //getStore().addAll(Arrays.asList(LocaleInfo.getAvailableLocaleNames()));
         setForceSelection(true);
         setTriggerAction(ComboBoxCell.TriggerAction.ALL);
     }

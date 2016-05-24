@@ -52,7 +52,7 @@ public abstract class ReportGenerator {
     @Inject
     ApplicationSettings applicationSettings;
 
-    private ReportRenderer renderer;
+    private IReportRenderer renderer;
 
     private SimpleDateFormat dateFormat;
 
@@ -63,7 +63,11 @@ public abstract class ReportGenerator {
     abstract void generateImpl(Report report) throws IOException;
 
     public final void generate(Report report) throws IOException {
-        renderer = new ReportRenderer(response);
+        if(report.getFormat() == ReportFormat.CSV)
+            renderer = new CSVReportRenderer(response);
+        else
+            renderer = new HtmlReportRenderer(response);
+
         timeZone = currentUser.getUserSettings().getTimeZoneId() == null
                 ? TimeZone.getDefault()
                 : TimeZone.getTimeZone(currentUser.getUserSettings().getTimeZoneId());
@@ -110,16 +114,16 @@ public abstract class ReportGenerator {
         renderer.tableStart(null);
     }
 
-    public void tableStart(ReportRenderer.TableStyle style) {
+    public void tableStart(IReportRenderer.TableStyle style) {
         renderer.tableStart(style);
     }
 
-    ReportRenderer.TableStyle hover() {
-        return new ReportRenderer.TableStyle().hover();
+    IReportRenderer.TableStyle hover() {
+        return new HtmlReportRenderer.TableStyle().hover();
     }
 
-    ReportRenderer.TableStyle condensed() {
-        return new ReportRenderer.TableStyle().condensed();
+    IReportRenderer.TableStyle condensed() {
+        return new HtmlReportRenderer.TableStyle().condensed();
     }
 
     public void tableHeadStart() {
@@ -134,7 +138,7 @@ public abstract class ReportGenerator {
         renderer.tableHeadCellStart(null);
     }
 
-    public void tableHeadCellStart(ReportRenderer.CellStyle style) {
+    public void tableHeadCellStart(IReportRenderer.CellStyle style) {
         renderer.tableHeadCellStart(style);
     }
 
@@ -200,7 +204,7 @@ public abstract class ReportGenerator {
         tableCellEnd();
     }
 
-    public void tableCellStart(ReportRenderer.CellStyle style) {
+    public void tableCellStart(IReportRenderer.CellStyle style) {
         renderer.tableCellStart(style);
     }
 
@@ -216,24 +220,11 @@ public abstract class ReportGenerator {
         String text = lonLatFormat.format(latitude) + " \u00B0, " +
                 lonLatFormat.format(longitude) + " \u00B0";
 
-        switch (userSettings.getMapType()) {
-            case GOOGLE_HYBRID:
-            case GOOGLE_NORMAL:
-            case GOOGLE_SATELLITE:
-            case GOOGLE_TERRAIN: {
-                link("https://maps.google.com/maps?q=" + lonLatFormat.format(latitude) + "," + lonLatFormat.format(longitude) + "&t=m",
-                        "_blank", text);
-                break;
-            }
-            default: {
-                link("http://www.openstreetmap.org/?" +
-                                "mlat=" + lonLatFormat.format(latitude) + "&mlon=" + lonLatFormat.format(longitude) +
-                                "#map=" + userSettings.getZoomLevel() + "/" +
-                                lonLatFormat.format(latitude) + "/" + lonLatFormat.format(longitude),
-                        "_blank", text);
-                break;
-            }
-        }
+        link("http://www.openstreetmap.org/?" +
+                "mlat=" + lonLatFormat.format(latitude) + "&mlon=" + lonLatFormat.format(longitude) +
+                "#map=" + userSettings.getZoomLevel() + "/" +
+                lonLatFormat.format(latitude) + "/" + lonLatFormat.format(longitude),
+                "_blank", text);
     }
 
     void mapWithRoute(List<Position> positions, String width, String height) {
@@ -288,12 +279,12 @@ public abstract class ReportGenerator {
         return string != null && !string.trim().isEmpty();
     }
 
-    ReportRenderer.CellStyle colspan(int colspan) {
-        return new ReportRenderer.CellStyle().colspan(colspan);
+    IReportRenderer.CellStyle colspan(int colspan) {
+        return new HtmlReportRenderer.CellStyle().colspan(colspan);
     }
 
-    ReportRenderer.CellStyle rowspan(int rowspan) {
-        return new ReportRenderer.CellStyle().rowspan(rowspan);
+    IReportRenderer.CellStyle rowspan(int rowspan) {
+        return new HtmlReportRenderer.CellStyle().rowspan(rowspan);
     }
 
     List<Device> getDevices(Report report) {

@@ -35,7 +35,7 @@ public class UserSettings implements IsSerializable {
     private long id;
 
     public UserSettings() {
-        speedUnit = SpeedUnit.knots;
+        speedUnit = SpeedUnit.kilometersPerHour;
         timePrintInterval = DEFAULT_TIME_PRINT_INTERVAL;
         zoomLevel = DEFAULT_ZOOM_LEVEL;
         centerLongitude = DEFAULT_CENTER_LONGITUDE;
@@ -78,17 +78,7 @@ public class UserSettings implements IsSerializable {
     }
 
     public enum MapType implements IsSerializable {
-        OSM("OpenStreetMap"),
-        GOOGLE_HYBRID("Google Hybrid"),
-        GOOGLE_NORMAL("Google Normal"),
-        GOOGLE_SATELLITE("Google Satellite"),
-        GOOGLE_TERRAIN("Google Terrain"),
-        BING_ROAD("Bing Road") { @Override public boolean isBing() { return true; } },
-        BING_HYBRID("Bing Hybrid") { @Override public boolean isBing() { return true; } },
-        BING_AERIAL("Bing Aerial") { @Override public boolean isBing() { return true; } },
-        MAPQUEST_ROAD("MapQuest Road"),
-        MAPQUEST_AERIAL("MapQuest Aerial"),
-        STAMEN_TONER("Stamen Toner");
+        OSM("OpenStreetMap");
 
         final String name;
 

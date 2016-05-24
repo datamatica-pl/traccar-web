@@ -61,7 +61,7 @@ public class ReportServlet extends HttpServlet {
         }
 
         generator.generate(report);
-
+        
         resp.setStatus(HttpServletResponse.SC_OK);
     }
 }

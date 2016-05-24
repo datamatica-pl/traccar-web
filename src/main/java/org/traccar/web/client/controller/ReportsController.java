@@ -35,6 +35,7 @@ import org.traccar.web.shared.model.GeoFence;
 import org.traccar.web.shared.model.Report;
 
 import java.util.List;
+import org.traccar.web.shared.model.ReportFormat;
 
 public class ReportsController implements NavView.ReportsHandler {
     private final Messages i18n = GWT.create(Messages.class);
@@ -105,9 +106,11 @@ public class ReportsController implements NavView.ReportsHandler {
     }
 
     private void generate(Report report) {
+        String format = report.getFormat() == ReportFormat.HTML ? ".html" : ".csv";
+        
         FormPanel form = new FormPanel("_blank");
         form.setVisible(false);
-        form.setAction("traccar/report" + (report.isPreview() ? "/" + report.getName() + ".html" : ""));
+        form.setAction("traccar/report" + (report.isPreview() ? "/" + report.getName() + format : ""));
         form.setMethod(FormPanel.METHOD_POST);
         form.setEncoding(FormPanel.ENCODING_URLENCODED);
         HorizontalPanel container = new HorizontalPanel();

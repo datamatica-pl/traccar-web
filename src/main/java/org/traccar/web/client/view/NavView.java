@@ -17,10 +17,13 @@ package org.traccar.web.client.view;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.resources.client.ClientBundle;
+import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.button.TextButton;
@@ -34,7 +37,7 @@ import org.traccar.web.client.model.BaseAsyncCallback;
 
 public class NavView {
     private static NavViewUiBinder uiBinder = GWT.create(NavViewUiBinder.class);
-
+    
     interface NavViewUiBinder extends UiBinder<Widget, NavView> {
     }
 
@@ -112,6 +115,9 @@ public class NavView {
 
     @UiField(provided = true)
     final Messages i18n = GWT.create(Messages.class);
+    
+    @UiField(provided = true)
+    Image logo;
 
     public NavView(SettingsHandler settingsHandler,
                    ReportsHandler reportsHandler,
@@ -123,6 +129,9 @@ public class NavView {
         this.importHandler = importHandler;
         this.logHandler = logHandler;
         this.groupsHandler = groupsHandler;
+        
+        logo = new Image();
+        logo.setUrl("img/logo.png");
 
         uiBinder.createAndBindUi(this);
 

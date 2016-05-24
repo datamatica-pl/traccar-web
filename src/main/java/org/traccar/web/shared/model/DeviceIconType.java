@@ -18,21 +18,20 @@ package org.traccar.web.shared.model;
 import com.google.gwt.user.client.rpc.IsSerializable;
 
 public enum DeviceIconType implements IsSerializable {
-    DEFAULT(PositionIconType.iconLatest, PositionIconType.iconOffline),
-    PHONE(PositionIconType.phoneLatest, PositionIconType.phoneOffline),
+    DEFAULT(PositionIconType.humanLatest, PositionIconType.humanOffline),
     BICYCLE(PositionIconType.bicycleLatest, PositionIconType.bicycleOffline),
-    SEDAN(PositionIconType.sedanLatest, PositionIconType.sedanOffline),
-    UNIVERSAL(PositionIconType.universalLatest, PositionIconType.universalOffline),
+    SEDAN(PositionIconType.humanLatest, PositionIconType.humanOffline),
+    UNIVERSAL(PositionIconType.containerLatest, PositionIconType.containerOffline),
 
-    MINIVAN(PositionIconType.minivanLatest, PositionIconType.minivanOffline),
-    TRUCK(PositionIconType.truckLatest, PositionIconType.truckOffline),
-    BUS(PositionIconType.busLatest, PositionIconType.busOffline),
+    MINIVAN(PositionIconType.motoLatest, PositionIconType.motoOffline),
+    TRUCK(PositionIconType.tracktorLatest, PositionIconType.tractorOffline),
+    BUS(PositionIconType.petLatest, PositionIconType.petOffline),
     LONG_TRUCK(PositionIconType.longTruckLatest, PositionIconType.longTruckOffline),
     CAR_TRUCK(PositionIconType.carTruckLatest, PositionIconType.carTruckOffline),
 
-    PLANE(PositionIconType.planeLatest, PositionIconType.planeOffline),
+    PLANE(PositionIconType.pickupLatest, PositionIconType.pickupOffline),
     SHIP(PositionIconType.shipLatest, PositionIconType.shipOffline),
-    TRAIN(PositionIconType.trainLatest, PositionIconType.trainOffline);
+    TRAIN(PositionIconType.quadLatest, PositionIconType.quadOffline);
 
     private final PositionIconType iconLatest;
     private final PositionIconType iconOffline;

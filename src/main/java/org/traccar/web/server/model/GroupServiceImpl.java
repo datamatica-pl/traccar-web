@@ -60,7 +60,7 @@ public class GroupServiceImpl extends RemoteServiceServlet implements GroupServi
     }
 
     @Transactional
-    @RequireUser
+    @RequireUser(roles = {Role.ADMIN, Role.MANAGER})
     @RequireWrite
     @Override
     public Group addGroup(Group parent, Group group) {
@@ -75,7 +75,7 @@ public class GroupServiceImpl extends RemoteServiceServlet implements GroupServi
     }
 
     @Transactional
-    @RequireUser
+    @RequireUser(roles = {Role.ADMIN, Role.MANAGER})
     @RequireWrite
     @Override
     public void updateGroups(Map<Group, List<Group>> groups) throws AccessDeniedException {
@@ -94,7 +94,7 @@ public class GroupServiceImpl extends RemoteServiceServlet implements GroupServi
     }
 
     @Transactional
-    @RequireUser
+    @RequireUser(roles = {Role.ADMIN, Role.MANAGER})
     @RequireWrite
     @Override
     public void removeGroups(List<Group> groups) throws AccessDeniedException {

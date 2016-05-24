@@ -41,6 +41,8 @@ import com.sencha.gxt.widget.core.client.form.*;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
+import com.sencha.gxt.widget.core.client.menu.Item;
+import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 import org.traccar.web.client.controller.ReportsController;
 import org.traccar.web.client.editor.DateTimeEditor;
@@ -84,6 +86,9 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
     final ListStore<Report> reportStore;
 
     @UiField
+    MenuItem generateHtml;
+    
+    @UiField
     TextField name;
 
     @UiField(provided = true)
@@ -94,9 +99,6 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
 
     @UiField
     CheckBox disableFilter;
-
-    @UiField
-    CheckBox preview;
 
     @UiField(provided = true)
     final ListStore<Device> deviceStore;
@@ -261,9 +263,27 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
         grid.getSelectionModel().deselectAll();
     }
 
-    @UiHandler("generateButton")
-    public void onGenerateClicked(SelectEvent event) {
+    @UiHandler("generateHtml")
+    public void onGenerateHtmlSelected(SelectionEvent<Item> event) {
+        generateReport(ReportFormat.HTML, false);
+    }
+    
+    @UiHandler("generateCsv")
+    public void onGenerateCsvSelected(SelectionEvent<Item> event) {
+        generateReport(ReportFormat.CSV, false);
+    }
+    
+    @UiHandler("previewButton")
+    public void onPreviewClicked(SelectEvent event) {
+        generateReport(ReportFormat.HTML, true);
+    }
+    
+    private void generateReport(ReportFormat format, boolean isPreview) {
+
         Report report = driver.flush();
+        report.setFormat(format);
+        report.setPreview(isPreview);
+
         if (!driver.hasErrors()) {
             reportHandler.onGenerate(report);
         }
