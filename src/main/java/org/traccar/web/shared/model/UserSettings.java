@@ -35,7 +35,7 @@ public class UserSettings implements IsSerializable {
     private long id;
 
     public UserSettings() {
-        speedUnit = SpeedUnit.knots;
+        speedUnit = SpeedUnit.kilometersPerHour;
         timePrintInterval = DEFAULT_TIME_PRINT_INTERVAL;
         zoomLevel = DEFAULT_ZOOM_LEVEL;
         centerLongitude = DEFAULT_CENTER_LONGITUDE;
