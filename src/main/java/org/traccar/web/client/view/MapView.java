@@ -127,64 +127,6 @@ public class MapView {
         switch (mapType) {
             case OSM:
                 return OSM.Mapnik(mapType.getName());
-            case GOOGLE_HYBRID:
-                GoogleV3Options gHybridOptions = new GoogleV3Options();
-                gHybridOptions.setNumZoomLevels(20);
-                gHybridOptions.setType(GoogleV3MapType.G_HYBRID_MAP);
-                return new GoogleV3(mapType.getName(), gHybridOptions);
-            case GOOGLE_NORMAL:
-                GoogleV3Options gNormalOptions = new GoogleV3Options();
-                gNormalOptions.setNumZoomLevels(22);
-                gNormalOptions.setType(GoogleV3MapType.G_NORMAL_MAP);
-                return new GoogleV3(mapType.getName(), gNormalOptions);
-            case GOOGLE_SATELLITE:
-                GoogleV3Options gSatelliteOptions = new GoogleV3Options();
-                gSatelliteOptions.setNumZoomLevels(20);
-                gSatelliteOptions.setType(GoogleV3MapType.G_SATELLITE_MAP);
-                return new GoogleV3(mapType.getName(), gSatelliteOptions);
-            case GOOGLE_TERRAIN:
-                GoogleV3Options gTerrainOptions = new GoogleV3Options();
-                gTerrainOptions.setNumZoomLevels(16);
-                gTerrainOptions.setType(GoogleV3MapType.G_TERRAIN_MAP);
-                return new GoogleV3(mapType.getName(), gTerrainOptions);
-            case BING_ROAD:
-                return new Bing(new BingOptions(mapType.getName(), ApplicationContext.getInstance().getApplicationSettings().getBingMapsKey(), BingType.ROAD));
-            case BING_HYBRID:
-                return new Bing(new BingOptions(mapType.getName(), ApplicationContext.getInstance().getApplicationSettings().getBingMapsKey(), BingType.HYBRID));
-            case BING_AERIAL:
-                return new Bing(new BingOptions(mapType.getName(), ApplicationContext.getInstance().getApplicationSettings().getBingMapsKey(), BingType.AERIAL));
-            case MAPQUEST_ROAD:
-            case MAPQUEST_AERIAL:
-                XYZOptions mqOptions = new XYZOptions();
-                mqOptions.setTransitionEffect(TransitionEffect.RESIZE);
-                mqOptions.setProjection("EPSG:900913");
-                String tiles = "map";
-                switch (mapType) {
-                    case MAPQUEST_ROAD:
-                        mqOptions.setAttribution(
-                                "Data, imagery and map information provided by <a href='http://www.mapquest.com/'  target='_blank'>MapQuest</a>," +
-                                " <a href='http://www.openstreetmap.org/' target='_blank'>Open Street Map</a> and contributors," +
-                                " <a href='http://creativecommons.org/licenses/by-sa/2.0/' target='_blank'>CC-BY-SA</a>" +
-                                "  <img src='http://developer.mapquest.com/content/osm/mq_logo.png' border='0'>");
-                        break;
-                    case MAPQUEST_AERIAL:
-                        tiles = "sat";
-                        mqOptions.setAttribution(
-                                "Tiles Courtesy of <a href='http://open.mapquest.co.uk/' target='_blank'>MapQuest</a>." +
-                                        " Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency." +
-                                        " <img src='http://developer.mapquest.com/content/osm/mq_logo.png' border='0'>");
-                        break;
-                }
-
-                return new XYZ(mapType.getName(), new String[] {
-                        "http://otile1.mqcdn.com/tiles/1.0.0/" + tiles + "/${z}/${x}/${y}.png",
-                        "http://otile2.mqcdn.com/tiles/1.0.0/" + tiles + "/${z}/${x}/${y}.png",
-                        "http://otile3.mqcdn.com/tiles/1.0.0/" + tiles + "/${z}/${x}/${y}.png",
-                        "http://otile4.mqcdn.com/tiles/1.0.0/" + tiles + "/${z}/${x}/${y}.png"}, mqOptions);
-            case STAMEN_TONER:
-                Layer stamenLayer = Layer.narrowToLayer(createStamenLayer("toner"));
-                stamenLayer.setName(mapType.getName());
-                return stamenLayer;
         }
         throw new IllegalArgumentException("Unsupported map type: " + mapType);
     }

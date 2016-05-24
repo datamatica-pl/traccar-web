@@ -220,24 +220,11 @@ public abstract class ReportGenerator {
         String text = lonLatFormat.format(latitude) + " \u00B0, " +
                 lonLatFormat.format(longitude) + " \u00B0";
 
-        switch (userSettings.getMapType()) {
-            case GOOGLE_HYBRID:
-            case GOOGLE_NORMAL:
-            case GOOGLE_SATELLITE:
-            case GOOGLE_TERRAIN: {
-                link("https://maps.google.com/maps?q=" + lonLatFormat.format(latitude) + "," + lonLatFormat.format(longitude) + "&t=m",
-                        "_blank", text);
-                break;
-            }
-            default: {
-                link("http://www.openstreetmap.org/?" +
-                                "mlat=" + lonLatFormat.format(latitude) + "&mlon=" + lonLatFormat.format(longitude) +
-                                "#map=" + userSettings.getZoomLevel() + "/" +
-                                lonLatFormat.format(latitude) + "/" + lonLatFormat.format(longitude),
-                        "_blank", text);
-                break;
-            }
-        }
+        link("http://www.openstreetmap.org/?" +
+                "mlat=" + lonLatFormat.format(latitude) + "&mlon=" + lonLatFormat.format(longitude) +
+                "#map=" + userSettings.getZoomLevel() + "/" +
+                lonLatFormat.format(latitude) + "/" + lonLatFormat.format(longitude),
+                "_blank", text);
     }
 
     void mapWithRoute(List<Position> positions, String width, String height) {
