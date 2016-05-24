@@ -6,7 +6,7 @@
   	xmlns:container="urn:import:com.sencha.gxt.widget.core.client.container"
   	xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
   	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button">
-
+   
   <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" field="verticalLayoutData">
     <ui:attributes width="1" height="-1" />
   </ui:with>
@@ -14,6 +14,7 @@
   <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
 
   <gxt:Window ui:field="window" pixelSize="320, -1" modal="true" closable="false"
+                bodyBorder="true"
                 resizable="false" draggable="false"
                 headingText="{i18n.authentication}" focusWidget="{login}">
     <container:VerticalLayoutContainer>

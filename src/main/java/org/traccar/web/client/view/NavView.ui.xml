@@ -4,19 +4,22 @@
     xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
     xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
     xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
-    xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu">
+    xmlns:image="urn:import:com.google.gwt.user.client.ui"
+    xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu"
+    xmlns:container = "unr:import:com.sencha.gxt.widget.core.client.container">
 
   <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
-
+  
   <ui:style>
-    .app-menu {
-      background-color: #157FCC !important;
-      background-image: none !important;
-    }
+      .logo {
+        top: 2px !important;
+        left: 340px !important;
+        height: 75px !important;
+      }
   </ui:style>
 
-  <gxt:ContentPanel ui:field="contentPanel" headerVisible="false" addStyleNames="{style.app-menu}">
-    <toolbar:ToolBar addStyleNames="{style.app-menu}">
+  <gxt:ContentPanel ui:field="contentPanel" headerVisible="false">
+    <toolbar:ToolBar addStyleNames="theme-background">
       <button:TextButton ui:field="reportsButton" text="{i18n.reports}" />
       <button:TextButton ui:field="groupsButton" text="{i18n.groups}" />
       <button:TextButton text="{i18n.settings}" ui:field="settingsButton">
@@ -37,11 +40,13 @@
         </button:menu>
       </button:TextButton>
       <button:TextButton text="{i18n.importData}" ui:field="importButton" />
-      <toolbar:FillToolItem addStyleNames="{style.app-menu}"/>
+      <toolbar:FillToolItem/>
+      <image:Image ui:field="logo" addStyleNames="{style.logo}"/>
+      <toolbar:FillToolItem/>
       <button:TextButton text="{i18n.account}" ui:field="settingsAccount" />
       <button:TextButton text="{i18n.preferences}" ui:field="settingsPreferences" />
       <button:TextButton text="{i18n.logout}" ui:field="logoutButton" />
     </toolbar:ToolBar>
   </gxt:ContentPanel>
-
+  
 </ui:UiBinder>

@@ -19,7 +19,7 @@
   </ui:with>
 
   <ui:with type="com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData" field="northData">
-    <ui:attributes size="38" minSize="38" margins="{northMargins}" />
+    <ui:attributes size="80" margins="{northMargins}" />
   </ui:with>
   <ui:with type="com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData" field="westData">
     <ui:attributes size="0.15" maxSize="2147483647" margins="{westMargins}" split="true" />

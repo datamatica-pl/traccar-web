@@ -194,7 +194,7 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
             routeMarkersType.add(item);
         }
 
-        devicesTabs = new TabPanel(GWT.<TabPanel.TabPanelAppearance>create(Css3TabPanelBottomAppearance.class));
+        devicesTabs = new TabPanel();
         archivePanels = new HashMap<>();
 
         uiBinder.createAndBindUi(this);
