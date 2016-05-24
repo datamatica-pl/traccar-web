@@ -11,10 +11,10 @@
   </persistence-unit>
   <persistence-unit name="debug">
     <properties>
-      <property name="hibernate.connection.driver_class" value="org.h2.Driver"/>
-      <property name="hibernate.connection.url" value="jdbc:h2:~/Documents/traccar-web/database"/>
-      <property name="hibernate.connection.username" value="sa"/>
-      <property name="hibernate.connection.password" value=""/>
+      <property name="hibernate.connection.driver_class" value="com.mysql.jdbc.Driver"/>
+      <property name="hibernate.connection.url" value="jdbc:mysql://127.0.0.1:3306/traccar?allowMultiQueries=true&amp;autoReconnect=true&amp;useUnicode=yes&amp;characterEncoding=UTF-8&amp;sessionVariables=sql_mode=ANSI_QUOTES"/>
+      <property name="hibernate.connection.username" value="root"/>
+      <property name="hibernate.connection.password" value="qwe123"/>
       <property name="hibernate.show_sql" value="true"/>
       <property name="hibernate.hbm2ddl.auto" value="update"/>
     </properties>
