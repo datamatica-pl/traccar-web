@@ -46,6 +46,7 @@ import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 
 import java.util.*;
+import org.traccar.web.client.ApplicationContext;
 
 public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandler<Group> {
 
@@ -143,6 +144,9 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
     GroupProperties groupProperties = GWT.create(GroupProperties.class);
 
     public GroupsDialog(final GroupStore groupStore, final GroupsHandler groupsHandler) {
+        boolean admin = ApplicationContext.getInstance().getUser().getAdmin();
+        boolean manager = ApplicationContext.getInstance().getUser().getManager(); 
+        
         this.groupStore = groupStore;
         this.groupsHandler = groupsHandler;
         this.newGroups = new ArrayList<>();
@@ -157,8 +161,6 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
         ColumnModel<Group> columnModel = new ColumnModel<>(columnConfigList);
 
         grid = new TreeGrid<>(groupStore, columnModel, colName);
-        grid.getSelectionModel().addSelectionChangedHandler(this);
-        grid.getSelectionModel().setSelectionMode(Style.SelectionMode.SINGLE);
         grid.getTreeView().setAutoFill(true);
         grid.getTreeView().setStripeRows(true);
         grid.getTreeView().setSortingEnabled(false);
@@ -177,10 +179,20 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
         dropTarget.addDropHandler(dragHandler);
 
         uiBinder.createAndBindUi(this);
+        
+         if(admin || manager) {
+             grid.getSelectionModel().addSelectionChangedHandler(this);
+             grid.getSelectionModel().setSelectionMode(Style.SelectionMode.SINGLE);
+             
+             GridInlineEditing<Group> editing = new GridInlineEditing<>(grid);
+             editing.addEditor(colName, new TextField());
+             editing.addEditor(colDescription, new TextField());
+         } else {
+             addButton.setEnabled(false);
+             removeButton.setEnabled(false);
+             shareButton.setEnabled(false);
+         }
 
-        GridInlineEditing<Group> editing = new GridInlineEditing<>(grid);
-        editing.addEditor(colName, new TextField());
-        editing.addEditor(colDescription, new TextField());
 
         window.addHideHandler(new HideEvent.HideHandler() {
             @Override
