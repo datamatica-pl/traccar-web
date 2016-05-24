@@ -263,7 +263,7 @@ public class MapController implements ContentController, MapView.MapHandler, Dev
         }
         List<Position> withTime = track.getTimePositions(ApplicationContext.getInstance().getUserSettings().getTimePrintInterval());
         mapView.showArchiveTime(withTime);
-        mapView.showArchiveArrows(withTime, track.getStyle().getTrackColor());
+        mapView.showArchiveArrows(track.getPositions(), track.getStyle().getTrackColor());
     }
 
     public void selectArchivePosition(Position position) {

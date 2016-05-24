@@ -360,6 +360,8 @@ public class MapPositionRenderer {
     }
 
     private void clear(DeviceData deviceData) {
+        System.out.println("hurra");
+        
         // clear markers and title
         clearMarkersAndTitleAndAlert(deviceData);
         // clear labels
@@ -416,6 +418,8 @@ public class MapPositionRenderer {
     }
 
     public void showPositions(List<Position> positions) {
+        showArrows(positions, "ffffff");
+        
         DeviceData deviceData = getDeviceData(positions);
         deviceData.positions = positions;
         for (Position position : positions) {
@@ -857,13 +861,9 @@ public class MapPositionRenderer {
 
     private Style createArrowStyle(Position position, String bgColor) {
         Style style = new Style();
-        style.setGraphicName("arrow");
-        style.setStrokeColor("black");
-        style.setStrokeWidth(0.5);
-        style.setFillOpacity(1.0);
+        style.setExternalGraphic("/img/arrow.svg");
+        style.setGraphicOpacity(1.0);
 
-        style.setFillColor("#" + bgColor);
-        style.setFill(true);
         style.setPointRadius(10);
         if (position.getCourse() != null) {
             style.setRotation(position.getCourse().toString());
@@ -874,7 +874,8 @@ public class MapPositionRenderer {
     public void showArrows(List<Position> positions, String color) {
         DeviceData deviceData = getDeviceData(positions);
         for (Position position : positions) {
-            if (visibilityProvider.isVisible(position.getDevice())) {
+            if (visibilityProvider.isVisible(position.getDevice())
+                    && !deviceData.arrows.containsKey(position)) {
                 VectorFeature arrow = new VectorFeature(
                         mapView.createPoint(position.getLongitude(), position.getLatitude()),
                         createArrowStyle(position, color));
