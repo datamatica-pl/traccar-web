@@ -191,6 +191,8 @@ public class MapController implements ContentController, MapView.MapHandler, Dev
                         }
                     }
                     latestPositionMap.put(device.getId(), position);
+                    if(!ApplicationContext.getInstance().isRecordingTrace(device))
+                        clearTrackTrace(device);
                 }
                 updateTimer.schedule(ApplicationContext.getInstance().getApplicationSettings().getUpdateInterval());
             }
@@ -318,5 +320,9 @@ public class MapController implements ContentController, MapView.MapHandler, Dev
         } else {
             mapView.clearLatestPosition(deviceId);
         }
+    }
+    
+    public void clearTrackTrace(Device device) {
+        mapView.clearLatestTrackPositions(device);
     }
 }

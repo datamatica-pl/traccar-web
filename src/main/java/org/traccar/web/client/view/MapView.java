@@ -308,7 +308,8 @@ public class MapView {
                 return true;
             }
         }, null);
-        latestPositionTrackRenderer = new MapPositionRenderer(this, null, null, deviceVisibilityHandler, null);
+        latestPositionTrackRenderer = new MapPositionRenderer(this, archivePositionSelectHandler,
+                positionMouseHandler, deviceVisibilityHandler, null);
         geoFenceRenderer = new GeoFenceRenderer(this);
 
         // register arrow graphic
@@ -342,9 +343,14 @@ public class MapView {
     public void clearLatestTrackPositions(Device device, Date before) {
         latestPositionTrackRenderer.clearTrackPositions(device, before);
     }
+    
+    public void clearLatestTrackPositions(Device device) {
+        latestPositionTrackRenderer.clearTrackPositions(device, new Date());
+    }
 
     public void showLatestTrackPositions(List<Position> positions) {
         latestPositionTrackRenderer.showTrackPositions(positions);
+        latestPositionTrackRenderer.showArrows(positions, "");
     }
 
     public void showLatestTime(List<Position> positions) {

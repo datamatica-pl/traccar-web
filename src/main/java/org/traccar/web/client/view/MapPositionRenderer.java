@@ -376,12 +376,7 @@ public class MapPositionRenderer {
             label.destroy();
         }
         deviceData.timeLabels.clear();
-        // clear arrows
-        for (VectorFeature arrow : deviceData.arrows.values()) {
-            getVectorLayer().removeFeature(arrow);
-            arrow.destroy();
-        }
-        deviceData.arrows.clear();
+        clearArrows(deviceData);
         // clear tracks
         if (deviceData.track != null) {
             getVectorLayer().removeFeature(deviceData.track);
@@ -403,11 +398,21 @@ public class MapPositionRenderer {
 
         setSnapToTrack(deviceData, false);
     }
-
+    
     public void clearPositionsAndTitlesAndAlerts() {
         for (DeviceData deviceData : deviceMap.values()) {
             clearMarkersAndTitleAndAlert(deviceData);
+            clearArrows(deviceData);
         }
+    }
+
+    private void clearArrows(DeviceData deviceData) {
+        // clear arrows
+        for (VectorFeature arrow : deviceData.arrows.values()) {
+            getVectorLayer().removeFeature(arrow);
+            arrow.destroy();
+        }
+        deviceData.arrows.clear();
     }
 
     public void clear() {
@@ -617,21 +622,26 @@ public class MapPositionRenderer {
         }
     }
 
-    public void clearTrackPositions(Device device, Date before) {
+    public void clearTrackPositions(Device device, Date before) {                
         DeviceData deviceData = getDeviceData(device);
         if (deviceData.track != null) {
             boolean updated = false;
             LineString trackLine = deviceData.trackLine;
-            for (Iterator<VectorFeature> it = deviceData.trackPoints.iterator(); it.hasNext(); ) {
-                Position position = deviceData.positions.get(0);
-                if (position.getTime().after(before)) {
+
+            while (deviceData.positions.size() > 0) {
+                if (deviceData.positions.get(0).getTime().after(before)) {
                     break;
                 }
+                Position position = deviceData.positions.remove(0);
+                
+                if(trackLine != null && trackLine.getVertices(true).length > 2)
+                    trackLine.removePoint(Point.narrowToPoint(trackLine.getComponent(0)));
+                else
+                    trackLine = null;
+                if(!deviceData.trackPoints.isEmpty())
+                    getVectorLayer().removeFeature(deviceData.trackPoints.remove(0));
+                
                 updated = true;
-                trackLine.removePoint(Point.narrowToPoint(trackLine.getComponent(0)));
-                getVectorLayer().removeFeature(it.next());
-                it.remove();
-                deviceData.positions.remove(0);
 
                 VectorFeature timeLabel = deviceData.timeLabels.remove(position);
                 if (timeLabel != null) {
@@ -653,10 +663,12 @@ public class MapPositionRenderer {
             }
             if (updated) {
                 getVectorLayer().removeFeature(deviceData.track);
-                VectorFeature track = new VectorFeature(trackLine, deviceData.track.getStyle());
                 deviceData.track.destroy();
-                getVectorLayer().addFeature(track);
-                deviceData.track = track;
+                if(trackLine != null) {
+                    VectorFeature track = new VectorFeature(trackLine, deviceData.track.getStyle());
+                    getVectorLayer().addFeature(track);
+                    deviceData.track = track;
+                }
             }
         }
     }
@@ -667,7 +679,9 @@ public class MapPositionRenderer {
             if (visibilityProvider.isVisible(position.getDevice())) {
                 VectorFeature point = new VectorFeature(mapView.createPoint(position.getLongitude(), position.getLatitude()), getTrackPointStyle());
                 getVectorLayer().addFeature(point);
+                setUpEvents(point, position);
                 deviceData.trackPoints.add(point);
+                deviceData.markerMap.put(position.getId(), new DeviceMarker(position, point));
             }
         }
     }
@@ -880,6 +894,7 @@ public class MapPositionRenderer {
                         mapView.createPoint(position.getLongitude(), position.getLatitude()),
                         createArrowStyle(position, color));
                 deviceData.arrows.put(position, arrow);
+                setUpEvents(arrow, position);
                 getMarkerLayer().addFeature(arrow);
             }
         }
