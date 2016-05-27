@@ -157,6 +157,18 @@
                       </form:FieldLabel>
                   </container:child>
                   <container:child layoutData="{verticalLayoutData}">
+                      <form:FieldLabel text="{i18n.timezoneOffset}" labelWidth="180">
+                          <form:widget>
+                              <form:NumberField editor="{integerPropertyEditor}"
+                                                ui:field="timezoneOffset"
+                                                allowNegative="true"
+                                                allowDecimals="false"
+                                                allowBlank="true"
+                                                width="4" />
+                          </form:widget>
+                      </form:FieldLabel>
+                  </container:child>
+                  <container:child layoutData="{verticalLayoutData}">
                       <form:FieldLabel text="{i18n.showProtocol}" labelWidth="180">
                           <form:widget>
                               <form:CheckBox ui:field="showProtocol" />
