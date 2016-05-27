@@ -58,92 +58,98 @@ public class PositionInfoPopup {
                 (position.getAltitude() == null ? "" : ("<td style=\"font-size: 10pt; border-bottom: 1px solid #000000; padding: 3px 10px 3px 10px;\" valign=\"bottom\"" + (position.getSpeed() == null ? " colspan=\"2\" align=\"right\"" : "") + ">h: " + position.getAltitude() + " " + i18n.meter() + "</td>")) +
                 "</tr>";
 
+        boolean admin = ApplicationContext.getInstance().getUser().getAdmin();
+        boolean manager = ApplicationContext.getInstance().getUser().getManager(); 
         Device device = deviceStore.findModelWithKey(Long.toString(position.getDevice().getId()));
 
-        if (position.getDevice().getOdometer() > 0 && device.isShowOdometer()) {
-            body += "<tr><td style=\"padding: 3px 0px 3px 0px;\">" + i18n.odometer() + "</td><td>" + ApplicationContext.getInstance().getFormatterUtil().getDistanceFormat().format(position.getDevice().getOdometer()) + "</td></tr>";
-        }
-        if (position.getProtocol() != null && device.isShowProtocol()) {
-            body += "<tr><td style=\"padding: 3px 0px 3px 0px;\">" + i18n.protocol() + "</td><td>" + position.getProtocol() + "</td></tr>";
-        }
-        String other = position.getOther();
-        if (other != null) {
-            Map<String, Sensor> sensors = new HashMap<>(device.getSensors().size());
-            for (Sensor sensor : device.getSensors()) {
-                sensors.put(sensor.getParameterName(), sensor);
+        if(manager || admin) {
+            if (position.getDevice().getOdometer() > 0 && device.isShowOdometer()) {
+                body += "<tr><td style=\"padding: 3px 0px 3px 0px;\">" + i18n.odometer() + "</td><td>" + ApplicationContext.getInstance().getFormatterUtil().getDistanceFormat().format(position.getDevice().getOdometer()) + "</td></tr>";
             }
-
-            Map<String, Object> sensorData = new HashMap<>();
-
-            // XML
-            if (other.trim().startsWith("<")) {
-                try {
-                    NodeList nodes = XMLParser.parse(other).getFirstChild().getChildNodes();
-                    for (int i = 0; i < nodes.getLength(); i++) {
-                        Node node = nodes.item(i);
-                        String parameterName = node.getNodeName();
-                        String valueText = node.getFirstChild().getNodeValue();
-                        sensorData.put(parameterName, valueText);
-                    }
-                } catch (Exception error) {
+            if (position.getProtocol() != null && device.isShowProtocol()) {
+                body += "<tr><td style=\"padding: 3px 0px 3px 0px;\">" + i18n.protocol() + "</td><td>" + position.getProtocol() + "</td></tr>";
+            }
+            String other = position.getOther();
+            if (other != null) {
+                Map<String, Sensor> sensors = new HashMap<>(device.getSensors().size());
+                for (Sensor sensor : device.getSensors()) {
+                    sensors.put(sensor.getParameterName(), sensor);
                 }
-            } else { // JSON
-                try {
-                    JSONValue parsed = JSONParser.parseStrict(other);
-                    JSONObject object = parsed.isObject();
-                    if (object != null) {
-                        for (String parameterName : object.keySet()) {
-                            JSONValue value = object.get(parameterName);
-                            if (value.isNumber() != null) {
-                                sensorData.put(parameterName, value.isNumber().doubleValue());
-                            } else if (value.isBoolean() != null) {
-                                sensorData.put(parameterName, value.isBoolean().booleanValue());
-                            } else if (value.isString() != null) {
-                                sensorData.put(parameterName, value.isString().stringValue());
+
+                Map<String, Object> sensorData = new HashMap<>();
+
+                // XML
+                if (other.trim().startsWith("<")) {
+                    try {
+                        NodeList nodes = XMLParser.parse(other).getFirstChild().getChildNodes();
+                        for (int i = 0; i < nodes.getLength(); i++) {
+                            Node node = nodes.item(i);
+                            String parameterName = node.getNodeName();
+                            String valueText = node.getFirstChild().getNodeValue();
+                            sensorData.put(parameterName, valueText);
+                        }
+                    } catch (Exception error) {
+                    }
+                } else { // JSON
+                    try {
+                        JSONValue parsed = JSONParser.parseStrict(other);
+                        JSONObject object = parsed.isObject();
+                        if (object != null) {
+                            for (String parameterName : object.keySet()) {
+                                if(parameterName.equals("ip") && !admin)
+                                    continue;
+                                JSONValue value = object.get(parameterName);
+                                if (value.isNumber() != null) {
+                                    sensorData.put(parameterName, value.isNumber().doubleValue());
+                                } else if (value.isBoolean() != null) {
+                                    sensorData.put(parameterName, value.isBoolean().booleanValue());
+                                } else if (value.isString() != null) {
+                                    sensorData.put(parameterName, value.isString().stringValue());
+                                }
                             }
                         }
+                    } catch (Exception error) {
                     }
-                } catch (Exception error) {
                 }
-            }
 
-            if (!device.isShowProtocol()) {
-                sensorData.remove("protocol");
-            }
-
-            // write values
-            for (Map.Entry<String, Object> entry : sensorData.entrySet()) {
-                String parameterName = entry.getKey();
-                Object value = entry.getValue();
-                String valueText = value.toString();
-                Sensor sensor = sensors.get(parameterName);
-                if (sensor != null) {
-                    if (!sensor.isVisible()) {
-                        continue;
-                    }
-                    parameterName = sensor.getName();
-                    if (value instanceof Number || value.toString().matches("^[-+]?\\d+(\\.\\d+)?$")) {
-                        double doubleValue;
-                        if (value instanceof Number) {
-                            doubleValue = ((Number) value).doubleValue();
-                        } else {
-                            doubleValue = Double.parseDouble(valueText);
-                        }
-                        List<SensorInterval> intervals = SensorsEditor.intervals(sensor);
-                        if (!intervals.isEmpty()) {
-                            valueText = intervalText(doubleValue, intervals);
-                        }
-                    }
-                } else if (parameterName.equals("protocol")) {
-                    parameterName = i18n.protocol();
+                if (!device.isShowProtocol()) {
+                    sensorData.remove("protocol");
                 }
-                if (!valueText.isEmpty()) {
-                    body += "<tr><td style=\"padding: 3px 0px 3px 0px;\">" + parameterName + "</td><td>" + valueText + "</td></tr>";
+
+                // write values
+                for (Map.Entry<String, Object> entry : sensorData.entrySet()) {
+                    String parameterName = entry.getKey();
+                    Object value = entry.getValue();
+                    String valueText = value.toString();
+                    Sensor sensor = sensors.get(parameterName);
+                    if (sensor != null) {
+                        if (!sensor.isVisible()) {
+                            continue;
+                        }
+                        parameterName = sensor.getName();
+                        if (value instanceof Number || value.toString().matches("^[-+]?\\d+(\\.\\d+)?$")) {
+                            double doubleValue;
+                            if (value instanceof Number) {
+                                doubleValue = ((Number) value).doubleValue();
+                            } else {
+                                doubleValue = Double.parseDouble(valueText);
+                            }
+                            List<SensorInterval> intervals = SensorsEditor.intervals(sensor);
+                            if (!intervals.isEmpty()) {
+                                valueText = intervalText(doubleValue, intervals);
+                            }
+                        }
+                    } else if (parameterName.equals("protocol")) {
+                        parameterName = i18n.protocol();
+                    }
+                    if (!valueText.isEmpty()) {
+                        body += "<tr><td style=\"padding: 3px 0px 3px 0px;\">" + parameterName + "</td><td>" + valueText + "</td></tr>";
+                    }
                 }
             }
         }
-
-        if (position.getGeoFences() != null && !position.getGeoFences().isEmpty()) {
+        
+    if (position.getGeoFences() != null && !position.getGeoFences().isEmpty()) {
             body += "<tr><td style=\"border-width: 1px 0px 0px 0px; border-style: solid; border-color: #000000; padding: 3px 10px 3px 0px;\" colspan=\"2\">";
             for (GeoFence geoFence : position.getGeoFences()) {
                 body += "<p><div style=\"" +
