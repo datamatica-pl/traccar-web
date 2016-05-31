@@ -36,6 +36,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.persist.Transactional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hibernate.proxy.HibernateProxy;
 import org.traccar.web.client.model.DataService;
@@ -1054,7 +1056,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
 
         ObjectMapper jsonMapper = new ObjectMapper();
-        Map<String, Object> result = new HashMap<>();
+        final Map<String, Object> result = new HashMap<>();
         try {
             Class<?> contextClass = Class.forName("org.traccar.Context");
             Method getPermissionsManager = contextClass.getDeclaredMethod("getConnectionManager");
@@ -1067,8 +1069,14 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             } else {
                 if(command.getType() == CommandType.CUSTOM) {
                     Class<?> objectClass = Class.forName("java.lang.Object");
-                    Method sendCommand = activeDevice.getClass().getDeclaredMethod("write", objectClass);
-                    sendCommand.invoke(activeDevice, command.getCommand());
+                    Method sendCommand = activeDevice.getClass().getDeclaredMethod("write", objectClass,
+                            objectClass);
+                    sendCommand.invoke(activeDevice, command.getCommand(), new ICommandHandler() {
+                        @Override
+                        public void success(String data) {
+                            result.put("response", data);
+                        }
+                    });
                 } else {
                     Class<?> backendCommandClass = Class.forName("org.traccar.model.Command");
                     Object backendCommand = backendCommandClass.newInstance();
@@ -1089,8 +1097,15 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                         backendCommand = objectFromJson.invoke(null, new StringReader(jsonMapper.writeValueAsString(command)), backendCommandClass);
                     }
 
-                    Method sendCommand = activeDevice.getClass().getDeclaredMethod("sendCommand", backendCommandClass);
-                    sendCommand.invoke(activeDevice, backendCommand);
+                    final Object awaiter = new Object();
+                    Method sendCommand = activeDevice.getClass().getDeclaredMethod("sendCommand", backendCommandClass, Object.class);
+                    log("[UI]sending command");
+                    sendCommand.invoke(activeDevice, backendCommand, new CommandHandler(result, awaiter));
+                    log("[UI]waiting for answer");
+                    synchronized(awaiter) {
+                        awaiter.wait();
+                    }
+                    log("[UI]answer received");
                 }
             }
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException
@@ -1106,6 +1121,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             } else {
                 result.put("reason", ite.getCause().getClass().getName() + ": " + ite.getCause().getLocalizedMessage());
             }
+        } catch (InterruptedException ex) {
+            Logger.getLogger(DataServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         try {
@@ -1113,6 +1130,25 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         } catch (JsonProcessingException e) {
             log("Unable to prepare JSON result", e);
             return "{success: false, reason: \"Unable to prepare result\"}";
+        }
+    }
+    
+    public static class CommandHandler implements ICommandHandler{
+        private final Map<String,Object> result;
+        private final Object awaiter;
+        
+        
+        public CommandHandler(final Map<String,Object> result, final Object awaiter) {
+            this.result = result;
+            this.awaiter = awaiter;
+        }
+        
+        @Override
+        public void success(String data) {
+            result.put("response", data);
+            synchronized(awaiter) {
+                awaiter.notifyAll();
+            }
         }
     }
 }
