@@ -409,6 +409,26 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 }
             });
         }
+        for(Device device : devices) {
+            try {
+                String protocolName = device.getLatestPosition().getProtocol();
+                protocolName = protocolName.substring(0, 1).toUpperCase() + protocolName.substring(1);
+                
+                final Class<?> protocolClass;
+                Class<?> baseProtocol = Class.forName("org.traccar.BaseProtocol");
+                protocolClass = Class.forName("org.traccar.protocol."+protocolName+"Protocol");
+                Object protocol = protocolClass.getConstructor().newInstance();
+                Method supportedCommands = baseProtocol.getDeclaredMethod("getSupportedCommands");
+                Set<String> commands = (Set<String>)supportedCommands.invoke(protocol);
+                
+                for(String command : commands)
+                    device.addSupportedCommand(CommandType.fromString(command));
+                
+                device.setProtocol(protocolName);
+            } catch (Exception ex) {
+                Logger.getLogger(Device.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
         if (full && !devices.isEmpty()) {
             List<Maintenance> maintenaces = getSessionEntityManager().createQuery("SELECT m FROM Maintenance m WHERE m.device IN :devices ORDER BY m.indexNo ASC", Maintenance.class)
                     .setParameter("devices", devices)
@@ -1084,7 +1104,11 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                             objectClass);
                     sendCommand.invoke(activeDevice, command.getCommand(), new CommandHandler(result, awaiter));
                     synchronized(awaiter) {
-                        awaiter.wait();
+                        awaiter.wait(COMMAND_TIMEOUT);
+                        if(!result.containsKey("success")) {
+                            result.put("success", false);
+                            result.put("reason", "timeout");
+                        }
                     }
                 } else {
                     Class<?> backendCommandClass = Class.forName("org.traccar.model.Command");
@@ -1110,7 +1134,11 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                     Method sendCommand = activeDevice.getClass().getDeclaredMethod("sendCommand", backendCommandClass, Object.class);
                     sendCommand.invoke(activeDevice, backendCommand, new CommandHandler(result, awaiter));
                     synchronized(awaiter) {
-                        awaiter.wait();
+                        awaiter.wait(COMMAND_TIMEOUT);
+                        if(!result.containsKey("success")) {
+                            result.put("success", false);
+                            result.put("reason", "timeout");
+                        }
                     }
                 }
             }
@@ -1143,6 +1171,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             return "{success: false, reason: \"Unable to prepare result\"}";
         }
     }
+    public static final int COMMAND_TIMEOUT = 15*1000;
     
     public static class CommandHandler implements ICommandHandler{
         private final Map<String,Object> result;
