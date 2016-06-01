@@ -1079,14 +1079,13 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             } else {
                 if(command.getType() == CommandType.CUSTOM) {
                     Class<?> objectClass = Class.forName("java.lang.Object");
+                    final Object awaiter = new Object();
                     Method sendCommand = activeDevice.getClass().getDeclaredMethod("write", objectClass,
                             objectClass);
-                    sendCommand.invoke(activeDevice, command.getCommand(), new ICommandHandler() {
-                        @Override
-                        public void success(String data) {
-                            result.put("response", data);
-                        }
-                    });
+                    sendCommand.invoke(activeDevice, command.getCommand(), new CommandHandler(result, awaiter));
+                    synchronized(awaiter) {
+                        awaiter.wait();
+                    }
                 } else {
                     Class<?> backendCommandClass = Class.forName("org.traccar.model.Command");
                     Object backendCommand = backendCommandClass.newInstance();
@@ -1109,13 +1108,10 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
 
                     final Object awaiter = new Object();
                     Method sendCommand = activeDevice.getClass().getDeclaredMethod("sendCommand", backendCommandClass, Object.class);
-                    log("[UI]sending command");
                     sendCommand.invoke(activeDevice, backendCommand, new CommandHandler(result, awaiter));
-                    log("[UI]waiting for answer");
                     synchronized(awaiter) {
                         awaiter.wait();
                     }
-                    log("[UI]answer received");
                 }
             }
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException
@@ -1136,6 +1132,11 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
 
         try {
+            if(result.get("success") == null)
+                Logger.getLogger(DataServiceImpl.class.getName())
+                        .log(Level.SEVERE, "success is null");
+            if((boolean)result.get("success"))
+                return result.get("response").toString();
             return jsonMapper.writeValueAsString(result);
         } catch (JsonProcessingException e) {
             log("Unable to prepare JSON result", e);
@@ -1156,6 +1157,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         @Override
         public void success(String data) {
             result.put("response", data);
+            result.put("success", true);
             synchronized(awaiter) {
                 awaiter.notifyAll();
             }
