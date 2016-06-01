@@ -77,7 +77,7 @@ public class LoginDialog {
         uiBinder.createAndBindUi(this);
 
         if (ApplicationContext.getInstance().getApplicationSettings().getRegistrationEnabled()) {
-            registerButton.enable();
+            registerButton.setVisible(true);
         }
     }
 

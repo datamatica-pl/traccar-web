@@ -66,6 +66,9 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
     CheckBox disallowDeviceManagementByUsers;
 
     @UiField
+    CheckBox allowCommandsOnlyForAdmins;
+
+    @UiField
     CheckBox eventRecordingEnabled;
 
     @UiField(provided = true)
@@ -88,6 +91,9 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
 
     @UiField
     TextField bingMapsKey;
+
+    @UiField
+    TextField matchServiceURL;
 
     public ApplicationSettingsDialog(ApplicationSettings applicationSettings, ApplicationSettingsHandler applicationSettingsHandler) {
         this.applicationSettingsHandler = applicationSettingsHandler;

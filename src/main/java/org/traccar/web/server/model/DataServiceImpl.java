@@ -378,6 +378,10 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         for (Group group : user.getGroups()) {
             group.getUsers().remove(user);
         }
+        for (User managedUser : user.getManagedUsers()) {
+            managedUser.setManagedBy(user.getManagedBy());
+        }
+
         entityManager.remove(user);
         return fillUserSettings(user);
     }
@@ -533,6 +537,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             tmp_device.setIconArrowPausedColor(device.getIconArrowPausedColor());
             tmp_device.setIconArrowStoppedColor(device.getIconArrowStoppedColor());
             tmp_device.setIconArrowOfflineColor(device.getIconArrowOfflineColor());
+            tmp_device.setIconArrowRadius(device.getIconArrowRadius());
             tmp_device.setShowName(device.isShowName());
             tmp_device.setShowProtocol(device.isShowProtocol());
             tmp_device.setShowOdometer(device.isShowOdometer());
@@ -1053,6 +1058,10 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     public String sendCommand(Command command) throws AccessDeniedException {
         Device device = getSessionEntityManager().find(Device.class, command.getDeviceId());
         if (!getSessionUser().hasAccessTo(device)) {
+            throw new AccessDeniedException();
+        }
+
+        if (applicationSettings.get().isAllowCommandsOnlyForAdmins() && !getSessionUser().getAdmin()) {
             throw new AccessDeniedException();
         }
 

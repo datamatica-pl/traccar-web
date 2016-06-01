@@ -28,16 +28,14 @@ import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.view.ArchiveView;
 import org.traccar.web.client.view.FilterDialog;
+import org.traccar.web.client.view.ReportsMenu;
 import org.traccar.web.client.view.UserSettingsDialog;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.Position;
+import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
-import org.traccar.web.shared.model.PositionIconType;
-import org.traccar.web.shared.model.UserSettings;
 
 public class ArchiveController implements ContentController, ArchiveView.ArchiveHandler {
 
@@ -62,10 +60,12 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
 
     public ArchiveController(ArchiveHandler archiveHandler,
                              UserSettingsDialog.UserSettingsHandler userSettingsHandler,
-                             ListStore<Device> deviceStore) {
+                             ListStore<Device> deviceStore,
+                             ListStore<Report> reportStore,
+                             ReportsMenu.ReportHandler reportHandler) {
         this.archiveHandler = archiveHandler;
         this.userSettingsHandler = userSettingsHandler;
-        this.archiveView = new ArchiveView(this, deviceStore);
+        this.archiveView = new ArchiveView(this, deviceStore, reportStore, reportHandler);
         this.originalTracks = new HashMap<>();
         this.snappedTracks = new HashMap<>();
         this.deviceStore = deviceStore;
@@ -209,7 +209,7 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
                     .append("&t=").append(position.getTime().getTime() / 1000);
         }
 
-        RequestBuilder builder = new RequestBuilder(RequestBuilder.POST, "https://router.project-osrm.org/match");
+        RequestBuilder builder = new RequestBuilder(RequestBuilder.POST, ApplicationContext.getInstance().getApplicationSettings().getMatchServiceURL());
         builder.setHeader("Content-type", "application/x-www-form-urlencoded");
         try {
             builder.sendRequest(body.toString(), new RequestCallback() {
@@ -246,13 +246,13 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
                         snappedTracks.put(device.getId(), snappedTrack);
                         showArchive(device);
                     } else {
-                        GWT.log("Incorrect response code: " + response.getStatusCode());
+                        new AlertMessageBox(i18n.error(), i18n.errSnapToRoads(response.getStatusCode(), response.getText())).show();
                     }
                 }
 
                 @Override
                 public void onError(Request request, Throwable exception) {
-                    GWT.log("Request error", exception);
+                    new AlertMessageBox(i18n.error(), i18n.errSnapToRoads(-1, exception.getLocalizedMessage())).show();
                 }
             });
         } catch (RequestException re) {
