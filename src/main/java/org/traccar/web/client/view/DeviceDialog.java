@@ -104,6 +104,9 @@ public class DeviceDialog implements Editor<Device> {
 
     @UiField
     NumberField<Double> speedLimit;
+    
+    @UiField
+    NumberField<Integer> timezoneOffset;
 
     @UiField
     CheckBox showProtocol;

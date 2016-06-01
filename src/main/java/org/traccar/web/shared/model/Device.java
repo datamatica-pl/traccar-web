@@ -93,6 +93,7 @@ public class Device implements IsSerializable, GroupedDevice {
         showName = device.showName;
         showProtocol = device.showProtocol;
         showOdometer = device.showOdometer;
+        timezoneOffset = device.timezoneOffset;
     }
 
     @Id
@@ -472,6 +473,17 @@ public class Device implements IsSerializable, GroupedDevice {
 
     public void setShowOdometer(boolean showOdometer) {
         this.showOdometer = showOdometer;
+    }
+    
+    @Column(nullable = true)
+    private Integer timezoneOffset;
+    
+    public int getTimezoneOffset() {
+        return timezoneOffset == null ? 0 : timezoneOffset;
+    }
+    
+    public void setTimezoneOffset(Integer timezoneOffset) {
+        this.timezoneOffset = timezoneOffset;
     }
 
     @Override
