@@ -411,7 +411,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
         for(Device device : devices) {
             try {
-                String protocolName = device.getLatestPosition().getProtocol();
+                device.setProtocol(device.getLatestPosition().getProtocol());
+                String protocolName = device.getProtocol();
                 protocolName = protocolName.substring(0, 1).toUpperCase() + protocolName.substring(1);
                 
                 final Class<?> protocolClass;
@@ -423,8 +424,6 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 
                 for(String command : commands)
                     device.addSupportedCommand(CommandType.fromString(command));
-                
-                device.setProtocol(protocolName);
             } catch (Exception ex) {
                 Logger.getLogger(Device.class.getName()).log(Level.SEVERE, null, ex);
             }
