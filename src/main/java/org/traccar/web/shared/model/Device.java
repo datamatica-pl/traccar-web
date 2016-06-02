@@ -102,6 +102,7 @@ public class Device implements IsSerializable, GroupedDevice {
         showProtocol = device.showProtocol;
         showOdometer = device.showOdometer;
         timezoneOffset = device.timezoneOffset;
+        commandPassword = device.commandPassword;
         supportedCommands = new ArrayList<>(device.supportedCommands);
         protocol = device.protocol;
     }

@@ -561,6 +561,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             tmp_device.setShowProtocol(device.isShowProtocol());
             tmp_device.setShowOdometer(device.isShowOdometer());
             tmp_device.setTimezoneOffset(device.getTimezoneOffset());
+            tmp_device.setCommandPassword(device.getCommandPassword());
 
             double prevOdometer = tmp_device.getOdometer();
             tmp_device.setOdometer(device.getOdometer());

@@ -169,6 +169,13 @@
                       </form:FieldLabel>
                   </container:child>
                   <container:child layoutData="{verticalLayoutData}">
+                      <form:FieldLabel text="{i18n.commandPassword}" labelWidth="180">
+                          <form:widget>
+                              <form:TextField ui:field="commandPassword" allowBlank="true" />
+                          </form:widget>
+                      </form:FieldLabel>
+                  </container:child>
+                  <container:child layoutData="{verticalLayoutData}">
                       <form:FieldLabel text="{i18n.showProtocol}" labelWidth="180">
                           <form:widget>
                               <form:CheckBox ui:field="showProtocol" />
