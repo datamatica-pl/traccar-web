@@ -28,6 +28,7 @@ import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.StringLabelProvider;
 import com.sencha.gxt.widget.core.client.Window;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.*;
 import org.traccar.web.client.i18n.Messages;
@@ -144,9 +145,10 @@ public class CommandDialog {
 
     @UiField
     TextField customMessage;
-
+    
     final Device device;
     final CommandHandler commandHandler;
+    final CommandArgumentsBinder contentBinder;
 
     public CommandDialog(Device device, CommandHandler commandHandler) {
         this.device = device;
@@ -178,6 +180,7 @@ public class CommandDialog {
         this.timeZone = new TimeZoneComboBox();
 
         uiBinder.createAndBindUi(this);
+        this.contentBinder = CommandArgumentsBinder.getInstance(device.getProtocol(), this);
 
         typeCombo.addSelectionHandler(new SelectionHandler<CommandType>() {
             @Override
@@ -188,40 +191,7 @@ public class CommandDialog {
     }
 
     private void toggleUI(CommandType type) {
-        lblFrequency.setVisible(type == CommandType.positionPeriodic);
-        frequency.setVisible(type == CommandType.positionPeriodic);
-        frequencyUnit.setVisible(type == CommandType.positionPeriodic);
-
-        lblCustomMessage.setVisible(type == CommandType.CUSTOM);
-        customMessage.setVisible(type == CommandType.CUSTOM);
-
-        lblTimeZone.setVisible(type == CommandType.setTimezone);
-        timeZone.setVisible(type == CommandType.setTimezone);
-
-        lblRadius.setVisible(type == CommandType.movementAlarm);
-        radius.setVisible(type == CommandType.movementAlarm);
-
-        lblPhoneNumber.setVisible(type == CommandType.sendSms);
-        phoneNumber.setVisible(type == CommandType.sendSms);
-        lblMessage.setVisible(type == CommandType.sendSms);
-        message.setVisible(type == CommandType.sendSms);
-
-        lblDefenseTime.setVisible(type == CommandType.setDefenseTime);
-        defenseTime.setVisible(type == CommandType.setDefenseTime);
-
-        lblSOSNumber1.setVisible(type == CommandType.setSOSNumbers);
-        lblSOSNumber2.setVisible(type == CommandType.setSOSNumbers);
-        lblSOSNumber3.setVisible(type == CommandType.setSOSNumbers);
-        SOSNumber1.setVisible(type == CommandType.setSOSNumbers);
-        SOSNumber2.setVisible(type == CommandType.setSOSNumbers);
-        SOSNumber3.setVisible(type == CommandType.setSOSNumbers);
-        
-        lblCenterNumber.setVisible(type == CommandType.setCenterNumber);
-        centerNumber.setVisible(type == CommandType.setCenterNumber);
-
-        lblSOSNumber.setVisible(type == CommandType.deleteSOSNumber);
-        SOSNumber.setVisible(type == CommandType.deleteSOSNumber);
-
+        contentBinder.bind(type);
         window.forceLayout();
     }
 

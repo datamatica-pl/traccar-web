@@ -528,6 +528,17 @@ public class Device implements IsSerializable, GroupedDevice {
     public void setProtocol(String protocol) {
         this.protocol = protocol;
     }
+    
+    @Column(nullable = true)
+    private String commandPassword;
+    
+    public String getCommandPassword() {
+        return commandPassword;
+    }
+    
+    public void setCommandPassword(String commandPassword) {
+        this.commandPassword = commandPassword;
+    }
 
     @Override
     public boolean equals(Object o) {
