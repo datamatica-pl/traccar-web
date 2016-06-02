@@ -38,8 +38,10 @@ import org.traccar.web.shared.model.Device;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 public class CommandDialog {
+    
     private static CommandDialogUiBinder uiBinder = GWT.create(CommandDialogUiBinder.class);
 
     interface CommandDialogUiBinder extends UiBinder<Widget, CommandDialog> {
@@ -149,9 +151,13 @@ public class CommandDialog {
     public CommandDialog(Device device, CommandHandler commandHandler) {
         this.device = device;
         this.commandHandler = commandHandler;
-
+        
         ListStore<CommandType> commandTypes = new ListStore<>(new EnumKeyProvider<CommandType>());
-        commandTypes.addAll(Arrays.asList(CommandType.values()));
+        List<CommandType> supportedCommands = device.getSupportedCommands();
+        if(supportedCommands == null || supportedCommands.isEmpty())
+            commandTypes.addAll(Arrays.asList(CommandType.values()));
+        else
+            commandTypes.addAll(device.getSupportedCommands());
         this.typeCombo = new ComboBox<>(commandTypes, new LabelProvider<CommandType>() {
             @Override
             public String getLabel(CommandType item) {

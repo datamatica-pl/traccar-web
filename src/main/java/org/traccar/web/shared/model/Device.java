@@ -18,11 +18,14 @@ package org.traccar.web.shared.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gwt.user.client.rpc.GwtTransient;
 import com.google.gwt.user.client.rpc.IsSerializable;
+import java.lang.reflect.InvocationTargetException;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.persistence.*;
 
@@ -54,6 +57,7 @@ public class Device implements IsSerializable, GroupedDevice {
         showName = true;
         showProtocol = true;
         showOdometer = true;
+        supportedCommands = new ArrayList<>();
     }
 
     public Device(Device device) {
@@ -98,6 +102,8 @@ public class Device implements IsSerializable, GroupedDevice {
         showProtocol = device.showProtocol;
         showOdometer = device.showOdometer;
         timezoneOffset = device.timezoneOffset;
+        supportedCommands = new ArrayList<>(device.supportedCommands);
+        protocol = device.protocol;
     }
 
     @Id
@@ -108,7 +114,7 @@ public class Device implements IsSerializable, GroupedDevice {
     public long getId() {
         return id;
     }
-
+    
     @GwtTransient
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(foreignKey = @ForeignKey(name = "devices_fkey_position_id"))
@@ -499,6 +505,28 @@ public class Device implements IsSerializable, GroupedDevice {
     
     public void setTimezoneOffset(Integer timezoneOffset) {
         this.timezoneOffset = timezoneOffset;
+    }
+    
+    @Transient
+    private ArrayList<CommandType> supportedCommands;
+    
+    public List<CommandType> getSupportedCommands() {
+        return new ArrayList(supportedCommands);
+    }
+    
+    public void addSupportedCommand(CommandType type) {
+        supportedCommands.add(type);
+    }
+    
+    @Transient
+    private String protocol;
+    
+    public String getProtocol() {
+        return protocol;
+    }
+    
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
     }
 
     @Override

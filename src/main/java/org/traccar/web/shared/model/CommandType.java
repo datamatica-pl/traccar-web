@@ -49,4 +49,8 @@ public enum CommandType implements IsSerializable {
     public static final String KEY_SOS_NUMBER_3 = "SOSNumber3";
     public static final String KEY_SOS_NUMBER = "SOSNumber";
     public static final String KEY_CENTER_NUMBER = "centerNumber";
+    
+    public static CommandType fromString(String commandType) {
+        return CommandType.valueOf(commandType);
+    }
 }
