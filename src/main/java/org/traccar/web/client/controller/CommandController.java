@@ -36,6 +36,7 @@ public class CommandController implements ContentController, DeviceView.CommandH
     interface CommandMapper extends ObjectMapper<Command> {}
 
     private final CommandMapper commandMapper = GWT.create(CommandMapper.class);
+    private CommandDialog currentDialog;
 
     @Override
     public ContentPanel getView() {
@@ -48,7 +49,8 @@ public class CommandController implements ContentController, DeviceView.CommandH
 
     @Override
     public void onCommand(Device device) {
-        new CommandDialog(device, this).show();
+        currentDialog = new CommandDialog(device, this);
+        currentDialog.show();
     }
 
     @Override
@@ -111,6 +113,7 @@ public class CommandController implements ContentController, DeviceView.CommandH
             builder.sendRequest("[" + commandMapper.write(command) + "]", new RequestCallback() {
                 @Override
                 public void onResponseReceived(Request request, Response response) {
+                    currentDialog.onAnswerReceived();
                     new LogViewDialog("<pre>" + response.getText() + "</pre>").show();
                 }
 

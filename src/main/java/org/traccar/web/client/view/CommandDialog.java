@@ -243,6 +243,7 @@ public class CommandDialog {
             extendedAttributes.put(CommandType.KEY_CENTER_NUMBER, this.centerNumber.getCurrentValue());
         }
 
+        window.disable();
         commandHandler.onSend(device,
                 typeCombo.getCurrentValue(),
                 frequency,
@@ -257,5 +258,9 @@ public class CommandDialog {
     @UiHandler("cancelButton")
     public void onCancelClicked(SelectEvent event) {
         window.hide();
+    }
+    
+    public void onAnswerReceived() {
+        window.enable();
     }
 }
