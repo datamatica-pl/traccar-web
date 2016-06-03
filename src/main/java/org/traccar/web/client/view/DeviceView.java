@@ -45,18 +45,19 @@ import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
 import com.sencha.gxt.data.shared.event.StoreUpdateEvent;
-import com.sencha.gxt.theme.neptune.client.base.tabs.Css3TabPanelBottomAppearance;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.TabItemConfig;
 import com.sencha.gxt.widget.core.client.TabPanel;
-import com.sencha.gxt.widget.core.client.TabPanel.TabPanelAppearance;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.CellDoubleClickEvent;
+import com.sencha.gxt.widget.core.client.event.HeaderClickEvent;
+import com.sencha.gxt.widget.core.client.event.HeaderClickEvent.HeaderClickHandler;
 import com.sencha.gxt.widget.core.client.event.RowMouseDownEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.StoreFilterField;
+import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.editing.GridEditing;
@@ -520,8 +521,11 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
         List<ColumnConfig<GroupedDevice, ?>> columnConfigList = new LinkedList<>();
 
-        // 'Visible' column
-        ColumnConfig<GroupedDevice, Boolean> colVisible = new ColumnConfig<>(new ValueProvider<GroupedDevice, Boolean>() {
+        CheckBoxSelectionModel<GroupedDevice> selectionModel = new CheckBoxSelectionModel<>();
+        //'Visible' column
+        SafeHtmlBuilder shb = new SafeHtmlBuilder();
+        shb.appendHtmlConstant("<input type=\"checkbox\"></input>");
+        final ColumnConfig<GroupedDevice, Boolean> colVisible = new ColumnConfig<>(new ValueProvider<GroupedDevice, Boolean>() {
             @Override
             public Boolean getValue(GroupedDevice node) {
                 if (deviceStore.isDevice(node)) {
@@ -543,13 +547,13 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             public String getPath() {
                 return "visible";
             }
-        }, 50, headerTemplate.render(AbstractImagePrototype.create(resources.eye()).getSafeHtml()));
+        }, 50, shb.toSafeHtml());
         colVisible.setCell(new DeviceOnlyCheckBoxCell(deviceStore));
         colVisible.setFixed(true);
         colVisible.setResizable(false);
         colVisible.setToolTip(new SafeHtmlBuilder().appendEscaped(i18n.visible()).toSafeHtml());
         columnConfigList.add(colVisible);
-
+        
         // handle visibility change events
         deviceVisibilityHandler.addVisibilityChangeHandler(new DeviceVisibilityChangeHandler() {
             @Override
@@ -558,7 +562,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                 globalDeviceStore.update(device);
             }
         });
-
+        
         // Name column
         ColumnConfig<GroupedDevice, String> colName = new ColumnConfig<>(new ToStringValueProvider<GroupedDevice>() {
             @Override
@@ -600,7 +604,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
         // 'Follow' column
         ColumnConfig<GroupedDevice, Boolean> colFollow = new ColumnConfig<>(new ValueProvider<GroupedDevice, Boolean>() {
-
+            
             @Override
             public Boolean getValue(GroupedDevice node) {
                 if (deviceStore.isDevice(node)) {
@@ -626,7 +630,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             public String getPath() {
                 return "follow";
             }
-        }, 50, headerTemplate.render(AbstractImagePrototype.create(resources.follow()).getSafeHtml()));
+        }, 50, headerTemplate.render(AbstractImagePrototype.create(resources.eye()).getSafeHtml()));
         colFollow.setCell(new DeviceOnlyCheckBoxCell(deviceStore));
         colFollow.setFixed(true);
         colFollow.setResizable(false);
@@ -748,9 +752,37 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         objectsTabs = new TabPanel();
 
         uiBinder.createAndBindUi(this);
-                
+        
         grid.getSelectionModel().addSelectionChangedHandler(deviceSelectionHandler);
         grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        
+        grid.addHeaderClickHandler(new HeaderClickHandler() {
+            private static final String CHECKED = "<input type=\"checkbox\" checked></input>";
+            private static final String UNCHECKED = "<input type=\"checkbox\"></input>";
+            boolean isChecked = false;
+            
+            @Override
+            public void onHeaderClick(HeaderClickEvent event) {
+                ColumnConfig<?,?> cc = grid.getColumnModel().getColumn(event.getColumnIndex());
+                if(cc == colVisible) {
+                    isChecked = !isChecked;
+                    bind();
+                    for(Device device:globalDeviceStore.getAll())
+                        deviceVisibilityHandler.setVisible(device, isChecked);
+                }
+            }
+           
+            public void setIsChecked(boolean isChecked) {
+                this.isChecked = isChecked;
+                bind();
+            }
+            
+            private void bind() {
+                SafeHtmlBuilder shb = new SafeHtmlBuilder();
+                shb.appendHtmlConstant(isChecked?CHECKED:UNCHECKED);
+                grid.getView().getHeader().getHead(0).setHeader(shb.toSafeHtml());
+            }
+        });
         grid.addRowMouseDownHandler(this);
         grid.addCellDoubleClickHandler(this);
         grid.setAutoExpand(true);
