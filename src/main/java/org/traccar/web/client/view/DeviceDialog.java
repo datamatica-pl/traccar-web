@@ -86,6 +86,9 @@ public class DeviceDialog implements Editor<Device> {
 
     @UiField
     TextField vehicleInfo;
+    
+    @UiField
+    TextField commandPassword;
 
     @UiField(provided = true)
     NumberPropertyEditor<Integer> integerPropertyEditor = new NumberPropertyEditor.IntegerPropertyEditor();

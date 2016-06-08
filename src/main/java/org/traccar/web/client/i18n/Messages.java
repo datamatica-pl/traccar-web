@@ -570,4 +570,6 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String SOSNumber();
     
     String centerNumber();
+    
+    String commandPassword();
 }
