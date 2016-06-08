@@ -33,6 +33,7 @@ import org.traccar.web.shared.model.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.traccar.web.client.utils.JsonXmlParser;
 
 public class PositionInfoPopup {
     private final static Messages i18n = GWT.create(Messages.class);
@@ -76,43 +77,11 @@ public class PositionInfoPopup {
                     sensors.put(sensor.getParameterName(), sensor);
                 }
 
-                Map<String, Object> sensorData = new HashMap<>();
+                Map<String, Object> sensorData = JsonXmlParser.parse(other);
 
-                // XML
-                if (other.trim().startsWith("<")) {
-                    try {
-                        NodeList nodes = XMLParser.parse(other).getFirstChild().getChildNodes();
-                        for (int i = 0; i < nodes.getLength(); i++) {
-                            Node node = nodes.item(i);
-                            String parameterName = node.getNodeName();
-                            String valueText = node.getFirstChild().getNodeValue();
-                            sensorData.put(parameterName, valueText);
-                        }
-                    } catch (Exception error) {
-                    }
-                } else { // JSON
-                    try {
-                        JSONValue parsed = JSONParser.parseStrict(other);
-                        JSONObject object = parsed.isObject();
-                        if (object != null) {
-                            for (String parameterName : object.keySet()) {
-                                if(parameterName.equals("ip") && !admin)
-                                    continue;
-                                JSONValue value = object.get(parameterName);
-                                if (value.isNumber() != null) {
-                                    sensorData.put(parameterName, value.isNumber().doubleValue());
-                                } else if (value.isBoolean() != null) {
-                                    sensorData.put(parameterName, value.isBoolean().booleanValue());
-                                } else if (value.isString() != null) {
-                                    sensorData.put(parameterName, value.isString().stringValue());
-                                }
-                            }
-                        }
-                    } catch (Exception error) {
-                    }
-                }
-
-                if (!device.isShowProtocol()) {
+                if(!admin && sensorData.containsKey("ip"))
+                    sensorData.remove("ip");
+                if (!device.isShowProtocol() && sensorData.containsKey("protocol")) {
                     sensorData.remove("protocol");
                 }
 

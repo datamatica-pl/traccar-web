@@ -28,6 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.persistence.*;
+import org.traccar.web.client.utils.JsonXmlParser;
 
 @Entity
 @Table(name = "devices",
@@ -538,6 +539,39 @@ public class Device implements IsSerializable, GroupedDevice {
     
     public void setCommandPassword(String commandPassword) {
         this.commandPassword = commandPassword;
+    }
+    
+    @Transient
+    private boolean isAlarmEnabled;
+    
+    public boolean isAlarmEnabled() {
+        return isAlarmEnabled;
+    }
+    
+    public void setAlarmEnabled(boolean isEnabled) {
+        isAlarmEnabled = isEnabled;
+    }
+    
+    @Transient
+    private boolean isIgnitionEnabled;
+
+    public boolean isIgnitionEnabled() {
+        return isIgnitionEnabled;
+    }
+
+    public void setIgnitionEnabled(boolean isIgnitionEnabled) {
+        this.isIgnitionEnabled = isIgnitionEnabled;
+    }
+    
+    @Column(columnDefinition = "bit default false")
+    private boolean speedAlarm;
+
+    public boolean getSpeedAlarm() {
+        return speedAlarm;
+    }
+
+    public void setSpeedAlarm(boolean speedAlarm) {
+        this.speedAlarm = speedAlarm;
     }
 
     @Override

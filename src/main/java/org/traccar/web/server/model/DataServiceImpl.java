@@ -42,6 +42,7 @@ import java.util.logging.Logger;
 import org.hibernate.proxy.HibernateProxy;
 import org.traccar.web.client.model.DataService;
 import org.traccar.web.client.model.EventService;
+import org.traccar.web.server.utils.JsonXmlParser;
 import org.traccar.web.shared.model.*;
 
 @Singleton
@@ -411,7 +412,14 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
         for(Device device : devices) {
             try {
+                if(device.getLatestPosition() == null)
+                    continue;
                 device.setProtocol(device.getLatestPosition().getProtocol());
+                Map<String, Object> other = JsonXmlParser.parse(device.getLatestPosition().getOther());
+                if(other.get(ALARM_KEY) != null)
+                    device.setAlarmEnabled((boolean)other.get(ALARM_KEY));
+                if(other.get(IGNITION_KEY) != null)
+                    device.setIgnitionEnabled((boolean)other.get(IGNITION_KEY));
                 String protocolName = device.getProtocol();
                 protocolName = protocolName.substring(0, 1).toUpperCase() + protocolName.substring(1);
                 
@@ -425,7 +433,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 for(String command : commands)
                     device.addSupportedCommand(CommandType.fromString(command));
             } catch (Exception ex) {
-                Logger.getLogger(Device.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Device.class.getName()).log(Level.WARNING, null, ex);
             }
         }
         if (full && !devices.isEmpty()) {
@@ -462,6 +470,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
         return devices;
     }
+    private static final String IGNITION_KEY = "ignition";
+    private static final String ALARM_KEY = "alarm";
 
     @Transactional
     @RequireUser
