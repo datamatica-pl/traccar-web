@@ -214,10 +214,6 @@
               <container:VerticalLayoutContainer ui:field="iconTab" addStyleNames="{style.tabBody}">
               </container:VerticalLayoutContainer>
           </gxt:child>
-          <gxt:child config="{sensorsTabConfig}">
-              <container:VerticalLayoutContainer ui:field="sensorsTab">
-              </container:VerticalLayoutContainer>
-          </gxt:child>
           <gxt:child config="{maintenanceTabConfig}">
               <container:VerticalLayoutContainer ui:field="maintenanceTab">
               </container:VerticalLayoutContainer>

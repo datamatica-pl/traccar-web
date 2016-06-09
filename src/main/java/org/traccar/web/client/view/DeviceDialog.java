@@ -127,8 +127,8 @@ public class DeviceDialog implements Editor<Device> {
     VerticalLayoutContainer iconTab;
     final DeviceIconEditor iconEditor;
 
-    @UiField
-    VerticalLayoutContainer sensorsTab;
+    //@UiField
+    //VerticalLayoutContainer sensorsTab;
     final SensorsEditor sensorsEditor;
 
     @UiField
@@ -177,7 +177,7 @@ public class DeviceDialog implements Editor<Device> {
         updatePhoto();
 
         sensorsEditor = new SensorsEditor(device, deviceStore);
-        sensorsTab.add(sensorsEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
+        //sensorsTab.add(sensorsEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
 
         maintenanceEditor = new MaintenanceEditor(device, deviceStore);
         maintenanceTab.add(maintenanceEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
