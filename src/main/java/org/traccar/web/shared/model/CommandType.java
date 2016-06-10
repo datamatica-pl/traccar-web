@@ -36,7 +36,7 @@ public enum CommandType implements IsSerializable {
     deleteSOSNumber,
     setCenterNumber,
     factorySettings,
-    CUSTOM;
+    custom;
 
     public static final String KEY_FREQUENCY = "frequency";
     public static final String KEY_TIMEZONE = "timezone";
