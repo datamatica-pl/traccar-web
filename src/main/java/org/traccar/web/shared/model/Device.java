@@ -519,6 +519,10 @@ public class Device implements IsSerializable, GroupedDevice {
         supportedCommands.add(type);
     }
     
+    public void clearSupportedCommands() {
+        supportedCommands.clear();
+    }
+    
     @Transient
     private String protocol;
     
