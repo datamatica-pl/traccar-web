@@ -25,6 +25,8 @@ public enum CommandType implements IsSerializable {
     engineResume,
     alarmArm,
     alarmDisarm,
+    autoAlarmArm,
+    autoAlarmDisarm,
     setTimezone,
     requestPhoto,
     rebootDevice,
