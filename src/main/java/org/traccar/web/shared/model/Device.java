@@ -84,6 +84,11 @@ public class Device implements IsSerializable, GroupedDevice {
                 maintenances.add(new Maintenance(maintenance));
             }
         }
+        if (device.registrations != null) {
+            registrations = new ArrayList<>(device.registrations.size());
+            for(RegistrationMaintenance registration : device.registrations)
+                registrations.add(new RegistrationMaintenance(registration));
+        }
         if (device.sensors != null) {
             sensors = new ArrayList<>(device.sensors.size());
             for (Sensor sensor : device.sensors) {
@@ -348,6 +353,17 @@ public class Device implements IsSerializable, GroupedDevice {
 
     public void setMaintenances(List<Maintenance> maintenances) {
         this.maintenances = maintenances;
+    }
+    
+    @Transient
+    private List<RegistrationMaintenance> registrations;
+    
+    public List<RegistrationMaintenance> getRegistrations() {
+        return registrations;
+    }
+    
+    public void setRegistrations(List<RegistrationMaintenance> registrations) {
+        this.registrations = registrations;
     }
 
     @Transient

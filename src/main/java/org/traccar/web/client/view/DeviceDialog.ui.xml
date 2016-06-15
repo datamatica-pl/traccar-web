@@ -42,8 +42,16 @@
         <ui:attributes text="{i18n.sensors}" />
     </ui:with>
 
-    <ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig" field="maintenanceTabConfig">
-        <ui:attributes text="{i18n.maintenance}" />
+    <ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig" field="technicalReviewTabConfig">
+        <ui:attributes text="{i18n.technicalReview}" />
+    </ui:with>
+    
+    <ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig" field="insuranceValidityTabConfig">
+        <ui:attributes text="{i18n.insuranceValidity}" />
+    </ui:with>
+    
+    <ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig" field="registrationReviewTabConfig">
+        <ui:attributes text="{i18n.registrationReview}" />
     </ui:with>
 
     <ui:style>
@@ -214,8 +222,16 @@
               <container:VerticalLayoutContainer ui:field="iconTab" addStyleNames="{style.tabBody}">
               </container:VerticalLayoutContainer>
           </gxt:child>
-          <gxt:child config="{maintenanceTabConfig}">
-              <container:VerticalLayoutContainer ui:field="maintenanceTab">
+          <gxt:child config="{technicalReviewTabConfig}">
+              <container:VerticalLayoutContainer ui:field="technicalReviewTab">
+              </container:VerticalLayoutContainer>
+          </gxt:child>
+          <gxt:child config="{insuranceValidityTabConfig}">
+              <container:VerticalLayoutContainer ui:field="insuranceValidityTab">
+              </container:VerticalLayoutContainer>
+          </gxt:child>
+          <gxt:child config="{registrationReviewTabConfig}">
+              <container:VerticalLayoutContainer ui:field="registrationReviewTab">
               </container:VerticalLayoutContainer>
           </gxt:child>
       </gxt:PlainTabPanel>

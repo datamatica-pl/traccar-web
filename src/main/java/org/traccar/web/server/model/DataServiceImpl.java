@@ -447,6 +447,17 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 }
                 device.getMaintenances().add(maintenance);
             }
+            
+            List<RegistrationMaintenance> registrations = getSessionEntityManager().createQuery("SELECT m FROM RegistrationMaintenance m WHERE m.device IN :devices ORDER BY m.indexNo ASC", RegistrationMaintenance.class)
+                    .setParameter("devices", devices)
+                    .getResultList();
+            for (RegistrationMaintenance maintenance: registrations) {
+                Device device = maintenance.getDevice();
+                if(device.getRegistrations() == null) {
+                    device.setRegistrations(new ArrayList<RegistrationMaintenance>());
+                }
+                device.getRegistrations().add(maintenance);
+            }
 
             List<Sensor> sensors = getSessionEntityManager().createQuery("SELECT s FROM Sensor s WHERE s.device IN :devices ORDER BY s.id ASC", Sensor.class)
                     .setParameter("devices", devices)
@@ -582,31 +593,15 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             List<Maintenance> currentMaintenances = new LinkedList<>(getSessionEntityManager().createQuery("SELECT m FROM Maintenance m WHERE m.device = :device", Maintenance.class)
                     .setParameter("device", device)
                     .getResultList());
-            // update and delete existing
-            for (Iterator<Maintenance> it = currentMaintenances.iterator(); it.hasNext(); ) {
-                Maintenance existingMaintenance = it.next();
-                boolean contains = false;
-                for (int index = 0; index < device.getMaintenances().size(); index++) {
-                    Maintenance updatedMaintenance = device.getMaintenances().get(index);
-                    if (updatedMaintenance.getId() == existingMaintenance.getId()) {
-                        existingMaintenance.copyFrom(updatedMaintenance);
-                        updatedMaintenance.setDevice(tmp_device);
-                        device.getMaintenances().remove(index);
-                        contains = true;
-                        break;
-                    }
-                }
-                if (!contains) {
-                    getSessionEntityManager().remove(existingMaintenance);
-                    it.remove();
-                }
-            }
-            // add new
-            for (Maintenance maintenance : device.getMaintenances()) {
-                maintenance.setDevice(tmp_device);
-                getSessionEntityManager().persist(maintenance);
-                currentMaintenances.add(maintenance);
-            }
+            updateMaintenances(currentMaintenances, device.getMaintenances(), tmp_device);
+            
+            //process registrations
+            tmp_device.setRegistrations(new ArrayList<>(device.getRegistrations()));
+            List<RegistrationMaintenance> currentRegistrations = new LinkedList<>(getSessionEntityManager().createQuery("SELECT m FROM RegistrationMaintenance m WHERE m.device = :device", RegistrationMaintenance.class)
+                    .setParameter("device", device)
+                    .getResultList());
+            updateMaintenances(currentRegistrations, device.getRegistrations(), tmp_device);
+            
             // post events if odometer changed
             if (Math.abs(prevOdometer - device.getOdometer()) >= 0.000001) {
                 for (Maintenance maintenance : currentMaintenances) {
@@ -657,6 +652,35 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             return tmp_device;
         } else {
             throw new DeviceExistsException();
+        }
+    }
+
+    private <T extends MaintenanceBase> void updateMaintenances(List<T> currentMaintenances, 
+            List<T> existingMaintenances, Device tmp_device) {
+        // update and delete existing
+        for (Iterator<T> it = currentMaintenances.iterator(); it.hasNext(); ) {
+            T existingMaintenance = it.next();
+            boolean contains = false;
+            for (int index = 0; index < existingMaintenances.size(); index++) {
+                T updatedMaintenance = existingMaintenances.get(index);
+                if (updatedMaintenance.getId() == existingMaintenance.getId()) {
+                    existingMaintenance.copyFrom(updatedMaintenance);
+                    updatedMaintenance.setDevice(tmp_device);
+                    existingMaintenances.remove(index);
+                    contains = true;
+                    break;
+                }
+            }
+            if (!contains) {
+                getSessionEntityManager().remove(existingMaintenance);
+                it.remove();
+            }
+        }
+        // add new
+        for (T maintenance : existingMaintenances) {
+            maintenance.setDevice(tmp_device);
+            getSessionEntityManager().persist(maintenance);
+            currentMaintenances.add(maintenance);
         }
     }
 
