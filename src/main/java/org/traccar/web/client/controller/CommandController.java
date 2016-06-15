@@ -100,6 +100,8 @@ public class CommandController implements ContentController, DeviceView.CommandH
             case setCenterNumber:
                 command.getAttributes().put(CommandType.KEY_CENTER_NUMBER,
                         extendedAttributes.get(CommandType.KEY_CENTER_NUMBER));
+            case extendedCustom:
+                command.getAttributes().put(CommandType.KEY_MESSAGE, rawCommand);
             case custom:
                 command.setCommand(rawCommand);
                 break;

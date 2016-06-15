@@ -67,6 +67,8 @@ public class CommandArgumentsBinder {
                 new String[]{"lblFrequency", "frequency", "frequencyUnit"});
         visibilityInfo.put(CommandType.custom,
                 new String[]{"lblCustomMessage", "customMessage"});
+        visibilityInfo.put(CommandType.extendedCustom,
+                new String[]{"lblCustomMessage", "customMessage"});
         visibilityInfo.put(CommandType.setTimezone,
                 new String[]{"lblTimeZone", "timeZone"});
         visibilityInfo.put(CommandType.movementAlarm,
