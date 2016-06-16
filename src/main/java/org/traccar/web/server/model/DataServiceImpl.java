@@ -433,7 +433,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 for(String command : commands)
                     device.addSupportedCommand(CommandType.fromString(command));
             } catch (Exception ex) {
-                Logger.getLogger(Device.class.getName()).log(Level.WARNING, null, ex);
+                Logger.getLogger(Device.class.getName()).log(Level.SEVERE, null, ex);
+                device.clearSupportedCommands();
             }
         }
         if (full && !devices.isEmpty()) {
@@ -447,7 +448,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 }
                 device.getMaintenances().add(maintenance);
             }
-            
+
             List<RegistrationMaintenance> registrations = getSessionEntityManager().createQuery("SELECT m FROM RegistrationMaintenance m WHERE m.device IN :devices ORDER BY m.indexNo ASC", RegistrationMaintenance.class)
                     .setParameter("devices", devices)
                     .getResultList();
@@ -1131,18 +1132,14 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 result.put("success", false);
                 result.put("reason", "The device is not registered on the server");
             } else {
-                if(command.getType() == CommandType.CUSTOM) {
+                if(command.getType() == CommandType.custom) {
                     Class<?> objectClass = Class.forName("java.lang.Object");
                     final Object awaiter = new Object();
                     Method sendCommand = activeDevice.getClass().getDeclaredMethod("write", objectClass,
                             objectClass);
                     sendCommand.invoke(activeDevice, command.getCommand(), new CommandHandler(result, awaiter));
                     synchronized(awaiter) {
-                        awaiter.wait(COMMAND_TIMEOUT);
-                        if(!result.containsKey("success")) {
-                            result.put("success", false);
-                            result.put("reason", "timeout");
-                        }
+                        awaiter.wait();
                     }
                 } else {
                     Class<?> backendCommandClass = Class.forName("org.traccar.model.Command");
@@ -1168,11 +1165,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                     Method sendCommand = activeDevice.getClass().getDeclaredMethod("sendCommand", backendCommandClass, Object.class);
                     sendCommand.invoke(activeDevice, backendCommand, new CommandHandler(result, awaiter));
                     synchronized(awaiter) {
-                        awaiter.wait(COMMAND_TIMEOUT);
-                        if(!result.containsKey("success")) {
-                            result.put("success", false);
-                            result.put("reason", "timeout");
-                        }
+                        awaiter.wait();
                     }
                 }
             }
@@ -1205,7 +1198,6 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             return "{success: false, reason: \"Unable to prepare result\"}";
         }
     }
-    public static final int COMMAND_TIMEOUT = 15*1000;
     
     public static class CommandHandler implements ICommandHandler{
         private final Map<String,Object> result;
@@ -1221,6 +1213,15 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         public void success(String data) {
             result.put("response", data);
             result.put("success", true);
+            synchronized(awaiter) {
+                awaiter.notifyAll();
+            }
+        }
+        
+        @Override
+        public void fail() {
+            result.put("success", false);
+            result.put("reason", "timeout");
             synchronized(awaiter) {
                 awaiter.notifyAll();
             }
