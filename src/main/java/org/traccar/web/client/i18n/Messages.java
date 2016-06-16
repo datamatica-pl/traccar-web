@@ -328,6 +328,12 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String auto();
 
     String maintenance();
+    
+    String technicalReview();
+    
+    String registrationReview();
+    
+    String insuranceValidity();
 
     String serviceName();
 
@@ -572,4 +578,8 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String centerNumber();
     
     String commandPassword();
+    
+    String days();
+    
+    String maintenanceDate();
 }

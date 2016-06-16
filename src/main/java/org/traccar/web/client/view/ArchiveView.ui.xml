@@ -41,36 +41,7 @@
                     <form:TimeField width="75" ui:field="toTime" triggerAction="ALL" />
                     <toolbar:LabelToolItem width="5" />
                     <button:TextButton ui:field="filterButton" text="{i18n.filter}..." />
-                    <toolbar:LabelToolItem width="2" />
-                    <form:CheckBox ui:field="disableFilter" boxLabel="{i18n.disableFilter}" stateful="true" stateId="disableFilter" />
-                    <toolbar:LabelToolItem width="2" />
-                    <form:CheckBox ui:field="snapToRoads" boxLabel="{i18n.snapToRoads}" stateful="true" stateId="snapToRoads" />
 
-                    <toolbar:LabelToolItem ui:field="styleButtonTrackColor" label="&nbsp;&nbsp;&nbsp;&nbsp;" />
-                    <button:TextButton ui:field="styleButton" text="{i18n.style}">
-                        <button:menu>
-                            <menu:Menu ui:field="menu1">
-                                <menu:CheckMenuItem ui:field="zoomToTrackMenu" text="{i18n.zoomToTrack}" />
-                                <menu:SeparatorMenuItem />
-                                <menu:MenuItem ui:field="markersMenu">
-                                    <menu:submenu>
-                                        <menu:Menu ui:field="routeMarkersType" />
-                                    </menu:submenu>
-                                </menu:MenuItem>
-                                <menu:SeparatorMenuItem />
-                                <menu:MenuItem ui:field="fullPaletteMenu" text="{i18n.fullPalette}">
-                                    <menu:submenu>
-                                        <menu:ColorMenu ui:field="fullColorMenu" />
-                                    </menu:submenu>
-                                </menu:MenuItem>
-                                <menu:MenuItem ui:field="smallPaletteMenu" text="{i18n.smallPalette}">
-                                    <menu:submenu>
-                                        <menu:ColorMenu ui:field="smallColorMenu" />
-                                    </menu:submenu>
-                                </menu:MenuItem>
-                            </menu:Menu>
-                        </button:menu>
-                    </button:TextButton>
 
                     <toolbar:SeparatorToolItem />
 

@@ -16,6 +16,7 @@
 package org.traccar.web.client.view;
 
 import com.google.gwt.cell.client.AbstractCell;
+import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BrowserEvents;
@@ -25,6 +26,7 @@ import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.resources.client.ClientBundle;
+import com.google.gwt.resources.client.ClientBundle.Source;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
@@ -36,7 +38,6 @@ import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
 import com.sencha.gxt.core.client.Style.SelectionMode;
-import com.sencha.gxt.core.client.ToStringValueProvider;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.core.client.dom.XElement;
@@ -45,14 +46,14 @@ import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
 import com.sencha.gxt.data.shared.event.StoreUpdateEvent;
-import com.sencha.gxt.theme.neptune.client.base.tabs.Css3TabPanelBottomAppearance;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.TabItemConfig;
 import com.sencha.gxt.widget.core.client.TabPanel;
-import com.sencha.gxt.widget.core.client.TabPanel.TabPanelAppearance;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.CellDoubleClickEvent;
+import com.sencha.gxt.widget.core.client.event.HeaderClickEvent;
+import com.sencha.gxt.widget.core.client.event.HeaderClickEvent.HeaderClickHandler;
 import com.sencha.gxt.widget.core.client.event.RowMouseDownEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
@@ -438,6 +439,49 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             }
         }
     }
+    
+    private static interface IGroupedDeviceBinding {
+        public void bindName(SafeHtmlBuilder sb);
+        public void bindIcons(SafeHtmlBuilder sb);
+    }
+    
+    private static class GroupedDeviceBinding implements IGroupedDeviceBinding {
+        private ImageResource ignition;
+        private ImageResource alarm;
+        private ImageResource speedAlarm;
+        
+        private String name;
+        
+        public GroupedDeviceBinding(GroupedDevice groupedDevice, Resources resources) {
+            name = groupedDevice.getName();
+            if(groupedDevice instanceof Device) {
+                init((Device)groupedDevice, resources);
+            }
+        }
+        
+        private void init(Device device, Resources resources) {
+            ignition = device.isIgnitionEnabled() ? resources.ignitionEnabled() : resources.ignitionDisabled();
+            alarm = device.isAlarmEnabled() ? resources.alarmEnabled() : resources.alarmDisabled();
+            speedAlarm = device.getSpeedAlarm() ? resources.speedAlarmActive() : resources.speedAlarmInactive();
+        }
+        
+        @Override
+        public void bindName(SafeHtmlBuilder sb) {
+            sb.appendEscaped(name);
+        }
+        
+        @Override
+        public void bindIcons(SafeHtmlBuilder sb) {
+            appendIfExists(sb, speedAlarm);
+            appendIfExists(sb, ignition);
+            appendIfExists(sb, alarm);
+        }
+
+        private void appendIfExists(SafeHtmlBuilder sb, ImageResource image) {
+            if(image != null)
+                sb.append(AbstractImagePrototype.create(image).getSafeHtml());
+        }
+    }
 
     private final DeviceHandler deviceHandler;
 
@@ -515,13 +559,15 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         this.deviceStore = new DeviceStore(groupStore, globalDeviceStore);
         this.deviceStore.setAutoCommit(true);
 
-        Resources resources = GWT.create(Resources.class);
+        final Resources resources = GWT.create(Resources.class);
         HeaderIconTemplate headerTemplate = GWT.create(HeaderIconTemplate.class);
 
         List<ColumnConfig<GroupedDevice, ?>> columnConfigList = new LinkedList<>();
 
-        // 'Visible' column
-        ColumnConfig<GroupedDevice, Boolean> colVisible = new ColumnConfig<>(new ValueProvider<GroupedDevice, Boolean>() {
+        //'Visible' column
+        SafeHtmlBuilder shb = new SafeHtmlBuilder();
+        shb.appendHtmlConstant("<input type=\"checkbox\"></input>");
+        final ColumnConfig<GroupedDevice, Boolean> colVisible = new ColumnConfig<>(new ValueProvider<GroupedDevice, Boolean>() {
             @Override
             public Boolean getValue(GroupedDevice node) {
                 if (deviceStore.isDevice(node)) {
@@ -543,13 +589,13 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             public String getPath() {
                 return "visible";
             }
-        }, 50, headerTemplate.render(AbstractImagePrototype.create(resources.eye()).getSafeHtml()));
+        }, 50, shb.toSafeHtml());
         colVisible.setCell(new DeviceOnlyCheckBoxCell(deviceStore));
         colVisible.setFixed(true);
         colVisible.setResizable(false);
         colVisible.setToolTip(new SafeHtmlBuilder().appendEscaped(i18n.visible()).toSafeHtml());
         columnConfigList.add(colVisible);
-
+        
         // handle visibility change events
         deviceVisibilityHandler.addVisibilityChangeHandler(new DeviceVisibilityChangeHandler() {
             @Override
@@ -558,28 +604,32 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                 globalDeviceStore.update(device);
             }
         });
-
+        
         // Name column
-        ColumnConfig<GroupedDevice, String> colName = new ColumnConfig<>(new ToStringValueProvider<GroupedDevice>() {
+        ColumnConfig<GroupedDevice, GroupedDeviceBinding> colName = new ColumnConfig<>(new ValueProvider<GroupedDevice, GroupedDeviceBinding>() {
             @Override
-            public String getValue(GroupedDevice object) {
-                return object.getName();
+            public GroupedDeviceBinding getValue(GroupedDevice object) {
+                return new GroupedDeviceBinding(object, resources);
             }
 
             @Override
             public String getPath() {
                 return "name";
             }
-        }, 0, i18n.name());
-        colName.setCell(new AbstractCell<String>(BrowserEvents.MOUSEOVER, BrowserEvents.MOUSEOUT) {
-            @Override
-            public void render(Context context, String value, SafeHtmlBuilder sb) {
-                if (value == null) return;
-                sb.appendEscaped(value);
-            }
 
             @Override
-            public void onBrowserEvent(Context context, Element parent, String value, NativeEvent event, ValueUpdater<String> valueUpdater) {
+            public void setValue(GroupedDevice object, GroupedDeviceBinding value) {
+            }
+        }, 0, i18n.name());
+        colName.setCell(new AbstractCell<GroupedDeviceBinding>(BrowserEvents.MOUSEOVER, BrowserEvents.MOUSEOUT) {
+            @Override
+            public void render(Context context, GroupedDeviceBinding value, SafeHtmlBuilder sb) {
+                if (value == null) 
+                    return;
+                value.bindName(sb);
+            }
+
+            public void onBrowserEvent(Context context, Element parent, GroupedDeviceBinding value, NativeEvent event, ValueUpdater<GroupedDeviceBinding> valueUpdater) {
                 if (event.getType().equals(BrowserEvents.MOUSEOVER) || event.getType().equals(BrowserEvents.MOUSEOUT)) {
                     Element target = Element.as(event.getEventTarget());
                     Tree.TreeNode<GroupedDevice> node = grid.findNode(target);
@@ -598,9 +648,38 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         });
         columnConfigList.add(colName);
 
+        ColumnConfig<GroupedDevice, GroupedDeviceBinding> colStatus = new ColumnConfig<>(new ValueProvider<GroupedDevice, GroupedDeviceBinding>() {
+            @Override
+            public GroupedDeviceBinding getValue(GroupedDevice object) {
+                return new GroupedDeviceBinding(object, resources);
+            }
+
+            @Override
+            public void setValue(GroupedDevice object, GroupedDeviceBinding value) {
+            }
+
+            @Override
+            public String getPath() {
+                return "status";
+            }
+            
+        }, 60, i18n.status());
+        colStatus.setCell(new AbstractCell<GroupedDeviceBinding>(){
+            @Override
+            public void render(Cell.Context context, GroupedDeviceBinding value, SafeHtmlBuilder sb) {
+                if(value == null)
+                    return;
+                value.bindIcons(sb);
+            }
+            
+        });
+        colStatus.setFixed(true);
+        colStatus.setResizable(false);
+        columnConfigList.add(colStatus);
+                
         // 'Follow' column
         ColumnConfig<GroupedDevice, Boolean> colFollow = new ColumnConfig<>(new ValueProvider<GroupedDevice, Boolean>() {
-
+            
             @Override
             public Boolean getValue(GroupedDevice node) {
                 if (deviceStore.isDevice(node)) {
@@ -626,7 +705,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             public String getPath() {
                 return "follow";
             }
-        }, 50, headerTemplate.render(AbstractImagePrototype.create(resources.follow()).getSafeHtml()));
+        }, 50, headerTemplate.render(AbstractImagePrototype.create(resources.eye()).getSafeHtml()));
         colFollow.setCell(new DeviceOnlyCheckBoxCell(deviceStore));
         colFollow.setFixed(true);
         colFollow.setResizable(false);
@@ -748,9 +827,37 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         objectsTabs = new TabPanel();
 
         uiBinder.createAndBindUi(this);
-                
+        
         grid.getSelectionModel().addSelectionChangedHandler(deviceSelectionHandler);
         grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        
+        grid.addHeaderClickHandler(new HeaderClickHandler() {
+            private static final String CHECKED = "<input type=\"checkbox\" checked></input>";
+            private static final String UNCHECKED = "<input type=\"checkbox\"></input>";
+            boolean isChecked = false;
+            
+            @Override
+            public void onHeaderClick(HeaderClickEvent event) {
+                ColumnConfig<?,?> cc = grid.getColumnModel().getColumn(event.getColumnIndex());
+                if(cc == colVisible) {
+                    isChecked = !isChecked;
+                    bind();
+                    for(Device device:globalDeviceStore.getAll())
+                        deviceVisibilityHandler.setVisible(device, isChecked);
+                }
+            }
+           
+            public void setIsChecked(boolean isChecked) {
+                this.isChecked = isChecked;
+                bind();
+            }
+            
+            private void bind() {
+                SafeHtmlBuilder shb = new SafeHtmlBuilder();
+                shb.appendHtmlConstant(isChecked?CHECKED:UNCHECKED);
+                grid.getView().getHeader().getHead(0).setHeader(shb.toSafeHtml());
+            }
+        });
         grid.addRowMouseDownHandler(this);
         grid.addCellDoubleClickHandler(this);
         grid.setAutoExpand(true);
@@ -948,6 +1055,24 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
         @Source("org/traccar/web/client/theme/icon/footprints.png")
         ImageResource footprints();
+        
+        @Source("org/traccar/web/client/theme/icon/ignition_enabled.png")
+        ImageResource ignitionEnabled();
+
+        @Source("org/traccar/web/client/theme/icon/ignition_disabled.png")
+        ImageResource ignitionDisabled();
+        
+        @Source("org/traccar/web/client/theme/icon/alarm_enabled.png")
+        ImageResource alarmEnabled();
+        
+        @Source("org/traccar/web/client/theme/icon/alarm_disabled.png")
+        ImageResource alarmDisabled();
+        
+        @Source("org/traccar/web/client/theme/icon/speed_alarm_inactive.png")
+        ImageResource speedAlarmInactive();
+        
+        @Source("org/traccar/web/client/theme/icon/speed_alarm_active.png")
+        ImageResource speedAlarmActive();
     }
 
     private Menu createDeviceGridContextMenu(final ListStore<Report> reportStore,

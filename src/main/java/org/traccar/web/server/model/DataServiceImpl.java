@@ -42,6 +42,7 @@ import java.util.logging.Logger;
 import org.hibernate.proxy.HibernateProxy;
 import org.traccar.web.client.model.DataService;
 import org.traccar.web.client.model.EventService;
+import org.traccar.web.server.utils.JsonXmlParser;
 import org.traccar.web.shared.model.*;
 
 @Singleton
@@ -410,30 +411,29 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             });
         }
         for(Device device : devices) {
-            if (device.getLatestPosition() != null) {
-                try {
-                    device.setProtocol(device.getLatestPosition().getProtocol());
-                    String protocolName = device.getProtocol();
-                    protocolName = protocolName.substring(0, 1).toUpperCase() + protocolName.substring(1);
-
-                    final Class<?> protocolClass;
-                    Class<?> baseProtocol = Class.forName("org.traccar.BaseProtocol");
-                    Boolean isOsmAndProtocol = "Osmand".equals(protocolName);
-                    if (isOsmAndProtocol) {
-                        protocolClass = Class.forName("org.traccar.protocol.OsmAndProtocol");
-                    } else {
-                        protocolClass = Class.forName("org.traccar.protocol." + protocolName + "Protocol");
-                    }
-                    Object protocol = protocolClass.getConstructor().newInstance();
-                    Method supportedCommands = baseProtocol.getDeclaredMethod("getSupportedCommands");
-                    Set<String> commands = (Set<String>)supportedCommands.invoke(protocol);
-
-                    for(String command : commands)
-                        device.addSupportedCommand(CommandType.fromString(command));
-                } catch (Exception ex) {
-                    Logger.getLogger(Device.class.getName()).log(Level.SEVERE, null, ex);
-                    device.clearSupportedCommands();
-                }
+            try {
+                if(device.getLatestPosition() == null)
+                    continue;
+                device.setProtocol(device.getLatestPosition().getProtocol());
+                Map<String, Object> other = JsonXmlParser.parse(device.getLatestPosition().getOther());
+                if(other.get(ALARM_KEY) != null)
+                    device.setAlarmEnabled((boolean)other.get(ALARM_KEY));
+                if(other.get(IGNITION_KEY) != null)
+                    device.setIgnitionEnabled((boolean)other.get(IGNITION_KEY));
+                String protocolName = device.getProtocol();
+                protocolName = protocolName.substring(0, 1).toUpperCase() + protocolName.substring(1);
+                
+                final Class<?> protocolClass;
+                Class<?> baseProtocol = Class.forName("org.traccar.BaseProtocol");
+                protocolClass = Class.forName("org.traccar.protocol."+protocolName+"Protocol");
+                Object protocol = protocolClass.getConstructor().newInstance();
+                Method supportedCommands = baseProtocol.getDeclaredMethod("getSupportedCommands");
+                Set<String> commands = (Set<String>)supportedCommands.invoke(protocol);
+                
+                for(String command : commands)
+                    device.addSupportedCommand(CommandType.fromString(command));
+            } catch (Exception ex) {
+                Logger.getLogger(Device.class.getName()).log(Level.WARNING, null, ex);
             }
         }
         if (full && !devices.isEmpty()) {
@@ -446,6 +446,17 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                     device.setMaintenances(new ArrayList<Maintenance>());
                 }
                 device.getMaintenances().add(maintenance);
+            }
+            
+            List<RegistrationMaintenance> registrations = getSessionEntityManager().createQuery("SELECT m FROM RegistrationMaintenance m WHERE m.device IN :devices ORDER BY m.indexNo ASC", RegistrationMaintenance.class)
+                    .setParameter("devices", devices)
+                    .getResultList();
+            for (RegistrationMaintenance maintenance: registrations) {
+                Device device = maintenance.getDevice();
+                if(device.getRegistrations() == null) {
+                    device.setRegistrations(new ArrayList<RegistrationMaintenance>());
+                }
+                device.getRegistrations().add(maintenance);
             }
 
             List<Sensor> sensors = getSessionEntityManager().createQuery("SELECT s FROM Sensor s WHERE s.device IN :devices ORDER BY s.id ASC", Sensor.class)
@@ -470,6 +481,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
         return devices;
     }
+    private static final String IGNITION_KEY = "ignition";
+    private static final String ALARM_KEY = "alarm";
 
     @Transactional
     @RequireUser
@@ -580,31 +593,15 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             List<Maintenance> currentMaintenances = new LinkedList<>(getSessionEntityManager().createQuery("SELECT m FROM Maintenance m WHERE m.device = :device", Maintenance.class)
                     .setParameter("device", device)
                     .getResultList());
-            // update and delete existing
-            for (Iterator<Maintenance> it = currentMaintenances.iterator(); it.hasNext(); ) {
-                Maintenance existingMaintenance = it.next();
-                boolean contains = false;
-                for (int index = 0; index < device.getMaintenances().size(); index++) {
-                    Maintenance updatedMaintenance = device.getMaintenances().get(index);
-                    if (updatedMaintenance.getId() == existingMaintenance.getId()) {
-                        existingMaintenance.copyFrom(updatedMaintenance);
-                        updatedMaintenance.setDevice(tmp_device);
-                        device.getMaintenances().remove(index);
-                        contains = true;
-                        break;
-                    }
-                }
-                if (!contains) {
-                    getSessionEntityManager().remove(existingMaintenance);
-                    it.remove();
-                }
-            }
-            // add new
-            for (Maintenance maintenance : device.getMaintenances()) {
-                maintenance.setDevice(tmp_device);
-                getSessionEntityManager().persist(maintenance);
-                currentMaintenances.add(maintenance);
-            }
+            updateMaintenances(currentMaintenances, device.getMaintenances(), tmp_device);
+            
+            //process registrations
+            tmp_device.setRegistrations(new ArrayList<>(device.getRegistrations()));
+            List<RegistrationMaintenance> currentRegistrations = new LinkedList<>(getSessionEntityManager().createQuery("SELECT m FROM RegistrationMaintenance m WHERE m.device = :device", RegistrationMaintenance.class)
+                    .setParameter("device", device)
+                    .getResultList());
+            updateMaintenances(currentRegistrations, device.getRegistrations(), tmp_device);
+            
             // post events if odometer changed
             if (Math.abs(prevOdometer - device.getOdometer()) >= 0.000001) {
                 for (Maintenance maintenance : currentMaintenances) {
@@ -655,6 +652,35 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             return tmp_device;
         } else {
             throw new DeviceExistsException();
+        }
+    }
+
+    private <T extends MaintenanceBase> void updateMaintenances(List<T> currentMaintenances, 
+            List<T> existingMaintenances, Device tmp_device) {
+        // update and delete existing
+        for (Iterator<T> it = currentMaintenances.iterator(); it.hasNext(); ) {
+            T existingMaintenance = it.next();
+            boolean contains = false;
+            for (int index = 0; index < existingMaintenances.size(); index++) {
+                T updatedMaintenance = existingMaintenances.get(index);
+                if (updatedMaintenance.getId() == existingMaintenance.getId()) {
+                    existingMaintenance.copyFrom(updatedMaintenance);
+                    updatedMaintenance.setDevice(tmp_device);
+                    existingMaintenances.remove(index);
+                    contains = true;
+                    break;
+                }
+            }
+            if (!contains) {
+                getSessionEntityManager().remove(existingMaintenance);
+                it.remove();
+            }
+        }
+        // add new
+        for (T maintenance : existingMaintenances) {
+            maintenance.setDevice(tmp_device);
+            getSessionEntityManager().persist(maintenance);
+            currentMaintenances.add(maintenance);
         }
     }
 
@@ -1105,14 +1131,18 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 result.put("success", false);
                 result.put("reason", "The device is not registered on the server");
             } else {
-                if(command.getType() == CommandType.custom) {
+                if(command.getType() == CommandType.CUSTOM) {
                     Class<?> objectClass = Class.forName("java.lang.Object");
                     final Object awaiter = new Object();
                     Method sendCommand = activeDevice.getClass().getDeclaredMethod("write", objectClass,
                             objectClass);
                     sendCommand.invoke(activeDevice, command.getCommand(), new CommandHandler(result, awaiter));
                     synchronized(awaiter) {
-                        awaiter.wait();
+                        awaiter.wait(COMMAND_TIMEOUT);
+                        if(!result.containsKey("success")) {
+                            result.put("success", false);
+                            result.put("reason", "timeout");
+                        }
                     }
                 } else {
                     Class<?> backendCommandClass = Class.forName("org.traccar.model.Command");
@@ -1138,7 +1168,11 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                     Method sendCommand = activeDevice.getClass().getDeclaredMethod("sendCommand", backendCommandClass, Object.class);
                     sendCommand.invoke(activeDevice, backendCommand, new CommandHandler(result, awaiter));
                     synchronized(awaiter) {
-                        awaiter.wait();
+                        awaiter.wait(COMMAND_TIMEOUT);
+                        if(!result.containsKey("success")) {
+                            result.put("success", false);
+                            result.put("reason", "timeout");
+                        }
                     }
                 }
             }
@@ -1171,6 +1205,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             return "{success: false, reason: \"Unable to prepare result\"}";
         }
     }
+    public static final int COMMAND_TIMEOUT = 15*1000;
     
     public static class CommandHandler implements ICommandHandler{
         private final Map<String,Object> result;
@@ -1186,15 +1221,6 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         public void success(String data) {
             result.put("response", data);
             result.put("success", true);
-            synchronized(awaiter) {
-                awaiter.notifyAll();
-            }
-        }
-        
-        @Override
-        public void fail() {
-            result.put("success", false);
-            result.put("reason", "timeout");
             synchronized(awaiter) {
                 awaiter.notifyAll();
             }

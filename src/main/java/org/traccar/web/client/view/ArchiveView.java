@@ -98,32 +98,8 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
     @UiField(provided = true)
     ComboBox<Device> deviceCombo;
 
-	@UiField(provided = true)
-	PeriodComboBox periodCombo;
-
-    @UiField
-    CheckBox disableFilter;
-
-    @UiField
-    CheckBox snapToRoads;
-
     @UiField(provided = true)
-    LabelToolItem styleButtonTrackColor;
-
-    @UiField
-    TextButton styleButton;
-
-    @UiField(provided = true)
-    ColorMenu smallColorMenu;
-
-    @UiField(provided = true)
-    ColorMenu fullColorMenu;
-
-    @UiField
-    MenuItem markersMenu;
-
-    @UiField(provided = true)
-    Menu routeMarkersType;
+    PeriodComboBox periodCombo;
 
     @UiField(provided = true)
     TabPanel devicesTabs;
@@ -149,34 +125,7 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
 
 		periodCombo = new PeriodComboBox();
 
-        // Element that displays the current track color
-        styleButtonTrackColor = new LabelToolItem();
-        styleButtonTrackColor.getElement().getStyle().setProperty("backgroundColor", "#".concat(ArchiveStyle.DEFAULT_COLOR));
-        // Menu with the small palette
-        smallColorMenu = new ExtColorMenu(ArchiveStyle.COLORS, ArchiveStyle.COLORS);
-        smallColorMenu.setColor(ArchiveStyle.DEFAULT_COLOR);
-        smallColorMenu.getPalette().addValueChangeHandler(new ValueChangeHandler<String>() {
-            @Override
-            public void onValueChange(ValueChangeEvent<String> event) {
-                style.setTrackColor(event.getValue());
-                smallColorMenu.hide(true);
-                fullColorMenu.getPalette().setValue("", false);
-                styleButtonTrackColor.getElement().getStyle().setProperty("backgroundColor","#".concat(style.getTrackColor()));
-            }
-        });
-        // Menu with the complete palette
-        fullColorMenu = new ColorMenu();
-        fullColorMenu.getPalette().addValueChangeHandler(new ValueChangeHandler<String>() {
-            @Override
-            public void onValueChange(ValueChangeEvent<String> event) {
-                style.setTrackColor(event.getValue());
-                fullColorMenu.hide(true);
-                smallColorMenu.getPalette().setValue("", false);
-                styleButtonTrackColor.getElement().getStyle().setProperty("backgroundColor", "#".concat(style.getTrackColor()));
-            }
-        });
         // Markers
-        routeMarkersType = new Menu();
         for (Object[] obj : new Object[][] { { i18n.noMarkers(), null },
                                              { i18n.standardMarkers(), PositionIconType.iconArchive },
                                              { i18n.reducedMarkers(), PositionIconType.dotArchive } }) {
@@ -194,15 +143,12 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
                     archiveHandler.onChangeArchiveMarkerType(iconType);
                 }
             });
-            routeMarkersType.add(item);
         }
 
         devicesTabs = new TabPanel();
         archivePanels = new HashMap<>();
 
         uiBinder.createAndBindUi(this);
-
-        markersMenu.setText(i18n.overlayType(UserSettings.OverlayType.MARKERS));
 
         // Initialize with current time
         long min = 60 * 1000;
@@ -216,9 +162,6 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
 
         periodCombo.init(fromDate, fromTime, toDate, toTime);
 
-        new CheckBoxStateHandler(disableFilter).loadState();
-        new CheckBoxStateHandler(snapToRoads).loadState();
-
         reportButton.setMenu(new ReportsMenu(reportStore, reportHandler, new ReportsMenu.ReportSettingsHandler() {
             @Override
             public void setSettings(ReportsDialog dialog) {
@@ -230,7 +173,6 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
                 } else {
                     dialog.selectPeriod(periodCombo.getCurrentValue());
                 }
-                dialog.setDisableFilter(disableFilter.getValue());
             }
         }));
     }
@@ -244,18 +186,13 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
         }
     }
 
-    @UiHandler("zoomToTrackMenu")
-    public void onMenuSelection(SelectionEvent<Item> event) {
-        style.setZoomToTrack(((CheckMenuItem) event.getSelectedItem()).isChecked());
-    }
-
     @UiHandler("loadButton")
     public void onLoadClicked(SelectEvent event) {
         archiveHandler.onLoad(
                 deviceCombo.getValue(),
                 getCombineDate(fromDate, fromTime),
                 getCombineDate(toDate, toTime),
-                !disableFilter.getValue(),
+                true,
                 new ArchiveStyle(style)
         );
     }
@@ -281,7 +218,7 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
                             "?deviceId=" + (deviceCombo.getValue() == null ? null : deviceCombo.getValue().getId()) +
                             "&from=" + jsonTimeFormat.format(getCombineDate(fromDate, fromTime)).replaceFirst("\\+", "%2B") +
                             "&to=" + jsonTimeFormat.format(getCombineDate(toDate, toTime)).replaceFirst("\\+", "%2B") +
-                            "&filter=" + !disableFilter.getValue() +
+                            "&filter=" + true +
                             "&locale=" + LocaleInfo.getCurrentLocale().getLocaleName(),
                     "_blank", null);
         }
@@ -298,7 +235,7 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
                             "?deviceId=" + (deviceCombo.getValue() == null ? null : deviceCombo.getValue().getId()) +
                             "&from=" + jsonTimeFormat.format(getCombineDate(fromDate, fromTime)).replaceFirst("\\+", "%2B") +
                             "&to=" + jsonTimeFormat.format(getCombineDate(toDate, toTime)).replaceFirst("\\+", "%2B") +
-                            "&filter=" + !disableFilter.getValue(),
+                            "&filter=" + true,
                     "_blank", null);
         }
     }
@@ -370,10 +307,5 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
                 break;
             }
         }
-    }
-
-    @UiHandler("snapToRoads")
-    public void onSnapToRoadsClicked(ValueChangeEvent<Boolean> event) {
-        archiveHandler.onSnapToRoads(snapToRoads.getValue());
     }
 }

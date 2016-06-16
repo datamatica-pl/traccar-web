@@ -127,13 +127,20 @@ public class DeviceDialog implements Editor<Device> {
     VerticalLayoutContainer iconTab;
     final DeviceIconEditor iconEditor;
 
-    @UiField
-    VerticalLayoutContainer sensorsTab;
+    //@UiField
+    //VerticalLayoutContainer sensorsTab;
     final SensorsEditor sensorsEditor;
 
     @UiField
-    VerticalLayoutContainer maintenanceTab;
-    final MaintenanceEditor maintenanceEditor;
+    VerticalLayoutContainer technicalReviewTab;
+    final TechnicalReviewEditor technicalReviewEditor;
+    
+    @UiField
+    VerticalLayoutContainer registrationReviewTab;
+    final RegistrationReviewEditor registrationReviewEditor;
+    
+    @UiField
+    VerticalLayoutContainer insuranceValidityTab;
 
     @UiField(provided = true)
     ComboBox<Group> group;
@@ -177,10 +184,13 @@ public class DeviceDialog implements Editor<Device> {
         updatePhoto();
 
         sensorsEditor = new SensorsEditor(device, deviceStore);
-        sensorsTab.add(sensorsEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
+        //sensorsTab.add(sensorsEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
 
-        maintenanceEditor = new MaintenanceEditor(device, deviceStore);
-        maintenanceTab.add(maintenanceEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
+        technicalReviewEditor = new TechnicalReviewEditor(device, deviceStore);
+        technicalReviewTab.add(technicalReviewEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
+        
+        registrationReviewEditor = new RegistrationReviewEditor(device, deviceStore);
+        registrationReviewTab.add(registrationReviewEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1,1));
 
         iconEditor = new DeviceIconEditor(device);
         iconTab.add(iconEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
@@ -213,7 +223,8 @@ public class DeviceDialog implements Editor<Device> {
         }
 
         iconEditor.flush();
-        maintenanceEditor.flush();
+        technicalReviewEditor.flush();
+        registrationReviewEditor.flush();
         sensorsEditor.flush();
         deviceHandler.onSave(device);
     }
