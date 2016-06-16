@@ -292,7 +292,7 @@ public class MapView {
 
     public void showLatestTrackPositions(List<Position> positions) {
         latestPositionTrackRenderer.showTrackPositions(positions);
-        latestPositionTrackRenderer.showArrows(positions, "");
+        latestPositionTrackRenderer.showArrows(positions);
     }
 
     public void showLatestTime(List<Position> positions) {
@@ -330,7 +330,7 @@ public class MapView {
     }
 
     public void showArchiveArrows(List<Position> positions, String color) {
-        archivePositionRenderer.showArrows(positions, color);
+        archivePositionRenderer.showArrows(positions);
     }
 
     public void selectDevice(Device device) {

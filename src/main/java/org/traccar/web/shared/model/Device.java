@@ -28,6 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.persistence.*;
+import org.traccar.web.client.utils.JsonXmlParser;
 
 @Entity
 @Table(name = "devices",
@@ -82,6 +83,11 @@ public class Device implements IsSerializable, GroupedDevice {
             for (Maintenance maintenance : device.maintenances) {
                 maintenances.add(new Maintenance(maintenance));
             }
+        }
+        if (device.registrations != null) {
+            registrations = new ArrayList<>(device.registrations.size());
+            for(RegistrationMaintenance registration : device.registrations)
+                registrations.add(new RegistrationMaintenance(registration));
         }
         if (device.sensors != null) {
             sensors = new ArrayList<>(device.sensors.size());
@@ -348,6 +354,17 @@ public class Device implements IsSerializable, GroupedDevice {
     public void setMaintenances(List<Maintenance> maintenances) {
         this.maintenances = maintenances;
     }
+    
+    @Transient
+    private List<RegistrationMaintenance> registrations;
+    
+    public List<RegistrationMaintenance> getRegistrations() {
+        return registrations;
+    }
+    
+    public void setRegistrations(List<RegistrationMaintenance> registrations) {
+        this.registrations = registrations;
+    }
 
     @Transient
     private List<Sensor> sensors;
@@ -539,6 +556,39 @@ public class Device implements IsSerializable, GroupedDevice {
     
     public void setCommandPassword(String commandPassword) {
         this.commandPassword = commandPassword;
+    }
+    
+    @Transient
+    private boolean isAlarmEnabled;
+    
+    public boolean isAlarmEnabled() {
+        return isAlarmEnabled;
+    }
+    
+    public void setAlarmEnabled(boolean isEnabled) {
+        isAlarmEnabled = isEnabled;
+    }
+    
+    @Transient
+    private boolean isIgnitionEnabled;
+
+    public boolean isIgnitionEnabled() {
+        return isIgnitionEnabled;
+    }
+
+    public void setIgnitionEnabled(boolean isIgnitionEnabled) {
+        this.isIgnitionEnabled = isIgnitionEnabled;
+    }
+    
+    @Column(columnDefinition = "bit default false")
+    private boolean speedAlarm;
+
+    public boolean getSpeedAlarm() {
+        return speedAlarm;
+    }
+
+    public void setSpeedAlarm(boolean speedAlarm) {
+        this.speedAlarm = speedAlarm;
     }
 
     @Override

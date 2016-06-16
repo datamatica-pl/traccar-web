@@ -145,15 +145,6 @@ public class DeviceIconEditor {
     BorderLayoutContainer mainContainer;
 
     @UiField
-    Radio iconModeIcon;
-
-    @UiField
-    Radio iconModeArrow;
-
-    @UiField
-    CheckBox iconRotation;
-
-    @UiField
     CheckBox showName;
 
     @UiField(provided = true)
@@ -337,19 +328,7 @@ public class DeviceIconEditor {
                 }
             }
         });
-
-        // set up 'Icon Mode' radio buttons
-        ToggleGroup iconModeRadibuttons = new ToggleGroup();
-        iconModeRadibuttons.add(iconModeIcon);
-        iconModeRadibuttons.add(iconModeArrow);
-
-        iconModeIcon.setBoxLabel(i18n.deviceIconMode(DeviceIconMode.ICON));
-        iconModeArrow.setBoxLabel(i18n.deviceIconMode(DeviceIconMode.ARROW));
-
-        iconModeIcon.setValue(device.getIconMode() == DeviceIconMode.ICON);
-        iconModeArrow.setValue(device.getIconMode() == DeviceIconMode.ARROW);
-
-        iconRotation.setValue(device.isIconRotation());
+        
         showName.setValue(device.isShowName());
 
         iconArrowRadius.setValue(device.getIconArrowRadius());
@@ -377,12 +356,6 @@ public class DeviceIconEditor {
     }
 
     public void flush() {
-        if (iconModeIcon.getValue()) {
-            device.setIconMode(DeviceIconMode.ICON);
-        } else if (iconModeArrow.getValue()) {
-            device.setIconMode(DeviceIconMode.ARROW);
-        }
-        device.setIconRotation(iconRotation.getValue());
         device.setShowName(showName.getValue());
         device.setIconArrowRadius(iconArrowRadius.getValue());
         for (ColorSelector colorSelector : arrowColors) {

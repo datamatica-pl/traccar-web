@@ -15,7 +15,6 @@
  */
 package org.traccar.web.shared.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gwt.user.client.rpc.IsSerializable;
 
 import javax.persistence.*;
@@ -23,7 +22,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "maintenances",
        indexes = { @Index(name = "maintenances_pkey", columnList = "id") })
-public class Maintenance implements IsSerializable {
+public class Maintenance extends MaintenanceBase implements IsSerializable  {
 
     public Maintenance() {}
 
@@ -32,54 +31,6 @@ public class Maintenance implements IsSerializable {
     }
 
     public Maintenance(String name) {
-        this.name = name;
-    }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false, updatable = false, unique = true)
-    @JsonIgnore
-    private long id;
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(foreignKey = @ForeignKey(name = "maintenances_fkey_device_id"))
-    @JsonIgnore
-    private Device device;
-
-    public Device getDevice() {
-        return device;
-    }
-
-    public void setDevice(Device device) {
-        this.device = device;
-    }
-
-    // sequence number of this interval
-    private int indexNo;
-
-    public int getIndexNo() {
-        return indexNo;
-    }
-
-    public void setIndexNo(int indexNo) {
-        this.indexNo = indexNo;
-    }
-
-    private String name;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
         this.name = name;
     }
 
@@ -104,37 +55,10 @@ public class Maintenance implements IsSerializable {
     public void setLastService(double lastService) {
         this.lastService = lastService;
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Maintenance)) return false;
-
-        Maintenance that = (Maintenance) o;
-
-        if (getId() != that.getId()) return false;
-        if (getIndexNo() != that.getIndexNo()) return false;
-        if (getDevice() != null ? !getDevice().equals(that.getDevice()) : that.getDevice() != null) return false;
-        if (getName() != null ? !getName().equals(that.getName()) : that.getName() != null) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = (int) (getId() ^ (getId() >>> 32));
-        result = 31 * result + (getDevice() != null ? getDevice().hashCode() : 0);
-        result = 31 * result + getIndexNo();
-        result = 31 * result + (getName() != null ? getName().hashCode() : 0);
-        return result;
-    }
-
-    public void copyFrom(Maintenance maintenance) {
-        id = maintenance.id;
-        name = maintenance.name;
-        indexNo = maintenance.indexNo;
-        device = maintenance.device;
-        serviceInterval = maintenance.serviceInterval;
-        lastService = maintenance.lastService;
+    
+    public void copyFrom(Maintenance other) {
+        super.copyFrom(other);
+        this.serviceInterval = other.serviceInterval;
+        this.lastService = other.lastService;
     }
 }
