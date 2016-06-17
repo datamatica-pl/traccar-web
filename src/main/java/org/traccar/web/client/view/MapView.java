@@ -75,6 +75,7 @@ public class MapView {
     private OverviewMap overviewMap;
     private Vector vectorLayer;
     private Vector markerLayer;
+    private Vector arrowLayer;
     private Vector geofenceLayer;
     private TMS seamarkLayer;
 
@@ -98,6 +99,10 @@ public class MapView {
 
     public Vector getMarkerLayer() {
         return markerLayer;
+    }
+    
+    public Vector getArrowLayer() {
+        return arrowLayer;
     }
 
     public LonLat createLonLat(double longitude, double latitude) {
@@ -158,11 +163,8 @@ public class MapView {
         vectorOptions.setStyle(style);
         vectorLayer = new Vector(i18n.overlayType(UserSettings.OverlayType.VECTOR), vectorOptions);
 
-        VectorOptions markersOptions = new VectorOptions();
-        RendererOptions rendererOptions = new RendererOptions();
-        rendererOptions.setZIndexing(true);
-        markersOptions.setRendererOptions(rendererOptions);
-        markerLayer = new Vector(i18n.overlayType(UserSettings.OverlayType.MARKERS), markersOptions);
+        markerLayer = createMarkerLayer(i18n.overlayType(UserSettings.OverlayType.MARKERS), false);
+        arrowLayer = createMarkerLayer(i18n.overlayType(UserSettings.OverlayType.ARROWS), true);
 
         vectorOptions = new VectorOptions();
         OpenLayersStyle defaultStyle = new OpenLayersStyle(new StyleRules(), new StyleOptions());
@@ -187,6 +189,7 @@ public class MapView {
         map.addLayer(geofenceLayer);
         map.addLayer(vectorLayer);
         map.addLayer(markerLayer);
+        map.addLayer(arrowLayer);
 
         geofenceLayer.setIsVisible(userOverlays.contains(UserSettings.OverlayType.GEO_FENCES));
         vectorLayer.setIsVisible(userOverlays.contains(UserSettings.OverlayType.VECTOR));
@@ -253,9 +256,17 @@ public class MapView {
         latestPositionTrackRenderer = new MapPositionRenderer(this, archivePositionSelectHandler,
                 positionMouseHandler, deviceVisibilityHandler, null);
         geoFenceRenderer = new GeoFenceRenderer(this);
+    }
 
-        // register arrow graphic
-        OpenLayers.addWellKnownGraphic(new int[] {0,10, 4,8, 7,10, 4,0, 0,10}, "arrow");
+    //http://wiki.openstreetmap.org/wiki/MinScaleDenominator
+    private Vector createMarkerLayer(String name, boolean limitVisibility) {
+        VectorOptions markersOptions = new VectorOptions();
+        RendererOptions rendererOptions = new RendererOptions();
+        rendererOptions.setZIndexing(true);
+        markersOptions.setRendererOptions(rendererOptions);
+        if(limitVisibility)
+            markersOptions.setMaxScale(17471321);
+        return new Vector(name, markersOptions);
     }
 
     private final MapPositionRenderer latestPositionRenderer;
@@ -312,7 +323,7 @@ public class MapView {
     }
 
     public void showArchivePositions(List<Position> positions) {
-        archivePositionRenderer.showPositions(positions);
+        archivePositionRenderer.showArrows(positions);
     }
 
     public void setArchiveSnapToTrack(List<Position> positions) {
