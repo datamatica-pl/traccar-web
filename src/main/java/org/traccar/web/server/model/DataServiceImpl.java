@@ -1220,9 +1220,9 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
         
         @Override
-        public void fail() {
+        public void fail(String reason) {
             result.put("success", false);
-            result.put("reason", "timeout");
+            result.put("reason", reason);
             synchronized(awaiter) {
                 awaiter.notifyAll();
             }
