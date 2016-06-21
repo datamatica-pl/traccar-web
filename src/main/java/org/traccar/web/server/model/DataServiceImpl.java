@@ -432,7 +432,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 
                 for(String command : commands)
                     device.addSupportedCommand(CommandType.fromString(command));
-            } catch (Exception ex) {
+            } catch (Exception | NoClassDefFoundError ex) {
                 Logger.getLogger(Device.class.getName()).log(Level.SEVERE, null, ex);
                 device.clearSupportedCommands();
             }
@@ -815,6 +815,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             // calculate Idle state
             if (position.getSpeed() != null) {
                 if (position.getSpeed() > position.getDevice().getIdleSpeedThreshold()) {
+                    position.setIdleStatus(Position.IdleStatus.MOVING);
                     latestNonIdlePosition = position;
                 } else {
                     if (latestNonIdlePosition == null) {
