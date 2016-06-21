@@ -425,7 +425,12 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 
                 final Class<?> protocolClass;
                 Class<?> baseProtocol = Class.forName("org.traccar.BaseProtocol");
-                protocolClass = Class.forName("org.traccar.protocol."+protocolName+"Protocol");
+                Boolean isOsmAndProtocol = "Osmand".equals(protocolName);
+                if (isOsmAndProtocol) {
+                    protocolClass = Class.forName("org.traccar.protocol.OsmAndProtocol");
+                } else {
+                    protocolClass = Class.forName("org.traccar.protocol." + protocolName + "Protocol");
+                }
                 Object protocol = protocolClass.getConstructor().newInstance();
                 Method supportedCommands = baseProtocol.getDeclaredMethod("getSupportedCommands");
                 Set<String> commands = (Set<String>)supportedCommands.invoke(protocol);
