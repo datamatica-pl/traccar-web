@@ -24,7 +24,6 @@ import org.gwtopenmaps.openlayers.client.LonLat;
 import org.gwtopenmaps.openlayers.client.Map;
 import org.gwtopenmaps.openlayers.client.MapOptions;
 import org.gwtopenmaps.openlayers.client.MapWidget;
-import org.gwtopenmaps.openlayers.client.OpenLayers;
 import org.gwtopenmaps.openlayers.client.OpenLayersStyle;
 import org.gwtopenmaps.openlayers.client.Projection;
 import org.gwtopenmaps.openlayers.client.Style;
@@ -53,6 +52,9 @@ import com.google.gwt.event.logical.shared.ResizeEvent;
 import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.user.client.Command;
 import com.sencha.gxt.widget.core.client.ContentPanel;
+import org.gwtopenmaps.openlayers.client.event.FeatureHighlightedListener;
+import org.gwtopenmaps.openlayers.client.event.FeatureUnhighlightedListener;
+import org.gwtopenmaps.openlayers.client.event.VectorFeatureSelectedListener;
 import org.traccar.web.shared.model.UserSettings;
 
 public class MapView {
@@ -63,6 +65,12 @@ public class MapView {
     }
 
     private MapHandler mapHandler;
+    
+    //http://wiki.openstreetmap.org/wiki/MinScaleDenominator
+    private static final int[] SCALE_DENOMINATORS = {559082264, 279541132, 139770566,
+        69885283, 34942642, 17471321, 8735660, 4367830, 2183915, 1091958, 545979,
+        272989, 136495, 68247, 34124, 17062, 8531, 4265, 2133, 1066, 533
+    }; 
 
     private ContentPanel contentPanel;
 
@@ -74,8 +82,6 @@ public class MapView {
     private Map map;
     private OverviewMap overviewMap;
     private Vector vectorLayer;
-    private Vector markerLayer;
-    private Vector arrowLayer;
     private Vector geofenceLayer;
     private TMS seamarkLayer;
 
@@ -95,14 +101,6 @@ public class MapView {
 
     public Vector getGeofenceLayer() {
         return geofenceLayer;
-    }
-
-    public Vector getMarkerLayer() {
-        return markerLayer;
-    }
-    
-    public Vector getArrowLayer() {
-        return arrowLayer;
     }
 
     public LonLat createLonLat(double longitude, double latitude) {
@@ -163,8 +161,8 @@ public class MapView {
         vectorOptions.setStyle(style);
         vectorLayer = new Vector(i18n.overlayType(UserSettings.OverlayType.VECTOR), vectorOptions);
 
-        markerLayer = createMarkerLayer(i18n.overlayType(UserSettings.OverlayType.MARKERS), false);
-        arrowLayer = createMarkerLayer(i18n.overlayType(UserSettings.OverlayType.ARROWS), true);
+        MapPositionRenderer.LayersFactory layersFactory = new MapPositionRenderer.LayersFactory(map);
+        
 
         vectorOptions = new VectorOptions();
         OpenLayersStyle defaultStyle = new OpenLayersStyle(new StyleRules(), new StyleOptions());
@@ -188,29 +186,11 @@ public class MapView {
 
         map.addLayer(geofenceLayer);
         map.addLayer(vectorLayer);
-        map.addLayer(markerLayer);
-        map.addLayer(arrowLayer);
 
         geofenceLayer.setIsVisible(userOverlays.contains(UserSettings.OverlayType.GEO_FENCES));
         vectorLayer.setIsVisible(userOverlays.contains(UserSettings.OverlayType.VECTOR));
-        markerLayer.setIsVisible(userOverlays.contains(UserSettings.OverlayType.MARKERS));
-
-        // mouse click
-        SelectFeature selectFeature = new SelectFeature(markerLayer);
-        selectFeature.setAutoActivate(true);
-
-        // mouse over/out
-        SelectFeatureOptions selectFeatureHoverOptions = new SelectFeatureOptions();
-        selectFeatureHoverOptions.setHighlightOnly(true);
-        selectFeatureHoverOptions.setHover();
-
-        SelectFeature selectFeatureHover = new SelectFeature(markerLayer, selectFeatureHoverOptions);
-        selectFeatureHover.setAutoActivate(true);
-        selectFeatureHover.setHover(true);
-        selectFeatureHover.setClickOut(false);
-
-        map.addControl(selectFeatureHover);
-        map.addControl(selectFeature);
+        //markerLayer.setIsVisible(userOverlays.contains(UserSettings.OverlayType.MARKERS));
+        
         map.addControl(new LayerSwitcher());
         map.addControl(new ScaleLine());
         OverviewMapOptions options = new OverviewMapOptions();
@@ -245,30 +225,20 @@ public class MapView {
                 hidePopup();
             }
         });
-
-        latestPositionRenderer = new MapPositionRenderer(this, latestPositionSelectHandler, positionMouseHandler, deviceVisibilityHandler, selectFeatureHover);
-        archivePositionRenderer = new MapPositionRenderer(this, archivePositionSelectHandler, positionMouseHandler, new DeviceVisibilityProvider() {
+        
+        latestPositionRenderer = new MapPositionRenderer(this, layersFactory, latestPositionSelectHandler, positionMouseHandler, deviceVisibilityHandler, "latest");
+        archivePositionRenderer = new MapPositionRenderer(this, layersFactory, archivePositionSelectHandler, positionMouseHandler, new DeviceVisibilityProvider() {
             @Override
             public boolean isVisible(Device device) {
                 return true;
             }
-        }, null);
-        latestPositionTrackRenderer = new MapPositionRenderer(this, archivePositionSelectHandler,
-                positionMouseHandler, deviceVisibilityHandler, null);
+        }, "archive");
+        latestPositionTrackRenderer = new MapPositionRenderer(this, layersFactory, archivePositionSelectHandler,
+                positionMouseHandler, deviceVisibilityHandler, "latestTrack");
         geoFenceRenderer = new GeoFenceRenderer(this);
+        layersFactory.initClickSelection();
     }
-
-    //http://wiki.openstreetmap.org/wiki/MinScaleDenominator
-    private Vector createMarkerLayer(String name, boolean limitVisibility) {
-        VectorOptions markersOptions = new VectorOptions();
-        RendererOptions rendererOptions = new RendererOptions();
-        rendererOptions.setZIndexing(true);
-        markersOptions.setRendererOptions(rendererOptions);
-        if(limitVisibility)
-            markersOptions.setMaxScale(17471321);
-        return new Vector(name, markersOptions);
-    }
-
+    
     private final MapPositionRenderer latestPositionRenderer;
     private final MapPositionRenderer archivePositionRenderer;
     private final MapPositionRenderer latestPositionTrackRenderer;
