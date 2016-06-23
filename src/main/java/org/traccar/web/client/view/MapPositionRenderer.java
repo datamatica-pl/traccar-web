@@ -29,7 +29,9 @@ import org.gwtopenmaps.openlayers.client.control.SelectFeatureOptions;
 import org.gwtopenmaps.openlayers.client.event.*;
 import org.gwtopenmaps.openlayers.client.event.EventObject;
 import org.gwtopenmaps.openlayers.client.feature.VectorFeature;
+import org.gwtopenmaps.openlayers.client.geometry.Geometry;
 import org.gwtopenmaps.openlayers.client.geometry.LineString;
+import org.gwtopenmaps.openlayers.client.geometry.MultiLineString;
 import org.gwtopenmaps.openlayers.client.geometry.Point;
 import org.gwtopenmaps.openlayers.client.layer.RendererOptions;
 import org.gwtopenmaps.openlayers.client.layer.Vector;
@@ -40,6 +42,7 @@ import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.Track;
 import org.traccar.web.client.TrackSegment;
 import org.traccar.web.client.state.DeviceVisibilityProvider;
+import org.traccar.web.server.model.GeoFenceCalculator;
 import org.traccar.web.shared.model.*;
 
 public class MapPositionRenderer {
@@ -120,6 +123,8 @@ public class MapPositionRenderer {
         }
     }
 
+    private static final int MINIMAL_LEAP_DISTANCE = 50;
+    
     private final MapView mapView;
     private final Vector markerLayer;
     private final Vector arrowLayer;
@@ -284,7 +289,7 @@ public class MapPositionRenderer {
             double mouseX = lonLat.lon();
             double mouseY = lonLat.lat();
 
-            LineString lineString = deviceData.trackLine;
+            MultiLineString lineString = deviceData.trackLine;
             // check bounds
             Bounds bounds = lineString.getBounds();
             if (mouseX >= bounds.getLowerLeftX() - getTolerance() && mouseX <= bounds.getUpperRightX() + getTolerance() &&
@@ -380,7 +385,7 @@ public class MapPositionRenderer {
         Map<Long, Position> positionMap = new HashMap<>();
         VectorFeature track;
         VectorFeature alert;
-        LineString trackLine;
+        MultiLineString trackLine;
         List<VectorFeature> trackPoints = new ArrayList<>();
         List<VectorFeature> labels = new ArrayList<>();
         Map<Position, VectorFeature> pauseAndStops = new HashMap<>();
@@ -545,52 +550,61 @@ public class MapPositionRenderer {
         }
     }
 
-    public void showTrack(Track track) {
+    public void showTrack(Track track, boolean breakOnLeaps) {
         List<TrackSegment> segments = track.getSegments();
         if (!segments.isEmpty()
                 && visibilityProvider.isVisible(segments.get(0).getPositions().get(0).getDevice())) {
             DeviceData deviceData = getDeviceData(segments.get(0).getPositions());
 
-            List<Point> linePoints = new ArrayList<>();
-
+            List<List<Point>> polylines = new ArrayList<>();
+            List<Point> currentLine = new ArrayList<>();
+            
             for (TrackSegment segment : segments) {
                 if (segment.getGeometry() == null) {
                     for (Position position : segment.getPositions()) {
-                        linePoints.add(mapView.createPoint(position.getLongitude(), position.getLatitude()));
+                        if(position.getDistance() > MINIMAL_LEAP_DISTANCE && breakOnLeaps) {
+                            polylines.add(currentLine);
+                            currentLine = new ArrayList<>();
+                        }
+                        currentLine.add(mapView.createPoint(position.getLongitude(), position.getLatitude()));
                     }
+                    polylines.add(currentLine);
                 } else {
                     for (VectorFeature feature : segment.getGeometry()) {
                         LineString lineString = LineString.narrowToLineString(feature.getJSObject().getProperty("geometry"));
                         for (int i = 0; i < lineString.getNumberOfComponents(); i++) {
                             Point point = Point.narrowToPoint(lineString.getComponent(i));
-                            linePoints.add(mapView.createPoint(point.getX() / 10, point.getY() / 10));
+                            currentLine.add(mapView.createPoint(point.getX() / 10, point.getY() / 10));
                         }
                     }
                 }
             }
 
-            LineString lineString;
+            List<LineString> lineStrings = new ArrayList<>();
 
-            if (deviceData.track == null) {
-                lineString = new LineString(linePoints.toArray(new Point[linePoints.size()]));
-                deviceData.positions = track.getPositions();
-            } else {
-                lineString = deviceData.trackLine;
-                getVectorLayer().removeFeature(deviceData.track);
-                deviceData.track.destroy();
-                deviceData.positions = new ArrayList<>(deviceData.positions);
-                List<Position> trackPositions = track.getPositions();
-                if (deviceData.positions.get(deviceData.positions.size() - 1).equals(trackPositions.get(0))) {
-                    for (int i = 1; i < linePoints.size(); i++) {
-                        lineString.addPoint(linePoints.get(i), lineString.getNumberOfComponents());
-                        deviceData.positions.add(trackPositions.get(i));
-                    }
-                } else {
-                    for (Point point : linePoints) {
-                        lineString.addPoint(point, lineString.getNumberOfComponents());
-                    }
-                    deviceData.positions.addAll(trackPositions);
+            if(deviceData.track == null) {
+                for(List<Point> polyline : polylines) {
+                    lineStrings.add(new LineString(polyline.toArray(new Point[polyline.size()])));
+                    deviceData.positions = track.getPositions();
                 }
+                deviceData.trackLine = new MultiLineString(lineStrings.toArray(new LineString[lineStrings.size()]));
+            } else {
+                List<Position> trackPositions = track.getPositions();
+                if(deviceData.positions.get(deviceData.positions.size() - 1).equals(trackPositions.get(0))) {
+                    trackPositions.remove(0);
+                    List<Point> polyline = polylines.get(0);
+                    polylines.remove(0);
+                    LineString lastSegment = LineString.narrowToLineString(
+                        deviceData.trackLine.getComponent(deviceData.trackLine.getNumberOfComponents() -1));
+                    for(int i = 1; i < polyline.size(); ++i) {
+                        lastSegment.addPoint(polyline.get(i), lastSegment.getNumberOfComponents());
+                    }
+                }
+                for(List<Point> polyline : polylines) {
+                    lineStrings.add(new LineString(polyline.toArray(new Point[polyline.size()])));
+                }
+                deviceData.positions.addAll(trackPositions);
+                deviceData.trackLine.addComponents(lineStrings.toArray(new LineString[lineStrings.size()]));
             }
 
             // Assigns color to style
@@ -602,13 +616,12 @@ public class MapPositionRenderer {
             style.setStrokeDashstyle(defaultStyle.getStrokeDashstyle());
             style.setStrokeLinecap(defaultStyle.getStrokeLinecap());
 
-            VectorFeature mapTrack = new VectorFeature(lineString, style);
+            VectorFeature mapTrack = new VectorFeature(deviceData.trackLine, style);
             getVectorLayer().addFeature(mapTrack);
             deviceData.track = mapTrack;
-            deviceData.trackLine = lineString;
 
             if (track.getStyle().getZoomToTrack())
-                mapView.getMap().zoomToExtent(lineString.getBounds());
+                mapView.getMap().zoomToExtent(deviceData.trackLine.getBounds());
         }
     }
 
@@ -709,7 +722,9 @@ public class MapPositionRenderer {
         DeviceData deviceData = getDeviceData(device);
         if (deviceData.track != null) {
             boolean updated = false;
-            LineString trackLine = deviceData.trackLine;
+            MultiLineString trackLine = deviceData.trackLine;
+            LineString currentPolyline = LineString.narrowToLineString(trackLine.getComponent(0));
+            trackLine.removeComponent(currentPolyline);
 
             while (deviceData.positions.size() > 0) {
                 if (deviceData.positions.get(0).getTime().after(before)) {
@@ -717,10 +732,17 @@ public class MapPositionRenderer {
                 }
                 Position position = deviceData.positions.remove(0);
                 
-                if(trackLine != null && trackLine.getVertices(true).length > 2)
-                    trackLine.removePoint(Point.narrowToPoint(trackLine.getComponent(0)));
-                else
-                    trackLine = null;
+                if(currentPolyline.getVertices(true).length > 2)
+                    currentPolyline.removePoint(Point.narrowToPoint(currentPolyline.getComponent(0)));
+                else if(trackLine != null) {
+                    if(trackLine.getNumberOfComponents() == 0) {
+                        trackLine = null;
+                        deviceData.trackLine = null;
+                    } else {
+                        currentPolyline = LineString.narrowToLineString(trackLine.getComponent(0));
+                        trackLine.removeComponent(currentPolyline);
+                    }
+                }
                 if(!deviceData.trackPoints.isEmpty())
                     getVectorLayer().removeFeature(deviceData.trackPoints.remove(0));
                 
