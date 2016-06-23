@@ -281,7 +281,7 @@ public class MapView {
     }
 
     public void showLatestTrack(Track track) {
-        latestPositionTrackRenderer.showTrack(track);
+        latestPositionTrackRenderer.showTrack(track, false);
     }
 
     public void clearArchive(Device device) {
@@ -289,7 +289,7 @@ public class MapView {
     }
 
     public void showArchiveTrack(Track track) {
-        archivePositionRenderer.showTrack(track);
+        archivePositionRenderer.showTrack(track, true);
     }
 
     public void showArchivePositions(List<Position> positions) {
