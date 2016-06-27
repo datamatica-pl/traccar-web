@@ -131,6 +131,9 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
 
     @UiField
     TextButton shareButton;
+    
+    @UiField
+    TextButton saveButton;
 
     final GroupStore groupStore;
     private List<Group> newGroups;
@@ -143,10 +146,7 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
 
     GroupProperties groupProperties = GWT.create(GroupProperties.class);
 
-    public GroupsDialog(final GroupStore groupStore, final GroupsHandler groupsHandler) {
-        boolean admin = ApplicationContext.getInstance().getUser().getAdmin();
-        boolean manager = ApplicationContext.getInstance().getUser().getManager(); 
-        
+    public GroupsDialog(final GroupStore groupStore, final GroupsHandler groupsHandler) {        
         this.groupStore = groupStore;
         this.groupsHandler = groupsHandler;
         this.newGroups = new ArrayList<>();
@@ -180,7 +180,7 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
 
         uiBinder.createAndBindUi(this);
         
-         if(admin || manager) {
+         if(ApplicationContext.getInstance().getUser().isAdminOrManager()) {
              grid.getSelectionModel().addSelectionChangedHandler(this);
              grid.getSelectionModel().setSelectionMode(Style.SelectionMode.SINGLE);
              
@@ -191,6 +191,7 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
              addButton.setEnabled(false);
              removeButton.setEnabled(false);
              shareButton.setEnabled(false);
+             saveButton.setVisible(false);
          }
 
 
