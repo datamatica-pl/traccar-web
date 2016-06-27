@@ -96,7 +96,8 @@ public class UserSettings implements IsSerializable {
     }
 
     public enum OverlayType implements IsSerializable {
-        GEO_FENCES, VECTOR, MARKERS, SEAMARK, ARROWS
+        GEO_FENCES, VECTOR, MARKERS, SEAMARK, 
+        ARCHIVE_ARROWS, LATEST_TRACK_ARROWS, LATEST_POSITION_ARROWS
     }
 
     public enum DistanceUnit implements IsSerializable {

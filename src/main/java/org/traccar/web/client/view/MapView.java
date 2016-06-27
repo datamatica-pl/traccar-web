@@ -226,15 +226,16 @@ public class MapView {
             }
         });
         
-        latestPositionRenderer = new MapPositionRenderer(this, layersFactory, latestPositionSelectHandler, positionMouseHandler, deviceVisibilityHandler, "latest");
+        latestPositionRenderer = new MapPositionRenderer(this, layersFactory, latestPositionSelectHandler, positionMouseHandler, deviceVisibilityHandler, 
+                i18n.overlayType(UserSettings.OverlayType.LATEST_POSITION_ARROWS), i18n.overlayType(UserSettings.OverlayType.MARKERS));
         archivePositionRenderer = new MapPositionRenderer(this, layersFactory, archivePositionSelectHandler, positionMouseHandler, new DeviceVisibilityProvider() {
             @Override
             public boolean isVisible(Device device) {
                 return true;
             }
-        }, "archive");
+        }, i18n.overlayType(UserSettings.OverlayType.ARCHIVE_ARROWS), null);
         latestPositionTrackRenderer = new MapPositionRenderer(this, layersFactory, archivePositionSelectHandler,
-                positionMouseHandler, deviceVisibilityHandler, "latestTrack");
+                positionMouseHandler, deviceVisibilityHandler, i18n.overlayType(UserSettings.OverlayType.LATEST_TRACK_ARROWS), null);
         geoFenceRenderer = new GeoFenceRenderer(this);
         layersFactory.initClickSelection();
     }
