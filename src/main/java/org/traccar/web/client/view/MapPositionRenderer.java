@@ -19,7 +19,6 @@ import java.util.*;
 import java.util.Map;
 
 import com.google.gwt.i18n.client.DateTimeFormat;
-import com.google.gwt.user.client.Window;
 import org.gwtopenmaps.openlayers.client.Bounds;
 import org.gwtopenmaps.openlayers.client.LonLat;
 import org.gwtopenmaps.openlayers.client.Pixel;
@@ -29,7 +28,6 @@ import org.gwtopenmaps.openlayers.client.control.SelectFeatureOptions;
 import org.gwtopenmaps.openlayers.client.event.*;
 import org.gwtopenmaps.openlayers.client.event.EventObject;
 import org.gwtopenmaps.openlayers.client.feature.VectorFeature;
-import org.gwtopenmaps.openlayers.client.geometry.Geometry;
 import org.gwtopenmaps.openlayers.client.geometry.LineString;
 import org.gwtopenmaps.openlayers.client.geometry.MultiLineString;
 import org.gwtopenmaps.openlayers.client.geometry.Point;
@@ -42,7 +40,6 @@ import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.Track;
 import org.traccar.web.client.TrackSegment;
 import org.traccar.web.client.state.DeviceVisibilityProvider;
-import org.traccar.web.server.model.GeoFenceCalculator;
 import org.traccar.web.shared.model.*;
 
 public class MapPositionRenderer {
@@ -150,7 +147,8 @@ public class MapPositionRenderer {
                                final SelectHandler selectHandler,
                                final MouseHandler mouseHandler,
                                DeviceVisibilityProvider visibilityProvider,
-                               String myName) {
+                               String arrowsName,
+                               String markersName) {
         this.mapView = mapView;
         this.selectHandler = selectHandler;
         this.mouseHandler = mouseHandler;
@@ -192,14 +190,17 @@ public class MapPositionRenderer {
             };
         }
         
-        arrowLayer = layersFactory.createMarkerLayer(myName+"_arrows",
+        arrowLayer = layersFactory.createMarkerLayer(arrowsName,
                 EnumSet.of(LayersFactory.LayerFlags.LIMIT_VISIBILITY),
                 vfsListener,
                 fhListener, fuhListener);
-        markerLayer = layersFactory.createMarkerLayer(myName+"_markers",
-                EnumSet.noneOf(LayersFactory.LayerFlags.class),
-                vfsListener,
-                fhListener, fuhListener);
+        if(markersName != null)
+            markerLayer = layersFactory.createMarkerLayer(markersName,
+                    EnumSet.noneOf(LayersFactory.LayerFlags.class),
+                    vfsListener,
+                    fhListener, fuhListener);
+        else
+            markerLayer = null;
     }
 
     private Position getMouseEventPosition(EventObject eventObject) {
@@ -435,8 +436,10 @@ public class MapPositionRenderer {
     }
 
     private void clearMarkersAndTitleAndAlert(DeviceData deviceData) {
-        getMarkerLayer().destroyFeatures();
-        deviceData.markerMap.clear();
+        if(getMarkerLayer() != null) {
+            getMarkerLayer().destroyFeatures();
+            deviceData.markerMap.clear();
+        }
         if (deviceData.alert != null) {
             getVectorLayer().removeFeature(deviceData.alert);
             deviceData.alert.destroy();
