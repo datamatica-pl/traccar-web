@@ -138,6 +138,10 @@ public class User implements IsSerializable, Cloneable {
     public void setManager(Boolean manager) {
         this.manager = manager;
     }
+    
+    public boolean isAdminOrManager() {
+        return getAdmin() || getManager();
+    }
 
     // Hibernate bug HHH-8783: (http://hibernate.atlassian.net/browse/HHH-8783)
     //     ForeignKey(name) has no effect in JoinTable (and others).  It is

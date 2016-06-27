@@ -29,8 +29,31 @@ import org.traccar.web.shared.model.Group;
 import org.traccar.web.shared.model.User;
 
 import java.util.*;
+import org.traccar.web.client.ApplicationContext;
 
 public class GroupsController implements NavView.GroupsHandler, ContentController {
+    private static final GroupsDialog.GroupsHandler EMPTY_GROUPS_HANDLER = new GroupsDialog.GroupsHandler() {
+        @Override
+        public void onAdd(Group parent, Group group, GroupAddHandler groupsHandler) {
+        }
+
+        @Override
+        public void onSave(ChangesSaveHandler groupsHandler) {
+        }
+
+        @Override
+        public void onRemove(Group group) {
+        }
+
+        @Override
+        public void onCancelSaving(List<Group> newGroups) {
+        }
+
+        @Override
+        public void onShare(Group group) {
+        }
+    };
+    
     private final Messages i18n = GWT.create(Messages.class);
     private final GroupStore groupStore;
     private final GroupRemoveHandler removeHandler;
@@ -98,8 +121,10 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
     public void onShowGroups() {
         final GroupServiceAsync service = GWT.create(GroupService.class);
         final Map<Group, List<Group>> originalParents = getParents();
-
-        GroupsDialog.GroupsHandler handler = new GroupsDialog.GroupsHandler() {
+        
+        GroupsDialog.GroupsHandler handler = EMPTY_GROUPS_HANDLER;
+        if(ApplicationContext.getInstance().getUser().isAdminOrManager())
+            handler = new GroupsDialog.GroupsHandler() {
             @Override
             public void onAdd(Group parent, Group group, final GroupAddHandler groupsHandler) {
                 service.addGroup(parent, group, new BaseAsyncCallback<Group>(i18n) {
