@@ -15,6 +15,7 @@
  */
 package org.traccar.web.client.view;
 
+import com.google.gwt.core.client.GWT;
 import java.util.*;
 import java.util.Map;
 
@@ -39,6 +40,7 @@ import org.gwtopenmaps.openlayers.client.util.JSObject;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.Track;
 import org.traccar.web.client.TrackSegment;
+import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.state.DeviceVisibilityProvider;
 import org.traccar.web.shared.model.*;
 
@@ -64,14 +66,17 @@ public class MapPositionRenderer {
             272989, 136495, 68247, 34124, 17062, 8531, 4265, 2133, 1066, 533
         }; 
 
+        private final Messages i18n = GWT.create(Messages.class);
+        private final List<UserSettings.OverlayType> userOverlays;
         private final List<Vector> selectableLayers;
         private final org.gwtopenmaps.openlayers.client.Map map;
         public LayersFactory(org.gwtopenmaps.openlayers.client.Map map) {
             this.selectableLayers = new ArrayList<>();
             this.map = map;
+            this.userOverlays = ApplicationContext.getInstance().getUserSettings().overlays();
         }
         
-        private Vector createMarkerLayer(String name, EnumSet<LayerFlags> flags,
+        private Vector createMarkerLayer(UserSettings.OverlayType type, EnumSet<LayerFlags> flags,
                 VectorFeatureSelectedListener vfsListener, 
                 FeatureHighlightedListener fhListener,
                 FeatureUnhighlightedListener fuhListener) {
@@ -81,6 +86,7 @@ public class MapPositionRenderer {
             markersOptions.setRendererOptions(rendererOptions);
             if(flags.contains(LayerFlags.LIMIT_VISIBILITY))
                 markersOptions.setMaxScale(SCALE_DENOMINATORS[5]);
+            final String name = i18n.overlayType(type);
             final Vector layer = new Vector(name, markersOptions);
             map.addLayer(layer);
             if(fhListener != null && fuhListener != null)
@@ -89,6 +95,7 @@ public class MapPositionRenderer {
                 addSelectionListener(layer, vfsListener);
                 selectableLayers.add(layer);
             }
+            layer.setIsVisible(userOverlays.contains(type));
             return layer;
         }
         
@@ -147,8 +154,8 @@ public class MapPositionRenderer {
                                final SelectHandler selectHandler,
                                final MouseHandler mouseHandler,
                                DeviceVisibilityProvider visibilityProvider,
-                               String arrowsName,
-                               String markersName) {
+                               UserSettings.OverlayType arrowsType,
+                               UserSettings.OverlayType markersType) {
         this.mapView = mapView;
         this.selectHandler = selectHandler;
         this.mouseHandler = mouseHandler;
@@ -190,12 +197,12 @@ public class MapPositionRenderer {
             };
         }
         
-        arrowLayer = layersFactory.createMarkerLayer(arrowsName,
+        arrowLayer = layersFactory.createMarkerLayer(arrowsType,
                 EnumSet.of(LayersFactory.LayerFlags.LIMIT_VISIBILITY),
                 vfsListener,
                 fhListener, fuhListener);
-        if(markersName != null)
-            markerLayer = layersFactory.createMarkerLayer(markersName,
+        if(markersType != null)
+            markerLayer = layersFactory.createMarkerLayer(markersType,
                     EnumSet.noneOf(LayersFactory.LayerFlags.class),
                     vfsListener,
                     fhListener, fuhListener);

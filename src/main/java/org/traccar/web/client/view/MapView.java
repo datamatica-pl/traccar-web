@@ -52,9 +52,6 @@ import com.google.gwt.event.logical.shared.ResizeEvent;
 import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.user.client.Command;
 import com.sencha.gxt.widget.core.client.ContentPanel;
-import org.gwtopenmaps.openlayers.client.event.FeatureHighlightedListener;
-import org.gwtopenmaps.openlayers.client.event.FeatureUnhighlightedListener;
-import org.gwtopenmaps.openlayers.client.event.VectorFeatureSelectedListener;
 import org.traccar.web.shared.model.UserSettings;
 
 public class MapView {
@@ -189,7 +186,6 @@ public class MapView {
 
         geofenceLayer.setIsVisible(userOverlays.contains(UserSettings.OverlayType.GEO_FENCES));
         vectorLayer.setIsVisible(userOverlays.contains(UserSettings.OverlayType.VECTOR));
-        //markerLayer.setIsVisible(userOverlays.contains(UserSettings.OverlayType.MARKERS));
         
         map.addControl(new LayerSwitcher());
         map.addControl(new ScaleLine());
@@ -227,15 +223,15 @@ public class MapView {
         });
         
         latestPositionRenderer = new MapPositionRenderer(this, layersFactory, latestPositionSelectHandler, positionMouseHandler, deviceVisibilityHandler, 
-                i18n.overlayType(UserSettings.OverlayType.LATEST_POSITION_ARROWS), i18n.overlayType(UserSettings.OverlayType.MARKERS));
+                UserSettings.OverlayType.LATEST_POSITION_ARROWS, UserSettings.OverlayType.MARKERS);
         archivePositionRenderer = new MapPositionRenderer(this, layersFactory, archivePositionSelectHandler, positionMouseHandler, new DeviceVisibilityProvider() {
             @Override
             public boolean isVisible(Device device) {
                 return true;
             }
-        }, i18n.overlayType(UserSettings.OverlayType.ARCHIVE_ARROWS), null);
+        }, UserSettings.OverlayType.ARCHIVE_ARROWS, null);
         latestPositionTrackRenderer = new MapPositionRenderer(this, layersFactory, archivePositionSelectHandler,
-                positionMouseHandler, deviceVisibilityHandler, i18n.overlayType(UserSettings.OverlayType.LATEST_TRACK_ARROWS), null);
+                positionMouseHandler, deviceVisibilityHandler, UserSettings.OverlayType.LATEST_TRACK_ARROWS, null);
         geoFenceRenderer = new GeoFenceRenderer(this);
         layersFactory.initClickSelection();
     }
