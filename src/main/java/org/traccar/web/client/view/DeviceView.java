@@ -28,6 +28,7 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.resources.client.ClientBundle.Source;
 import com.google.gwt.resources.client.ImageResource;
+import com.google.gwt.safehtml.client.SafeHtmlTemplates;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -35,6 +36,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
 import com.sencha.gxt.core.client.Style.SelectionMode;
@@ -445,7 +447,13 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         public void bindIcons(SafeHtmlBuilder sb);
     }
     
-    private static class GroupedDeviceBinding implements IGroupedDeviceBinding {
+    static class GroupedDeviceBinding implements IGroupedDeviceBinding {
+        interface Templates extends SafeHtmlTemplates {
+            @Template("<div style=\"float: left; margin: auto 0.1cm\">{0}</div>")
+            SafeHtml cell(SafeHtml value);
+        }
+        private static final Templates templates = GWT.create(Templates.class);
+        
         private ImageResource ignition;
         private ImageResource alarm;
         private ImageResource speedAlarm;
@@ -461,7 +469,6 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         private void init(Device device, Resources resources) {
             ignition = device.isIgnitionEnabled() ? resources.ignitionEnabled() : resources.ignitionDisabled();
-            alarm = device.isAlarmEnabled() ? resources.alarmEnabled() : resources.alarmDisabled();
             speedAlarm = device.getSpeedAlarm() ? resources.speedAlarmActive() : resources.speedAlarmInactive();
         }
         
@@ -478,8 +485,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         }
 
         private void appendIfExists(SafeHtmlBuilder sb, ImageResource image) {
-            if(image != null)
-                sb.append(AbstractImagePrototype.create(image).getSafeHtml());
+            if(image != null) {
+                sb.append(templates.cell(AbstractImagePrototype.create(image).getSafeHtml()));
+            }
         }
     }
 
