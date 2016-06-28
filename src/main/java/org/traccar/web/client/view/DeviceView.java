@@ -461,7 +461,6 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         private void init(Device device, Resources resources) {
             ignition = device.isIgnitionEnabled() ? resources.ignitionEnabled() : resources.ignitionDisabled();
-            alarm = device.isAlarmEnabled() ? resources.alarmEnabled() : resources.alarmDisabled();
             speedAlarm = device.getSpeedAlarm() ? resources.speedAlarmActive() : resources.speedAlarmInactive();
         }
         
