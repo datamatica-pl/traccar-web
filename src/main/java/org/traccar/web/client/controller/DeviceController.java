@@ -37,7 +37,8 @@ import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 
-public class DeviceController implements ContentController, DeviceView.DeviceHandler, GroupsController.GroupRemoveHandler {
+public class DeviceController implements ContentController, DeviceView.DeviceHandler, 
+        GroupsController.GroupRemoveHandler, UpdatesController.DevicesListener {
     private final MapController mapController;
 
     private final Application application;
@@ -178,17 +179,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
                 Application.getDataService().updateDevice(device, new BaseAsyncCallback<Device>(i18n) {
                     @Override
                     public void onSuccess(Device result) {
-                        deviceStore.update(result);
-                        mapController.updateIcon(result);
-                        boolean showAlert = false;
-                        for (Maintenance maintenance : result.getMaintenances()) {
-                            if (result.getOdometer() >= maintenance.getLastService() + maintenance.getServiceInterval()) {
-                                showAlert = true;
-                                break;
-                            }
-                        }
-                        mapController.updateAlert(result, showAlert);
-                        deviceVisibilityHandler.updated(result);
+                        onDevicesUpdated(Collections.singletonList(result));
                     }
 
                     @Override
@@ -311,6 +302,23 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
                 deviceStore.update(device);
                 deviceVisibilityHandler.updated(device);
             }
+        }
+    }
+    
+    @Override
+    public void onDevicesUpdated(List<Device> devices) {       
+        for(Device result : devices) {
+            deviceStore.update(result);
+            mapController.updateIcon(result);
+            boolean showAlert = false;
+            for (Maintenance maintenance : result.getMaintenances()) {
+                if (result.getOdometer() >= maintenance.getLastService() + maintenance.getServiceInterval()) {
+                    showAlert = true;
+                    break;
+                }
+            }
+            mapController.updateAlert(result, showAlert);
+            deviceVisibilityHandler.updated(result);
         }
     }
 }
