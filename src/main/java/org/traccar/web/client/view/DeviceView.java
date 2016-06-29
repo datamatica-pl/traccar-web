@@ -449,10 +449,11 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     
     static class GroupedDeviceBinding implements IGroupedDeviceBinding {
         interface Templates extends SafeHtmlTemplates {
-            @Template("<div style=\"float: left; margin: auto 0.1cm\">{0}</div>")
-            SafeHtml cell(SafeHtml value);
+            @Template("<div style=\"float: left; margin: auto 0.1cm\" title=\"{1}\">{0}</div>")
+            SafeHtml cell(SafeHtml value, String title);
         }
         private static final Templates templates = GWT.create(Templates.class);
+        private static final Messages i18n = GWT.create(Messages.class);
         
         private ImageResource ignition;
         private ImageResource alarm;
@@ -479,14 +480,13 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         @Override
         public void bindIcons(SafeHtmlBuilder sb) {
-            appendIfExists(sb, speedAlarm);
-            appendIfExists(sb, ignition);
-            appendIfExists(sb, alarm);
+            appendIfExists(sb, speedAlarm, i18n.speedAlarm());
+            appendIfExists(sb, ignition, i18n.ignition());
         }
 
-        private void appendIfExists(SafeHtmlBuilder sb, ImageResource image) {
+        private void appendIfExists(SafeHtmlBuilder sb, ImageResource image, String title) {
             if(image != null) {
-                sb.append(templates.cell(AbstractImagePrototype.create(image).getSafeHtml()));
+                sb.append(templates.cell(AbstractImagePrototype.create(image).getSafeHtml(), title));
             }
         }
     }
