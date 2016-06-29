@@ -51,8 +51,11 @@ public class GroupServiceImpl extends RemoteServiceServlet implements GroupServi
             groups = entityManager.get().createQuery("SELECT x FROM Group x", Group.class).getResultList();
         } else {
             groups = new ArrayList<>(sessionUser.get().getAllAvailableGroups());
+            for(Group group : groups)
+                group.setMine(true);
             for (Device device : dataService.getDevices()) {
                 if (device.getGroup() != null && !groups.contains(device.getGroup())) {
+                    device.getGroup().setMine(false);
                     groups.add(device.getGroup());
                 }
             }

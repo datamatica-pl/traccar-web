@@ -39,6 +39,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.data.shared.Store.StoreFilter;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
@@ -150,6 +151,13 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
         this.groupStore = groupStore;
         this.groupsHandler = groupsHandler;
         this.newGroups = new ArrayList<>();
+        groupStore.addFilter(new StoreFilter<Group>() {
+            @Override
+            public boolean select(Store<Group> store, Group parent, Group item) {
+                return ApplicationContext.getInstance().getUser().getAdmin() || item.isMine();
+            }
+        });
+        groupStore.setEnableFilters(true);
 
         List<ColumnConfig<Group, ?>> columnConfigList = new LinkedList<>();
         ColumnConfig<Group, String> colName = new ColumnConfig<>(groupProperties.name(), 50, i18n.name());
