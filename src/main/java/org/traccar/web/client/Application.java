@@ -53,6 +53,7 @@ public class Application {
     private final CommandController commandController;
     private final GeoFenceController geoFenceController;
     private final MapController mapController;
+    private final UpdatesController updatesController;
     private final ArchiveController archiveController;
     private final ReportsController reportsController;
     private final LogController logController;
@@ -93,6 +94,10 @@ public class Application {
         logController = new LogController();
         navController = new NavController(settingsController, reportStore, reportsController, importController, logController, groupsController);
         archiveController = new ArchiveController(archiveHandler, userSettingsHandler, deviceController.getDeviceStore(), reportStore, reportsController);
+        
+        updatesController = new UpdatesController();
+        updatesController.addLatestPositionsListener(mapController);
+        updatesController.addDevicesListener(deviceController);
 
         view = new ApplicationView(
                 navController.getView(), deviceController.getView(), mapController.getView(), archiveController.getView());
@@ -110,6 +115,7 @@ public class Application {
         groupsController.run();
         visibilityController.run();
         reportsController.run();
+        updatesController.run();
         setupTimeZone();
     }
 
@@ -192,12 +198,12 @@ public class Application {
 
         @Override
         public void onAdd(StoreAddEvent<Device> event) {
-            mapController.update();
+            updatesController.update();
         }
 
         @Override
         public void onRemove(StoreRemoveEvent<Device> event) {
-            mapController.update();
+            updatesController.update();
             geoFenceController.deviceRemoved(event.getItem());
         }
 
