@@ -18,17 +18,13 @@ package org.traccar.web.shared.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gwt.user.client.rpc.GwtTransient;
 import com.google.gwt.user.client.rpc.IsSerializable;
-import java.lang.reflect.InvocationTargetException;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.persistence.*;
-import org.traccar.web.client.utils.JsonXmlParser;
 
 @Entity
 @Table(name = "devices",

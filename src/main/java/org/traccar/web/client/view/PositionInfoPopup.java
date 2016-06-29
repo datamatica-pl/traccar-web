@@ -84,6 +84,10 @@ public class PositionInfoPopup {
                 if (!device.isShowProtocol() && sensorData.containsKey("protocol")) {
                     sensorData.remove("protocol");
                 }
+                // Alarm is not synchronized properly, remove it from device pop-up temporary
+                if (sensorData.containsKey("alarm")) {
+                    sensorData.remove("alarm");
+                }
 
                 // write values
                 for (Map.Entry<String, Object> entry : sensorData.entrySet()) {
