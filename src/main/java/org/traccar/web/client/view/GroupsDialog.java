@@ -44,6 +44,7 @@ import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
+import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 
 import java.util.*;
@@ -192,7 +193,15 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
              grid.getSelectionModel().addSelectionChangedHandler(this);
              grid.getSelectionModel().setSelectionMode(Style.SelectionMode.SINGLE);
              
-             GridInlineEditing<Group> editing = new GridInlineEditing<>(grid);
+             GridInlineEditing<Group> editing = new GridInlineEditing<Group>(grid) {
+                 @Override
+                 public void startEditing(Grid.GridCell cell) {
+                     if(grid.getStore().get(cell.getRow()).isMine()
+                             || ApplicationContext.getInstance().getUser().getAdmin())
+                        super.startEditing(cell);
+                 }
+                 
+             };
              editing.addEditor(colName, new TextField());
              editing.addEditor(colDescription, new TextField());
          } else {
@@ -223,8 +232,12 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
 
     @Override
     public void onSelectionChanged(SelectionChangedEvent<Group> event) {
-        shareButton.setEnabled(!event.getSelection().isEmpty() && event.getSelection().get(0).getId() >= 0);
-        removeButton.setEnabled(!event.getSelection().isEmpty());
+        boolean isMineSelected = !event.getSelection().isEmpty() && event.getSelection().get(0).isMine();
+        boolean isNonMineSelected = !event.getSelection().isEmpty() && !event.getSelection().get(0).isMine();
+        boolean isConfirmed = event.getSelection().get(0).getId() >= 0;
+        addButton.setEnabled(!isNonMineSelected);
+        shareButton.setEnabled(isMineSelected && isConfirmed);
+        removeButton.setEnabled(isMineSelected);
     }
     @UiHandler("addButton")
     public void onAddClicked(SelectEvent event) {
