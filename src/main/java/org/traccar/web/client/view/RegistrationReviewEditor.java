@@ -3,7 +3,6 @@ package org.traccar.web.client.view;
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -19,15 +18,9 @@ import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
-import com.sencha.gxt.widget.core.client.grid.editing.GridEditing;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.IMaintenanceProperties;
 import org.traccar.web.client.utils.DateHelper;
@@ -143,9 +136,7 @@ public class RegistrationReviewEditor {
                     sb.appendEscaped("");
                     return;
                 }
-                DateTimeFormat formatter = DateTimeFormat.getFormat("dd/MM/yyyy");
-                Date today = new Date();
-                today = formatter.parse(formatter.format(today));
+                Date today = DateHelper.today();
                 
                 long remaining = DateHelper.dayDifference(today, serviceDate);
 

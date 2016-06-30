@@ -16,12 +16,6 @@
 package org.traccar.web.client.view;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONParser;
-import com.google.gwt.json.client.JSONValue;
-import com.google.gwt.xml.client.Node;
-import com.google.gwt.xml.client.NodeList;
-import com.google.gwt.xml.client.XMLParser;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.tips.ToolTip;
 import com.sencha.gxt.widget.core.client.tips.ToolTipConfig;
@@ -30,9 +24,7 @@ import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.shared.model.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import org.traccar.web.client.utils.JsonXmlParser;
 
 public class PositionInfoPopup {
@@ -40,10 +32,14 @@ public class PositionInfoPopup {
 
     final ToolTip toolTip;
     final ListStore<Device> deviceStore;
+    final Set<String> alwaysVisibleOthers;
 
     public PositionInfoPopup(ListStore<Device> deviceStore) {
         this.deviceStore = deviceStore;
         this.toolTip = new ToolTip(new ToolTipConfig());
+        
+        this.alwaysVisibleOthers = new HashSet<>();
+        Collections.addAll(alwaysVisibleOthers, "ignition", "battery", "power");
     }
 
     public void show(int x, int y, final Position position) {
@@ -70,54 +66,57 @@ public class PositionInfoPopup {
             if (position.getProtocol() != null && device.isShowProtocol()) {
                 body += "<tr><td style=\"padding: 3px 0px 3px 0px;\">" + i18n.protocol() + "</td><td>" + position.getProtocol() + "</td></tr>";
             }
-            String other = position.getOther();
-            if (other != null) {
-                Map<String, Sensor> sensors = new HashMap<>(device.getSensors().size());
-                for (Sensor sensor : device.getSensors()) {
-                    sensors.put(sensor.getParameterName(), sensor);
-                }
+        }
+        String other = position.getOther();
+        if (other != null) {
+            Map<String, Sensor> sensors = new HashMap<>(device.getSensors().size());
+            for (Sensor sensor : device.getSensors()) {
+                sensors.put(sensor.getParameterName(), sensor);
+            }
 
-                Map<String, Object> sensorData = JsonXmlParser.parse(other);
+            Map<String, Object> sensorData = JsonXmlParser.parse(other);
 
-                if(!admin && sensorData.containsKey("ip"))
-                    sensorData.remove("ip");
-                if (!device.isShowProtocol() && sensorData.containsKey("protocol")) {
-                    sensorData.remove("protocol");
-                }
-                // Alarm is not synchronized properly, remove it from device pop-up temporary
-                if (sensorData.containsKey("alarm")) {
-                    sensorData.remove("alarm");
-                }
+            if(!admin && !manager) {
+                sensorData.keySet().retainAll(alwaysVisibleOthers);
+            }
+            if(!admin && sensorData.containsKey("ip"))
+                sensorData.remove("ip");
+            if (!device.isShowProtocol() && sensorData.containsKey("protocol")) {
+                sensorData.remove("protocol");
+            }
+            // Alarm is not synchronized properly, remove it from device pop-up temporary
+            if (sensorData.containsKey("alarm")) {
+                sensorData.remove("alarm");
+            }
 
-                // write values
-                for (Map.Entry<String, Object> entry : sensorData.entrySet()) {
-                    String parameterName = entry.getKey();
-                    Object value = entry.getValue();
-                    String valueText = value.toString();
-                    Sensor sensor = sensors.get(parameterName);
-                    if (sensor != null) {
-                        if (!sensor.isVisible()) {
-                            continue;
-                        }
-                        parameterName = sensor.getName();
-                        if (value instanceof Number || value.toString().matches("^[-+]?\\d+(\\.\\d+)?$")) {
-                            double doubleValue;
-                            if (value instanceof Number) {
-                                doubleValue = ((Number) value).doubleValue();
-                            } else {
-                                doubleValue = Double.parseDouble(valueText);
-                            }
-                            List<SensorInterval> intervals = SensorsEditor.intervals(sensor);
-                            if (!intervals.isEmpty()) {
-                                valueText = intervalText(doubleValue, intervals);
-                            }
-                        }
-                    } else if (parameterName.equals("protocol")) {
-                        parameterName = i18n.protocol();
+            // write values
+            for (Map.Entry<String, Object> entry : sensorData.entrySet()) {
+                String parameterName = entry.getKey();
+                Object value = entry.getValue();
+                String valueText = value.toString();
+                Sensor sensor = sensors.get(parameterName);
+                if (sensor != null) {
+                    if (!sensor.isVisible()) {
+                        continue;
                     }
-                    if (!valueText.isEmpty()) {
-                        body += "<tr><td style=\"padding: 3px 0px 3px 0px;\">" + parameterName + "</td><td>" + valueText + "</td></tr>";
+                    parameterName = sensor.getName();
+                    if (value instanceof Number || value.toString().matches("^[-+]?\\d+(\\.\\d+)?$")) {
+                        double doubleValue;
+                        if (value instanceof Number) {
+                            doubleValue = ((Number) value).doubleValue();
+                        } else {
+                            doubleValue = Double.parseDouble(valueText);
+                        }
+                        List<SensorInterval> intervals = SensorsEditor.intervals(sensor);
+                        if (!intervals.isEmpty()) {
+                            valueText = intervalText(doubleValue, intervals);
+                        }
                     }
+                } else if (parameterName.equals("protocol")) {
+                    parameterName = i18n.protocol();
+                }
+                if (!valueText.isEmpty()) {
+                    body += "<tr><td style=\"padding: 3px 0px 3px 0px;\">" + parameterName + "</td><td>" + valueText + "</td></tr>";
                 }
             }
         }
