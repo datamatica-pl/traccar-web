@@ -60,6 +60,14 @@ public class GroupServiceImpl extends RemoteServiceServlet implements GroupServi
                 }
             }
         }
+        
+        for(int i=0;i<groups.size();++i) {
+            Group parent = groups.get(i).getParent();
+            if(parent != null && !groups.contains(parent)) {
+                parent.setMine(false);
+                groups.add(parent);
+            }
+        }
 
         Map<Group, Group> result = new HashMap<>();
         for (Group group : groups) {
