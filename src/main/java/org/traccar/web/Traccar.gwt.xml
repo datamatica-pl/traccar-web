@@ -22,6 +22,9 @@
                                 value="org.traccar.web.client.state.StateAutoBeanFactory" />
 
     <entry-point class='org.traccar.web.client.Traccar'/>
+    
+    <set-property name="gxt.user.agent" value="gecko1_9, chrome" />
+    <collapse-all-properties />
 
     <source path='client'/>
     <source path='shared'/>
