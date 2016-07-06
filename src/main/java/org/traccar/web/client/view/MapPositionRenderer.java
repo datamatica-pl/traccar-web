@@ -85,7 +85,7 @@ public class MapPositionRenderer {
             rendererOptions.setZIndexing(true);
             markersOptions.setRendererOptions(rendererOptions);
             if(flags.contains(LayerFlags.LIMIT_VISIBILITY))
-                markersOptions.setMaxScale(SCALE_DENOMINATORS[5]);
+                markersOptions.setMaxScale(SCALE_DENOMINATORS[10]);
             final String name = i18n.overlayType(type);
             final Vector layer = new Vector(name, markersOptions);
             map.addLayer(layer);
@@ -669,11 +669,11 @@ public class MapPositionRenderer {
 
         DeviceData newDeviceData = getDeviceData(device);
         Position newPosition = newDeviceData == null ? null : newDeviceData.getLatestPosition();
-        if (selectPosition(oldPosition, newPosition, center)) {
-            selectedDeviceId = device.getId();
-        } else {
-            selectedDeviceId = null;
-        }
+        
+        VectorFeature marker = newDeviceData.markerMap.get(newPosition.getId());
+        Point point = Point.narrowToPoint(marker.getJSObject().getProperty("geometry"));
+        if(center)
+            mapView.getMap().panTo(new LonLat(point.getX(), point.getY()));
     }
 
     public void zoomIn(Device device) {
@@ -931,49 +931,11 @@ public class MapPositionRenderer {
         style.setGraphicOpacity(1.0);
         style.setGraphicZIndex(10);
 
-        String graphic = getIdleIcon(position);
-        if (graphic != null) {
-            style.setBackgroundGraphic(graphic);
-            style.setBackgroundGraphicSize(IDLE_ICON_WIDTH, IDLE_ICON_HEIGHT);
-            style.setBackgroundOffset(width / 2 - IDLE_ICON_WIDTH / 2, -height - 2);
-            style.setBackgroundGraphicZIndex(11);
-        }
-
         if (position.getDevice().isIconRotation() && position.getCourse() != null) {
             style.setRotation(position.getCourse().toString());
         }
 
         return style;
-    }
-
-    private String getIdleIcon(Position position) {
-        if (position.getIdleStatus() != null && position.getIdleStatus() != Position.IdleStatus.MOVING) {
-            switch (position.getIdleStatus()) {
-                case PAUSED:
-                    return "img/paused.svg";
-                case IDLE:
-                    return "img/stopped.svg";
-            }
-        }
-        return null;
-    }
-
-    public void showPauseAndStops(List<Position> positions) {
-        DeviceData deviceData = getDeviceData(positions);
-        for (Position position : positions) {
-            String graphic = getIdleIcon(position);
-            if (graphic != null) {
-                Style style = new Style();
-                style.setExternalGraphic(graphic);
-                style.setGraphicSize(IDLE_ICON_WIDTH * 3 / 2, IDLE_ICON_HEIGHT * 3 / 2);
-                style.setGraphicOpacity(1.0);
-                VectorFeature pauseOrStop = new VectorFeature(
-                        mapView.createPoint(position.getLongitude(), position.getLatitude()),
-                        style);
-                getVectorLayer().addFeature(pauseOrStop);
-                deviceData.pauseAndStops.put(position, pauseOrStop);
-            }
-        }
     }
 
     private String getBgColor(Position position) {

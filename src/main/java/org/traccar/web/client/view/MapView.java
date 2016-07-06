@@ -222,8 +222,6 @@ public class MapView {
             }
         });
         
-        latestPositionRenderer = new MapPositionRenderer(this, layersFactory, latestPositionSelectHandler, positionMouseHandler, deviceVisibilityHandler, 
-                UserSettings.OverlayType.LATEST_POSITION_ARROWS, UserSettings.OverlayType.MARKERS);
         archivePositionRenderer = new MapPositionRenderer(this, layersFactory, archivePositionSelectHandler, positionMouseHandler, new DeviceVisibilityProvider() {
             @Override
             public boolean isVisible(Device device) {
@@ -232,6 +230,8 @@ public class MapView {
         }, UserSettings.OverlayType.ARCHIVE_ARROWS, null);
         latestPositionTrackRenderer = new MapPositionRenderer(this, layersFactory, archivePositionSelectHandler,
                 positionMouseHandler, deviceVisibilityHandler, UserSettings.OverlayType.LATEST_TRACK_ARROWS, null);
+        latestPositionRenderer = new MapPositionRenderer(this, layersFactory, null, positionMouseHandler, deviceVisibilityHandler, 
+                UserSettings.OverlayType.LATEST_POSITION_ARROWS, UserSettings.OverlayType.MARKERS);
         geoFenceRenderer = new GeoFenceRenderer(this);
         layersFactory.initClickSelection();
     }
@@ -297,10 +297,6 @@ public class MapView {
         if (!positions.isEmpty()) {
             archivePositionRenderer.setSnapToTrack(positions.get(0).getDevice(), true);
         }
-    }
-
-    public void showPauseAndStops(List<Position> positions) {
-        archivePositionRenderer.showPauseAndStops(positions);
     }
 
     public void showArchiveTime(List<Position> positions) {

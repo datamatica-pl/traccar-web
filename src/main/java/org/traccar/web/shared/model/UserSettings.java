@@ -41,7 +41,7 @@ public class UserSettings implements IsSerializable {
         centerLongitude = DEFAULT_CENTER_LONGITUDE;
         centerLatitude = DEFAULT_CENTER_LATITUDE;
         mapType = MapType.OSM;
-        overlays = "GEO_FENCES,VECTOR,MARKERS";
+        overlays = "GEO_FENCES,VECTOR,MARKERS,ARCHIVE_ARROWS,LATEST_TRACK_ARROWS,LATEST_POSITION_ARROWS";
         followedDeviceZoomLevel = DEFAULT_ZOOM_TO_FOLLOWED_DEVICE_LEVEL;
     }
 

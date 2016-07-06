@@ -36,12 +36,12 @@ public class Device implements IsSerializable, GroupedDevice {
     public static final short DEFAULT_TIMEOUT = 5 * 60;
     public static final short DEFAULT_MIN_IDLE_TIME = 1 * 60;
 
-    public static final String DEFAULT_MOVING_ARROW_COLOR = "90EE90";
-    public static final String DEFAULT_PAUSED_ARROW_COLOR = "F3F500";
-    public static final String DEFAULT_STOPPED_ARROW_COLOR = "FF0000";
-    public static final String DEFAULT_OFFLINE_ARROW_COLOR = "DEDEDE";
+    public static final String DEFAULT_MOVING_ARROW_COLOR = "00017A";
+    public static final String DEFAULT_PAUSED_ARROW_COLOR = "B12222";
+    public static final String DEFAULT_STOPPED_ARROW_COLOR = "016400";
+    public static final String DEFAULT_OFFLINE_ARROW_COLOR = "778899";
 
-    public static final double DEFAULT_ARROW_RADIUS = 10;
+    public static final double DEFAULT_ARROW_RADIUS = 5;
 
     public Device() {
         iconType = DeviceIconType.DEFAULT;
