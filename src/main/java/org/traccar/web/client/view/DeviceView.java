@@ -103,6 +103,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         void onMouseOut(int mouseX, int mouseY, Device device);
         void doubleClicked(Device device);
         void onClearSelection();
+        void onHide(Device device);
     }
 
     public interface GeoFenceHandler {
@@ -590,6 +591,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                 if (deviceStore.isDevice(node)) {
                     Device device = deviceStore.getDevice(node);
                     deviceVisibilityHandler.setVisible(device, value);
+                    deviceHandler.onHide(device);
                 }
             }
 

@@ -230,7 +230,7 @@ public class MapView {
         }, UserSettings.OverlayType.ARCHIVE_ARROWS, null);
         latestPositionTrackRenderer = new MapPositionRenderer(this, layersFactory, archivePositionSelectHandler,
                 positionMouseHandler, deviceVisibilityHandler, UserSettings.OverlayType.LATEST_TRACK_ARROWS, null);
-        latestPositionRenderer = new MapPositionRenderer(this, layersFactory, null, positionMouseHandler, deviceVisibilityHandler, 
+        latestPositionRenderer = new MapPositionRenderer(this, layersFactory, latestPositionSelectHandler, positionMouseHandler, deviceVisibilityHandler, 
                 UserSettings.OverlayType.LATEST_POSITION_ARROWS, UserSettings.OverlayType.MARKERS);
         geoFenceRenderer = new GeoFenceRenderer(this);
         layersFactory.initClickSelection();
