@@ -148,11 +148,6 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
         snappedTracks.remove(device.getId());
         archiveHandler.onClear(device);
     }
-    
-    public void onRealClear(Device device) {
-        onClear(device);
-        archiveView.onClearClicked(null);
-    }
 
     @Override
     public void onFilterSettings() {

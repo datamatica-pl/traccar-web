@@ -777,7 +777,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             }
         }
 
-        queryString += " ORDER BY x.serverTime";
+        queryString += " ORDER BY x.time";
 
         TypedQuery<Position> query = entityManager.createQuery(queryString, Position.class);
         query.setParameter("device", device);

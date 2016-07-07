@@ -292,10 +292,6 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
         }
         selectedDevice = null;
     }
-    
-    public void onHide(Device device) {
-        application.getArchiveController().onRealClear(device);
-    }
 
     @Override
     public void groupRemoved(Group group) {

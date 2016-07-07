@@ -444,10 +444,7 @@ public class MapPositionRenderer {
 
     private void clearMarkersAndTitleAndAlert(DeviceData deviceData) {
         if(getMarkerLayer() != null) {
-            for(VectorFeature marker : deviceData.markerMap.values()) {
-                getMarkerLayer().removeFeature(marker);
-                marker.destroy();
-            }
+            getMarkerLayer().destroyFeatures();
             deviceData.markerMap.clear();
         }
         if (deviceData.alert != null) {
@@ -503,10 +500,7 @@ public class MapPositionRenderer {
     }
 
     private void clearArrows(DeviceData deviceData) {
-        for(VectorFeature arrow : deviceData.arrows.values()) {
-            getArrowLayer().removeFeature(arrow);
-            arrow.destroy();
-        }
+        getArrowLayer().destroyFeatures();
         deviceData.arrows.clear();
     }
 
