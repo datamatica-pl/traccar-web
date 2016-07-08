@@ -34,6 +34,7 @@ public enum CommandType implements IsSerializable {
     sendSms,
     setDefenseTime,
     getParams,
+    getStatus,
     setSOSNumbers,
     deleteSOSNumber,
     setCenterNumber,
