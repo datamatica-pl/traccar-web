@@ -39,6 +39,9 @@
           </form:widget>
         </form:FieldLabel>
       </container:child>
+      <container:child layoutData="{verticalLayoutData}">
+          <g:Label text="{i18n.clearCookies}" />
+      </container:child>
     </container:VerticalLayoutContainer>
       
     <gxt:button>
