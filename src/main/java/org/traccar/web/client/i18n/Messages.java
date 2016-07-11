@@ -18,6 +18,8 @@ package org.traccar.web.client.i18n;
 import org.traccar.web.shared.model.*;
 
 public interface Messages extends com.google.gwt.i18n.client.Messages {
+    String clearCookies();
+    
     String authentication();
 
     String user();
