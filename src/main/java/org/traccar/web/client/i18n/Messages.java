@@ -20,6 +20,10 @@ import org.traccar.web.shared.model.*;
 public interface Messages extends com.google.gwt.i18n.client.Messages {
     String clearCookies();
     
+    String acceptTerms();
+    
+    String termsLabel();
+    
     String authentication();
 
     String user();
