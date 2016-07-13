@@ -39,8 +39,18 @@
           </form:widget>
         </form:FieldLabel>
       </container:child>
+      <container:child>
+          <g:HTMLPanel>
+              <hr />
+          </g:HTMLPanel>
+      </container:child>
       <container:child layoutData="{verticalLayoutData}">
           <g:Label text="{i18n.clearCookies}" />
+      </container:child>
+      <container:child>
+          <g:HTMLPanel>
+              <hr />
+          </g:HTMLPanel>
       </container:child>
       <container:child layoutData="{verticalLayoutData}">
           <g:Label text="{i18n.acceptTerms}" />
