@@ -45,7 +45,14 @@
           </g:HTMLPanel>
       </container:child>
       <container:child layoutData="{verticalLayoutData}">
-          <g:Label text="{i18n.clearCookies}" />
+          <g:Label text="{i18n.acceptTerms}" />
+      </container:child>
+      <container:child layoutData="{verticalLayoutData}">
+          <g:HTMLPanel>
+            <a href="http://angelgts.eu/wp-content/uploads/2016/02/Regulamin_AngelGTS_v3.pdf">
+                <g:Label text="{i18n.termsLabel}" />
+            </a>
+          </g:HTMLPanel>
       </container:child>
       <container:child>
           <g:HTMLPanel>
@@ -53,13 +60,8 @@
           </g:HTMLPanel>
       </container:child>
       <container:child layoutData="{verticalLayoutData}">
-          <g:Label text="{i18n.acceptTerms}" />
+          <g:Label text="{i18n.clearCookies}" />
       </container:child>
-        <g:HTMLPanel>
-            <a href="http://angelgts.eu/wp-content/uploads/2016/02/Regulamin_AngelGTS_v3.pdf">
-                <g:Label text="{i18n.termsLabel}" />
-            </a>
-        </g:HTMLPanel>
     </container:VerticalLayoutContainer>
       
     <gxt:button>
