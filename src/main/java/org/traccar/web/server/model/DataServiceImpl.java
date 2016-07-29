@@ -426,8 +426,11 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 final Class<?> protocolClass;
                 Class<?> baseProtocol = Class.forName("org.traccar.BaseProtocol");
                 Boolean isOsmAndProtocol = "Osmand".equals(protocolName);
+                Boolean isMiniFinderProtocol = "Minifinder".equals(protocolName);
                 if (isOsmAndProtocol) {
                     protocolClass = Class.forName("org.traccar.protocol.OsmAndProtocol");
+                } else if (isMiniFinderProtocol) {
+                    protocolClass = Class.forName("org.traccar.protocol.MiniFinderProtocol");
                 } else {
                     protocolClass = Class.forName("org.traccar.protocol." + protocolName + "Protocol");
                 }
