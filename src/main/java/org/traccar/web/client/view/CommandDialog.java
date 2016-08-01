@@ -156,10 +156,8 @@ public class CommandDialog {
         
         ListStore<CommandType> commandTypes = new ListStore<>(new EnumKeyProvider<CommandType>());
         List<CommandType> supportedCommands = device.getSupportedCommands();
-        if(supportedCommands == null || supportedCommands.isEmpty())
-            commandTypes.addAll(Arrays.asList(CommandType.values()));
-        else
-            commandTypes.addAll(device.getSupportedCommands());
+        commandTypes.addAll(device.getSupportedCommands());
+        
         this.typeCombo = new ComboBox<>(commandTypes, new LabelProvider<CommandType>() {
             @Override
             public String getLabel(CommandType item) {
