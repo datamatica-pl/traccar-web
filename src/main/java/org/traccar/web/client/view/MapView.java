@@ -52,6 +52,7 @@ import com.google.gwt.event.logical.shared.ResizeEvent;
 import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.user.client.Command;
 import com.sencha.gxt.widget.core.client.ContentPanel;
+import org.gwtopenmaps.openlayers.client.OpenLayers;
 import org.traccar.web.shared.model.UserSettings;
 
 public class MapView {
@@ -187,7 +188,11 @@ public class MapView {
         geofenceLayer.setIsVisible(userOverlays.contains(UserSettings.OverlayType.GEO_FENCES));
         vectorLayer.setIsVisible(userOverlays.contains(UserSettings.OverlayType.VECTOR));
         
-        map.addControl(new LayerSwitcher());
+        LayerSwitcher ls = new LayerSwitcher();
+        map.addControl(ls);        
+        ls.getJSObject().getProperty("baseLbl").setProperty("innerText", "Warstwa bazowa");
+        ls.getJSObject().getProperty("dataLbl").setProperty("innerText", "Nakładki");
+        
         map.addControl(new ScaleLine());
         OverviewMapOptions options = new OverviewMapOptions();
         options.getJSObject().setProperty("maximized", ApplicationContext.getInstance().getUserSettings().isMaximizeOverviewMap());
