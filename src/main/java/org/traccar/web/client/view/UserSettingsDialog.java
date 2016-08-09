@@ -33,7 +33,7 @@ import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.EnumKeyProvider;
 import org.traccar.web.client.model.UserSettingsProperties;
 import org.traccar.web.client.widget.TimeZoneComboBox;
-import org.traccar.web.shared.model.UserSettings;
+import pl.datamatica.traccar.model.UserSettings;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor;

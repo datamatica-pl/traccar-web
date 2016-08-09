@@ -21,7 +21,7 @@ import org.traccar.web.client.controller.LoginController;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.state.UIStateProvider;
-import org.traccar.web.shared.model.ApplicationSettings;
+import pl.datamatica.traccar.model.ApplicationSettings;
 
 import com.google.gwt.core.client.EntryPoint;
 

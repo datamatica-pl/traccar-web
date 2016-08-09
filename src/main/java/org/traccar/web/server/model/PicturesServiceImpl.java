@@ -18,9 +18,9 @@ package org.traccar.web.server.model;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.persist.Transactional;
 import org.traccar.web.client.model.PicturesService;
-import org.traccar.web.shared.model.DeviceIcon;
-import org.traccar.web.shared.model.DeviceIconType;
-import org.traccar.web.shared.model.Picture;
+import pl.datamatica.traccar.model.DeviceIcon;
+import pl.datamatica.traccar.model.DeviceIconType;
+import pl.datamatica.traccar.model.Picture;
 
 import javax.inject.Inject;
 import javax.inject.Provider;

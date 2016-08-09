@@ -15,8 +15,8 @@
  */
 package org.traccar.web.client.model;
 
-import org.traccar.web.shared.model.ApplicationSettings;
-import org.traccar.web.shared.model.PasswordHashMethod;
+import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.PasswordHashMethod;
 
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.LabelProvider;

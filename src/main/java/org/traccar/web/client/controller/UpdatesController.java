@@ -14,8 +14,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.Position;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.Position;
 
 public class UpdatesController {
     public interface LatestPositionsListener {

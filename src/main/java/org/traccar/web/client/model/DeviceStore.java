@@ -18,9 +18,9 @@ package org.traccar.web.client.model;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.TreeStore;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.Group;
-import org.traccar.web.shared.model.GroupedDevice;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.Group;
+import pl.datamatica.traccar.model.GroupedDevice;
 
 public class DeviceStore extends TreeStore<GroupedDevice> {
     public DeviceStore(GroupStore groupStore, ListStore<Device> deviceStore) {

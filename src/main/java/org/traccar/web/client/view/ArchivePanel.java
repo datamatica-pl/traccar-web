@@ -42,7 +42,7 @@ import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.PositionProperties;
 import org.traccar.web.client.state.GridStateHandler;
-import org.traccar.web.shared.model.Position;
+import pl.datamatica.traccar.model.Position;
 
 import java.util.ArrayList;
 import java.util.Collections;

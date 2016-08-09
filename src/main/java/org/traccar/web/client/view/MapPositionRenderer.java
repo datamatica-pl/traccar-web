@@ -15,6 +15,10 @@
  */
 package org.traccar.web.client.view;
 
+import pl.datamatica.traccar.model.UserSettings;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.PositionIcon;
+import pl.datamatica.traccar.model.Device;
 import com.google.gwt.core.client.GWT;
 import java.util.*;
 import java.util.Map;

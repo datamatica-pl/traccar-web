@@ -20,10 +20,10 @@ import static org.junit.Assert.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.DeviceIconType;
-import org.traccar.web.shared.model.Position;
-import org.traccar.web.shared.model.PositionIconType;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.DeviceIconType;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.PositionIconType;
 
 import java.io.IOException;
 import java.util.Iterator;

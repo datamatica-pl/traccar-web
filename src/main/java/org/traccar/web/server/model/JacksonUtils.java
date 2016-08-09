@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import org.traccar.web.shared.model.DeviceIconType;
+import pl.datamatica.traccar.model.DeviceIconType;
 
 import java.text.SimpleDateFormat;
 

@@ -15,6 +15,10 @@
  */
 package org.traccar.web.client.view;
 
+import pl.datamatica.traccar.model.PositionIconType;
+import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.Device;
 import static org.traccar.web.client.DateTimeFieldUtil.getCombineDate;
 
 import java.util.*;

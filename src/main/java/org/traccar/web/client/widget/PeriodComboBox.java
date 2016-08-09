@@ -28,7 +28,7 @@ import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 import org.traccar.web.client.model.EnumKeyProvider;
-import org.traccar.web.shared.model.Period;
+import pl.datamatica.traccar.model.Period;
 
 public class PeriodComboBox extends ComboBox<Period> {
 	private DateField fromDate;

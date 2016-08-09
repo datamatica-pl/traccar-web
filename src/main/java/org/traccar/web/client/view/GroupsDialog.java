@@ -32,7 +32,7 @@ import org.traccar.web.client.controller.GroupsController;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.GroupProperties;
 import org.traccar.web.client.model.GroupStore;
-import org.traccar.web.shared.model.Group;
+import pl.datamatica.traccar.model.Group;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.uibinder.client.UiBinder;

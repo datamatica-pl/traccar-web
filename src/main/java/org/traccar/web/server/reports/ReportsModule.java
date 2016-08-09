@@ -17,7 +17,7 @@ package org.traccar.web.server.reports;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.MapBinder;
-import org.traccar.web.shared.model.ReportType;
+import pl.datamatica.traccar.model.ReportType;
 
 public class ReportsModule extends AbstractModule {
     @Override

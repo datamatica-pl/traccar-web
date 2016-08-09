@@ -27,9 +27,9 @@ import com.google.inject.servlet.ServletModule;
 import org.traccar.web.client.model.DataService;
 import org.traccar.web.client.model.EventService;
 import org.traccar.web.server.reports.ReportsModule;
-import org.traccar.web.shared.model.ApplicationSettings;
-import org.traccar.web.shared.model.Picture;
-import org.traccar.web.shared.model.User;
+import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.Picture;
+import pl.datamatica.traccar.model.User;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;

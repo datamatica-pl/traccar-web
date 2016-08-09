@@ -17,7 +17,7 @@ package org.traccar.web.client.model;
 
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
-import org.traccar.web.shared.model.DeviceIcon;
+import pl.datamatica.traccar.model.DeviceIcon;
 
 import java.util.List;
 

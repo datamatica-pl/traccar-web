@@ -25,8 +25,8 @@ import com.sencha.gxt.widget.core.client.grid.*;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.EnumKeyProvider;
-import org.traccar.web.shared.model.DeviceEventType;
-import org.traccar.web.shared.model.User;
+import pl.datamatica.traccar.model.DeviceEventType;
+import pl.datamatica.traccar.model.User;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor;

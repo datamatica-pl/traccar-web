@@ -8,7 +8,7 @@ package org.traccar.web.client.model;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
-import org.traccar.web.shared.model.MaintenanceBase;
+import pl.datamatica.traccar.model.MaintenanceBase;
 
 public interface IMaintenanceProperties<T extends MaintenanceBase> extends PropertyAccess<T> {
     

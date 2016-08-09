@@ -15,7 +15,7 @@
  */
 package org.traccar.web.client.state;
 
-import org.traccar.web.shared.model.Device;
+import pl.datamatica.traccar.model.Device;
 
 public interface DeviceVisibilityProvider {
     boolean isVisible(Device device);

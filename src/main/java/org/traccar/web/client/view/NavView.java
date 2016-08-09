@@ -35,7 +35,7 @@ import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
-import org.traccar.web.shared.model.Report;
+import pl.datamatica.traccar.model.Report;
 
 public class NavView {
     private static NavViewUiBinder uiBinder = GWT.create(NavViewUiBinder.class);

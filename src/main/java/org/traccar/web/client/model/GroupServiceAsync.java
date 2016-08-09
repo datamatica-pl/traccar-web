@@ -1,8 +1,8 @@
 package org.traccar.web.client.model;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import org.traccar.web.shared.model.Group;
-import org.traccar.web.shared.model.User;
+import pl.datamatica.traccar.model.Group;
+import pl.datamatica.traccar.model.User;
 
 import java.util.List;
 import java.util.Map;

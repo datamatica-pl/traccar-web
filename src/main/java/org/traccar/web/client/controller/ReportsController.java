@@ -31,12 +31,12 @@ import org.traccar.web.client.model.ReportServiceAsync;
 import org.traccar.web.client.view.NavView;
 import org.traccar.web.client.view.ReportsDialog;
 import org.traccar.web.client.view.ReportsMenu;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.GeoFence;
-import org.traccar.web.shared.model.Report;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Report;
 
 import java.util.List;
-import org.traccar.web.shared.model.ReportFormat;
+import pl.datamatica.traccar.model.ReportFormat;
 
 public class ReportsController implements ContentController, ReportsMenu.ReportHandler {
     private final Messages i18n = GWT.create(Messages.class);

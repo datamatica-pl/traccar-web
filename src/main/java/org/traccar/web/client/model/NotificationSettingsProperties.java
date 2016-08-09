@@ -19,7 +19,7 @@ import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
-import org.traccar.web.shared.model.NotificationSettings;
+import pl.datamatica.traccar.model.NotificationSettings;
 
 public interface NotificationSettingsProperties extends PropertyAccess<NotificationSettings> {
     ModelKeyProvider<NotificationSettings> id();

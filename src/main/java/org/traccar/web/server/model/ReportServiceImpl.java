@@ -18,10 +18,10 @@ package org.traccar.web.server.model;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.persist.Transactional;
 import org.traccar.web.client.model.ReportService;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.GeoFence;
-import org.traccar.web.shared.model.Report;
-import org.traccar.web.shared.model.User;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.User;
 
 import javax.inject.Inject;
 import javax.inject.Provider;

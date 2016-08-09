@@ -15,6 +15,13 @@
  */
 package org.traccar.web.server.model;
 
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.Maintenance;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.DeviceEventType;
+import pl.datamatica.traccar.model.DeviceEvent;
+import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.Device;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.persist.Transactional;
 import org.traccar.web.client.model.EventService;

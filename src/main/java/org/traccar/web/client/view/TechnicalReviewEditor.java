@@ -41,8 +41,8 @@ import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.Verti
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.*;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.Maintenance;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.Maintenance;
 
 import java.util.*;
 import org.traccar.web.client.i18n.Messages;

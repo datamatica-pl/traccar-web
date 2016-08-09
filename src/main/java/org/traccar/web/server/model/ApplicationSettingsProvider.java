@@ -1,7 +1,7 @@
 package org.traccar.web.server.model;
 
-import org.traccar.web.shared.model.ApplicationSettings;
-import org.traccar.web.shared.model.PasswordHashMethod;
+import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.PasswordHashMethod;
 
 import javax.inject.Inject;
 import javax.inject.Provider;

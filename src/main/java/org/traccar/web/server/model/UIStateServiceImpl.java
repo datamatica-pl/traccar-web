@@ -18,8 +18,8 @@ package org.traccar.web.server.model;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.persist.Transactional;
 import org.traccar.web.client.model.UIStateService;
-import org.traccar.web.shared.model.UIStateEntry;
-import org.traccar.web.shared.model.User;
+import pl.datamatica.traccar.model.UIStateEntry;
+import pl.datamatica.traccar.model.User;
 
 import javax.inject.Inject;
 import javax.inject.Provider;

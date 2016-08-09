@@ -25,8 +25,8 @@ import org.traccar.web.client.model.*;
 import org.traccar.web.client.view.GroupsDialog;
 import org.traccar.web.client.view.NavView;
 import org.traccar.web.client.view.UserShareDialog;
-import org.traccar.web.shared.model.Group;
-import org.traccar.web.shared.model.User;
+import pl.datamatica.traccar.model.Group;
+import pl.datamatica.traccar.model.User;
 
 import java.util.*;
 import org.traccar.web.client.ApplicationContext;

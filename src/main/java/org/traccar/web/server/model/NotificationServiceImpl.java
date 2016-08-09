@@ -15,6 +15,17 @@
  */
 package org.traccar.web.server.model;
 
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserSettings;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.NotificationSettings;
+import pl.datamatica.traccar.model.NotificationTemplate;
+import pl.datamatica.traccar.model.Maintenance;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.DeviceEventType;
+import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.DeviceEvent;
+import pl.datamatica.traccar.model.Device;
 import static org.traccar.web.shared.model.MessagePlaceholder.*;
 
 import com.fasterxml.jackson.core.JsonEncoding;

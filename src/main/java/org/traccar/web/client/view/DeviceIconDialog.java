@@ -30,8 +30,8 @@ import com.sencha.gxt.widget.core.client.event.SubmitCompleteEvent;
 import com.sencha.gxt.widget.core.client.form.FileUploadField;
 import com.sencha.gxt.widget.core.client.form.FormPanel;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.shared.model.Picture;
-import org.traccar.web.shared.model.PictureType;
+import pl.datamatica.traccar.model.Picture;
+import pl.datamatica.traccar.model.PictureType;
 
 public class DeviceIconDialog {
 

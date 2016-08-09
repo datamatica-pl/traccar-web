@@ -2,8 +2,8 @@ package org.traccar.web.client.model;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
-import org.traccar.web.shared.model.NotificationSettings;
-import org.traccar.web.shared.model.NotificationTemplate;
+import pl.datamatica.traccar.model.NotificationSettings;
+import pl.datamatica.traccar.model.NotificationTemplate;
 
 public interface NotificationServiceAsync {
     void checkEmailSettings(NotificationSettings settings, AsyncCallback<Void> async);

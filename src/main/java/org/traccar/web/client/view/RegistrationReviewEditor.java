@@ -25,9 +25,9 @@ import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.IMaintenanceProperties;
 import org.traccar.web.client.utils.DateHelper;
 import org.traccar.web.client.view.ReviewEditor.EditableColumnConfig;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.MaintenanceBase;
-import org.traccar.web.shared.model.RegistrationMaintenance;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.MaintenanceBase;
+import pl.datamatica.traccar.model.RegistrationMaintenance;
 
 public class RegistrationReviewEditor {
     

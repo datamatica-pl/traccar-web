@@ -16,9 +16,9 @@
 package org.traccar.web.server.reports;
 
 import org.apache.commons.io.IOUtils;
-import org.traccar.web.shared.model.Position;
-import org.traccar.web.shared.model.Report;
-import org.traccar.web.shared.model.UserSettings;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.UserSettings;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;

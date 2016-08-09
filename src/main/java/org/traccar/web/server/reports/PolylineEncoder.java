@@ -1,6 +1,6 @@
 package org.traccar.web.server.reports;
 
-import org.traccar.web.shared.model.Position;
+import pl.datamatica.traccar.model.Position;
 
 import java.util.List;
 

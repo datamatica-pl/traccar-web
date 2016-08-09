@@ -21,8 +21,8 @@ import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.shared.model.GeoFence;
-import org.traccar.web.shared.model.GeoFenceType;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.GeoFenceType;
 
 public interface GeoFenceProperties extends PropertyAccess<GeoFence> {
     ModelKeyProvider<GeoFence> id();

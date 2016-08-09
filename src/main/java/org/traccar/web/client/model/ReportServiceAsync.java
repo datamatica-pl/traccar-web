@@ -1,7 +1,7 @@
 package org.traccar.web.client.model;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import org.traccar.web.shared.model.Report;
+import pl.datamatica.traccar.model.Report;
 
 import java.util.List;
 

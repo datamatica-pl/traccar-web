@@ -12,7 +12,7 @@
 
     <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
 
-    <ui:with field='device' type='org.traccar.web.shared.model.Device' />
+    <ui:with field='device' type='pl.datamatica.traccar.model.Device' />
 
     <gxt:Window ui:field="window" pixelSize="360, -1" modal="true">
         <form:FormPanel method="POST" encoding="MULTIPART" ui:field="form">

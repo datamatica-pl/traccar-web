@@ -31,7 +31,7 @@ import com.sencha.gxt.widget.core.client.form.FileUploadField;
 import com.sencha.gxt.widget.core.client.form.FormPanel;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.DeviceProperties;
-import org.traccar.web.shared.model.Device;
+import pl.datamatica.traccar.model.Device;
 
 public class ImportDialog {
     private static ImportDialogUiBinder uiBinder = GWT.create(ImportDialogUiBinder.class);

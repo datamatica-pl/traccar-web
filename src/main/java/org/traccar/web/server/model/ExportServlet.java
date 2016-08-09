@@ -15,6 +15,10 @@
  */
 package org.traccar.web.server.model;
 
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.Device;
 import com.google.inject.persist.Transactional;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.traccar.web.client.model.DataService;

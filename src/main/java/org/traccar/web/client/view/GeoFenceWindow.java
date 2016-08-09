@@ -15,6 +15,9 @@
  */
 package org.traccar.web.client.view;
 
+import pl.datamatica.traccar.model.GeoFenceType;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Device;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;

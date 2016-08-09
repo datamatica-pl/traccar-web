@@ -19,7 +19,7 @@ import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import org.traccar.web.client.view.NavView;
 import org.traccar.web.client.view.ReportsMenu;
-import org.traccar.web.shared.model.Report;
+import pl.datamatica.traccar.model.Report;
 
 public class NavController implements ContentController {
     private final NavView navView;

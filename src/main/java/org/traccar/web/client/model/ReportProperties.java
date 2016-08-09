@@ -21,8 +21,8 @@ import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.shared.model.Report;
-import org.traccar.web.shared.model.ReportType;
+import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.ReportType;
 
 public interface ReportProperties extends PropertyAccess<Report> {
     ModelKeyProvider<Report> id();

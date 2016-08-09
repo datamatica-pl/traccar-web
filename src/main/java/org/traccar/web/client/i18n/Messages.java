@@ -15,6 +15,13 @@
  */
 package org.traccar.web.client.i18n;
 
+import pl.datamatica.traccar.model.Period;
+import pl.datamatica.traccar.model.UserSettings;
+import pl.datamatica.traccar.model.ReportType;
+import pl.datamatica.traccar.model.GeoFenceType;
+import pl.datamatica.traccar.model.CommandType;
+import pl.datamatica.traccar.model.DeviceEventType;
+import pl.datamatica.traccar.model.DeviceIconMode;
 import org.traccar.web.shared.model.*;
 
 public interface Messages extends com.google.gwt.i18n.client.Messages {

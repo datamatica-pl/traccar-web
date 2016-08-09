@@ -15,6 +15,9 @@
  */
 package org.traccar.web.shared.model;
 
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Group;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

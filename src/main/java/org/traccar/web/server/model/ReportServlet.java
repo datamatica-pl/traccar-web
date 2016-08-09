@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.persist.Transactional;
 import org.traccar.web.server.reports.ReportGenerator;
 import org.traccar.web.server.reports.ReportGeneratorFactory;
-import org.traccar.web.shared.model.Report;
+import pl.datamatica.traccar.model.Report;
 
 import javax.inject.Inject;
 import javax.inject.Provider;

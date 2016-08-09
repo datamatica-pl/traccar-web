@@ -34,8 +34,8 @@ import com.sencha.gxt.widget.core.client.form.*;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.EnumKeyProvider;
 import org.traccar.web.client.widget.TimeZoneComboBox;
-import org.traccar.web.shared.model.CommandType;
-import org.traccar.web.shared.model.Device;
+import pl.datamatica.traccar.model.CommandType;
+import pl.datamatica.traccar.model.Device;
 
 import java.util.Arrays;
 import java.util.HashMap;

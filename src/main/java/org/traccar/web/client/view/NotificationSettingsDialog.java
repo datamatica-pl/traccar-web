@@ -15,6 +15,9 @@
  */
 package org.traccar.web.client.view;
 
+import pl.datamatica.traccar.model.NotificationSettings;
+import pl.datamatica.traccar.model.NotificationTemplate;
+import pl.datamatica.traccar.model.DeviceEventType;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;

@@ -15,8 +15,8 @@
  */
 package org.traccar.web.server.model;
 
-import org.traccar.web.shared.model.GeoFence;
-import org.traccar.web.shared.model.Position;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Position;
 
 import java.awt.*;
 import java.awt.geom.Path2D;

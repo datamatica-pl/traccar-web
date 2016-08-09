@@ -16,7 +16,7 @@
 package org.traccar.web.client;
 
 import org.gwtopenmaps.openlayers.client.feature.VectorFeature;
-import org.traccar.web.shared.model.Position;
+import pl.datamatica.traccar.model.Position;
 
 import java.util.Collections;
 import java.util.LinkedList;

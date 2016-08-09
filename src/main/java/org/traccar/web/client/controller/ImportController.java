@@ -18,7 +18,7 @@ package org.traccar.web.client.controller;
 import com.sencha.gxt.data.shared.ListStore;
 import org.traccar.web.client.view.ImportDialog;
 import org.traccar.web.client.view.NavView;
-import org.traccar.web.shared.model.Device;
+import pl.datamatica.traccar.model.Device;
 
 public class ImportController implements NavView.ImportHandler {
     private final ListStore<Device> deviceStore;

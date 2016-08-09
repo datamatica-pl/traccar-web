@@ -23,7 +23,7 @@ import com.sencha.gxt.widget.core.client.form.validator.MinNumberValidator;
 import org.traccar.web.client.model.ApplicationSettingsProperties;
 import org.traccar.web.client.model.EnumKeyProvider;
 import org.traccar.web.client.widget.LanguageComboBox;
-import org.traccar.web.shared.model.ApplicationSettings;
+import pl.datamatica.traccar.model.ApplicationSettings;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor;
@@ -34,7 +34,7 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import org.traccar.web.shared.model.PasswordHashMethod;
+import pl.datamatica.traccar.model.PasswordHashMethod;
 
 import java.util.Arrays;
 

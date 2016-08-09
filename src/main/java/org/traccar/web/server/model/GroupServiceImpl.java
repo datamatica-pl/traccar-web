@@ -20,9 +20,9 @@ import com.google.inject.persist.Transactional;
 import org.traccar.web.client.model.DataService;
 import org.traccar.web.client.model.GroupService;
 import org.traccar.web.shared.model.AccessDeniedException;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.Group;
-import org.traccar.web.shared.model.User;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.Group;
+import pl.datamatica.traccar.model.User;
 
 import javax.inject.Inject;
 import javax.inject.Provider;

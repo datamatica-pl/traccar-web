@@ -15,6 +15,10 @@
  */
 package org.traccar.web.client.controller;
 
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.NotificationSettings;
+import pl.datamatica.traccar.model.NotificationTemplate;
+import pl.datamatica.traccar.model.ApplicationSettings;
 import java.util.ArrayList;
 import java.util.List;
 

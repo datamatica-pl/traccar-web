@@ -16,7 +16,7 @@
 package org.traccar.web.server.model;
 
 import com.google.inject.persist.Transactional;
-import org.traccar.web.shared.model.ApplicationSettings;
+import pl.datamatica.traccar.model.ApplicationSettings;
 
 import javax.inject.Inject;
 import javax.inject.Provider;

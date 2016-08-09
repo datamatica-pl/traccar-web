@@ -15,6 +15,13 @@
  */
 package org.traccar.web.client.view;
 
+import pl.datamatica.traccar.model.Period;
+import pl.datamatica.traccar.model.UserSettings;
+import pl.datamatica.traccar.model.ReportFormat;
+import pl.datamatica.traccar.model.ReportType;
+import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Device;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;

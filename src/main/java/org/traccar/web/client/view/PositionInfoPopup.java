@@ -15,6 +15,11 @@
  */
 package org.traccar.web.client.view;
 
+import pl.datamatica.traccar.model.Sensor;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.PositionIcon;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Device;
 import com.google.gwt.core.client.GWT;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.tips.ToolTip;

@@ -23,8 +23,8 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.traccar.web.shared.model.Picture;
-import org.traccar.web.shared.model.PictureType;
+import pl.datamatica.traccar.model.Picture;
+import pl.datamatica.traccar.model.PictureType;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;

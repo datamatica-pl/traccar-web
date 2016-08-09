@@ -15,6 +15,10 @@
  */
 package org.traccar.web.client.view;
 
+import pl.datamatica.traccar.model.Picture;
+import pl.datamatica.traccar.model.DeviceIcon;
+import pl.datamatica.traccar.model.DeviceIconType;
+import pl.datamatica.traccar.model.Device;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;

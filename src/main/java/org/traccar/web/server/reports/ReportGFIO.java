@@ -15,6 +15,10 @@
  */
 package org.traccar.web.server.reports;
 
+import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Device;
 import org.traccar.web.server.model.GeoFenceCalculator;
 import org.traccar.web.shared.model.*;
 

@@ -23,7 +23,7 @@ import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.view.LoginDialog;
-import org.traccar.web.shared.model.User;
+import pl.datamatica.traccar.model.User;
 
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import org.traccar.web.shared.model.UserBlockedException;

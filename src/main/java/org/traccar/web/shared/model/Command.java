@@ -15,6 +15,7 @@
  */
 package org.traccar.web.shared.model;
 
+import pl.datamatica.traccar.model.CommandType;
 import com.google.gwt.user.client.rpc.GwtTransient;
 import com.google.gwt.user.client.rpc.IsSerializable;
 

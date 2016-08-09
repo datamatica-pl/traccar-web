@@ -16,7 +16,7 @@
 package org.traccar.web.server.model;
 
 import org.junit.Test;
-import org.traccar.web.shared.model.Position;
+import pl.datamatica.traccar.model.Position;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.IOException;

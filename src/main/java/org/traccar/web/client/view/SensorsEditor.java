@@ -48,8 +48,8 @@ import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.DeviceProperties;
 import org.traccar.web.client.model.SensorProperties;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.Sensor;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.Sensor;
 import org.traccar.web.shared.model.SensorInterval;
 
 import java.util.*;

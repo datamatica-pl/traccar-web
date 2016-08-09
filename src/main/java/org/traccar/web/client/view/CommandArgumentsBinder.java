@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.traccar.web.shared.model.CommandType;
+import pl.datamatica.traccar.model.CommandType;
 
 public class CommandArgumentsBinder {    
     protected static final Map<CommandType, String[]> visibilityInfo = new HashMap<>();

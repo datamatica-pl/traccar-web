@@ -30,9 +30,9 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.stubbing.Answer;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.DeviceEvent;
-import org.traccar.web.shared.model.Position;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.DeviceEvent;
+import pl.datamatica.traccar.model.Position;
 
 import javax.inject.Provider;
 import javax.persistence.EntityManager;

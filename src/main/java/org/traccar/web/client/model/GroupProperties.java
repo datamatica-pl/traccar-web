@@ -20,7 +20,7 @@ import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
-import org.traccar.web.shared.model.Group;
+import pl.datamatica.traccar.model.Group;
 
 public interface GroupProperties extends PropertyAccess<Group> {
     ModelKeyProvider<Group> id();

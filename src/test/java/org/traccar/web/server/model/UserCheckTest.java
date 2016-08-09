@@ -20,8 +20,8 @@ import com.google.inject.util.Modules;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.traccar.web.shared.model.ApplicationSettings;
-import org.traccar.web.shared.model.User;
+import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.User;
 
 public class UserCheckTest {
     @Rule

@@ -46,6 +46,12 @@
       <version>${gwtVersion}</version>
       <scope>provided</scope>
     </dependency>
+    <!-- orm dependencies -->
+    <dependency>
+        <groupId>pl.datamatica.traccar</groupId>
+        <artifactId>traccar-orm</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </dependency>
     <!-- Hibernate dependencies -->
     <dependency>
       <groupId>org.hibernate</groupId>

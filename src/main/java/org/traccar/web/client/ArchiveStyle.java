@@ -15,7 +15,7 @@
  */
 package org.traccar.web.client;
 
-import org.traccar.web.shared.model.PositionIconType;
+import pl.datamatica.traccar.model.PositionIconType;
 
 public class ArchiveStyle {
 

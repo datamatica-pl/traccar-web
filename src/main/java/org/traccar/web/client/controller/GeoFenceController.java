@@ -34,9 +34,9 @@ import org.traccar.web.client.model.GeoFenceProperties;
 import org.traccar.web.client.view.DeviceView;
 import org.traccar.web.client.view.GeoFenceWindow;
 import org.traccar.web.client.view.UserShareDialog;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.GeoFence;
-import org.traccar.web.shared.model.User;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.User;
 
 import java.util.*;
 

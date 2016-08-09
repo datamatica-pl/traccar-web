@@ -19,10 +19,10 @@ import com.google.inject.persist.Transactional;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.traccar.web.shared.model.ApplicationSettings;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.Position;
-import org.traccar.web.shared.model.User;
+import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.User;
 
 import javax.inject.Inject;
 import javax.inject.Provider;

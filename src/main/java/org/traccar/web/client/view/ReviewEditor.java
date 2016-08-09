@@ -38,8 +38,8 @@ import java.util.List;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.DeviceProperties;
 import org.traccar.web.client.model.IMaintenanceProperties;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.MaintenanceBase;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.MaintenanceBase;
 
 public class ReviewEditor<T extends MaintenanceBase, 
         PropertiesType extends IMaintenanceProperties> 

@@ -43,9 +43,9 @@ import org.traccar.web.client.Track;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.state.DeviceVisibilityHandler;
 import org.traccar.web.client.state.DeviceVisibilityProvider;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.GeoFence;
-import org.traccar.web.shared.model.Position;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Position;
 
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.event.logical.shared.ResizeEvent;
@@ -53,7 +53,7 @@ import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.user.client.Command;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import org.gwtopenmaps.openlayers.client.OpenLayers;
-import org.traccar.web.shared.model.UserSettings;
+import pl.datamatica.traccar.model.UserSettings;
 
 public class MapView {
 

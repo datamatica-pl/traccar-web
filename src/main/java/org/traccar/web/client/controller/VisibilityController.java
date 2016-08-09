@@ -28,8 +28,8 @@ import org.traccar.web.client.state.DeviceVisibilityChangeHandler;
 import org.traccar.web.client.state.DeviceVisibilityHandler;
 import org.traccar.web.client.state.DeviceVisibilityState;
 import org.traccar.web.client.state.StateAutoBeanFactory;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.Group;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.Group;
 
 import java.util.*;
 

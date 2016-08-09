@@ -11,9 +11,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
-import org.traccar.web.shared.model.Position;
-import org.traccar.web.shared.model.Report;
-import org.traccar.web.shared.model.UserSettings;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.UserSettings;
 
 /**
  *

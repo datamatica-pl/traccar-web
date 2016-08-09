@@ -15,6 +15,13 @@
  */
 package org.traccar.web.client.view;
 
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.PositionIcon;
+import pl.datamatica.traccar.model.Picture;
+import pl.datamatica.traccar.model.DeviceIcon;
+import pl.datamatica.traccar.model.DeviceIconType;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.DeviceIconMode;
 import org.traccar.web.shared.model.*;
 
 public abstract class MarkerIcon {

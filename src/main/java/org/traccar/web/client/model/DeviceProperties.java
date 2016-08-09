@@ -15,7 +15,7 @@
  */
 package org.traccar.web.client.model;
 
-import org.traccar.web.shared.model.Device;
+import pl.datamatica.traccar.model.Device;
 
 import com.google.gwt.editor.client.Editor.Path;
 import com.sencha.gxt.core.client.ValueProvider;

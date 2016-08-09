@@ -15,6 +15,11 @@
  */
 package org.traccar.web.client;
 
+import pl.datamatica.traccar.model.UserSettings;
+import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Device;
 import com.google.gwt.i18n.client.TimeZoneInfo;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.form.CheckBox;

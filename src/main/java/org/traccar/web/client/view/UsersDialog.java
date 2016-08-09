@@ -29,7 +29,7 @@ import com.sencha.gxt.widget.core.client.grid.editing.GridInlineEditing;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.UserProperties;
-import org.traccar.web.shared.model.User;
+import pl.datamatica.traccar.model.User;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.uibinder.client.UiBinder;

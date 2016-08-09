@@ -3,7 +3,7 @@ package org.traccar.web.client;
 import com.google.gwt.i18n.client.CurrencyList;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.i18n.client.NumberFormat;
-import org.traccar.web.shared.model.UserSettings;
+import pl.datamatica.traccar.model.UserSettings;
 
 public class FormatterUtil {
 

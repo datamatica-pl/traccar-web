@@ -19,7 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.traccar.web.shared.model.DeviceEventType;
+import pl.datamatica.traccar.model.DeviceEventType;
 
 import java.io.IOException;
 

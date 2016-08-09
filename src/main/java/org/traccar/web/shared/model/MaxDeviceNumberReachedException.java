@@ -15,6 +15,8 @@
  */
 package org.traccar.web.shared.model;
 
+import pl.datamatica.traccar.model.User;
+
 public class MaxDeviceNumberReachedException extends TraccarException {
     private User reachedLimit;
 

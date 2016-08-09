@@ -15,6 +15,12 @@
  */
 package org.traccar.web.client.view;
 
+import pl.datamatica.traccar.model.UserSettings;
+import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.Group;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.GroupedDevice;
+import pl.datamatica.traccar.model.Device;
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.ValueUpdater;

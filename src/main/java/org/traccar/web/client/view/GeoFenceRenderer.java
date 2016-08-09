@@ -21,7 +21,7 @@ import org.gwtopenmaps.openlayers.client.geometry.*;
 import org.gwtopenmaps.openlayers.client.layer.Vector;
 import org.gwtopenmaps.openlayers.client.util.JSObject;
 import org.traccar.web.client.GeoFenceDrawing;
-import org.traccar.web.shared.model.GeoFence;
+import pl.datamatica.traccar.model.GeoFence;
 
 import java.util.HashMap;
 import java.util.List;

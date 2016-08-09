@@ -16,8 +16,8 @@
 package org.traccar.web.server.model;
 
 import com.google.inject.Inject;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.Position;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.Position;
 
 import javax.inject.Provider;
 import javax.inject.Singleton;

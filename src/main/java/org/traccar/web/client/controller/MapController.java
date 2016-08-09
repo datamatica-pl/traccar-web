@@ -15,6 +15,13 @@
  */
 package org.traccar.web.client.controller;
 
+import pl.datamatica.traccar.model.PositionIconType;
+import pl.datamatica.traccar.model.UserSettings;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.PositionIcon;
+import pl.datamatica.traccar.model.Maintenance;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Device;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import org.gwtopenmaps.openlayers.client.control.OverviewMap;

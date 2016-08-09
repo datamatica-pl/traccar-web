@@ -15,10 +15,22 @@
  */
 package org.traccar.web.server.model;
 
-import static org.traccar.web.shared.model.Device.DEFAULT_MOVING_ARROW_COLOR;
-import static org.traccar.web.shared.model.Device.DEFAULT_PAUSED_ARROW_COLOR;
-import static org.traccar.web.shared.model.Device.DEFAULT_STOPPED_ARROW_COLOR;
-import static org.traccar.web.shared.model.Device.DEFAULT_OFFLINE_ARROW_COLOR;
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UIStateEntry;
+import pl.datamatica.traccar.model.UserSettings;
+import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.DeviceEventType;
+import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.DeviceEvent;
+import pl.datamatica.traccar.model.DeviceIconType;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.DeviceIconMode;
+import pl.datamatica.traccar.model.PasswordHashMethod;
+import static pl.datamatica.traccar.model.Device.DEFAULT_MOVING_ARROW_COLOR;
+import static pl.datamatica.traccar.model.Device.DEFAULT_PAUSED_ARROW_COLOR;
+import static pl.datamatica.traccar.model.Device.DEFAULT_STOPPED_ARROW_COLOR;
+import static pl.datamatica.traccar.model.Device.DEFAULT_OFFLINE_ARROW_COLOR;
 
 import org.traccar.web.shared.model.*;
 

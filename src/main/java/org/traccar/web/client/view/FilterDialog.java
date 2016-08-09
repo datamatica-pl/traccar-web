@@ -30,7 +30,7 @@ import com.sencha.gxt.widget.core.client.form.validator.MaxNumberValidator;
 import com.sencha.gxt.widget.core.client.form.validator.MinNumberValidator;
 import com.sencha.gxt.widget.core.client.toolbar.LabelToolItem;
 import org.traccar.web.client.ApplicationContext;
-import org.traccar.web.shared.model.UserSettings;
+import pl.datamatica.traccar.model.UserSettings;
 
 public class FilterDialog implements Editor<UserSettings> {
 

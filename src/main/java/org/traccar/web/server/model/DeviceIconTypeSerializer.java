@@ -18,9 +18,9 @@ package org.traccar.web.server.model;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import org.traccar.web.shared.model.DeviceIconType;
-import org.traccar.web.shared.model.Position;
-import org.traccar.web.shared.model.PositionIconType;
+import pl.datamatica.traccar.model.DeviceIconType;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.PositionIconType;
 
 import java.io.IOException;
 

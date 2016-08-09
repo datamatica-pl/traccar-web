@@ -33,7 +33,7 @@ import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.shared.model.User;
+import pl.datamatica.traccar.model.User;
 
 import java.util.*;
 

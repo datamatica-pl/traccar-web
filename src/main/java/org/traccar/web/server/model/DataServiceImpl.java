@@ -15,6 +15,26 @@
  */
 package org.traccar.web.server.model;
 
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UIStateEntry;
+import pl.datamatica.traccar.model.UserSettings;
+import pl.datamatica.traccar.model.RegistrationMaintenance;
+import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.Sensor;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.NotificationSettings;
+import pl.datamatica.traccar.model.Picture;
+import pl.datamatica.traccar.model.Group;
+import pl.datamatica.traccar.model.MaintenanceBase;
+import pl.datamatica.traccar.model.Maintenance;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.CommandType;
+import pl.datamatica.traccar.model.DeviceEventType;
+import pl.datamatica.traccar.model.DeviceIcon;
+import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.DeviceEvent;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.PasswordHashMethod;
 import java.io.Reader;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;

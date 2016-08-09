@@ -26,8 +26,8 @@ import org.traccar.web.client.view.CommandDialog;
 import org.traccar.web.client.view.DeviceView;
 import org.traccar.web.client.view.LogViewDialog;
 import org.traccar.web.shared.model.Command;
-import org.traccar.web.shared.model.CommandType;
-import org.traccar.web.shared.model.Device;
+import pl.datamatica.traccar.model.CommandType;
+import pl.datamatica.traccar.model.Device;
 
 import java.util.HashMap;
 

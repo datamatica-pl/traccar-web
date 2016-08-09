@@ -15,7 +15,7 @@
  */
 package org.traccar.web.client.model;
 
-import org.traccar.web.shared.model.User;
+import pl.datamatica.traccar.model.User;
 
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.ModelKeyProvider;

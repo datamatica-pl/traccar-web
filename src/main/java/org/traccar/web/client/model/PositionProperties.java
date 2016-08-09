@@ -17,7 +17,7 @@ package org.traccar.web.client.model;
 
 import java.util.Date;
 
-import org.traccar.web.shared.model.Position;
+import pl.datamatica.traccar.model.Position;
 
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.ModelKeyProvider;

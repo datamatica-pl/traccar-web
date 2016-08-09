@@ -17,8 +17,8 @@ package org.traccar.web.server.reports;
 
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
-import org.traccar.web.shared.model.Report;
-import org.traccar.web.shared.model.ReportType;
+import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.ReportType;
 
 import java.util.Map;
 

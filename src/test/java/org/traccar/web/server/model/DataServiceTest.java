@@ -15,10 +15,19 @@
  */
 package org.traccar.web.server.model;
 
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.Sensor;
+import pl.datamatica.traccar.model.NotificationTemplate;
+import pl.datamatica.traccar.model.NotificationSettings;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Maintenance;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.DeviceEventType;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import static org.traccar.web.shared.model.PasswordHashMethod.*;
+import static pl.datamatica.traccar.model.PasswordHashMethod.*;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;

@@ -17,8 +17,8 @@ package org.traccar.web.server.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.Position;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.Position;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;

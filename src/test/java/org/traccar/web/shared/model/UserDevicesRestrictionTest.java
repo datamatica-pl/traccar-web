@@ -15,6 +15,8 @@
  */
 package org.traccar.web.shared.model;
 
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.Device;
 import static org.junit.Assert.*;
 
 import org.junit.Before;

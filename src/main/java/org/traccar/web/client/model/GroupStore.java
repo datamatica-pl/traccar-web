@@ -18,7 +18,7 @@ package org.traccar.web.client.model;
 import com.google.gwt.core.client.GWT;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.TreeStore;
-import org.traccar.web.shared.model.Group;
+import pl.datamatica.traccar.model.Group;
 
 import java.util.ArrayList;
 import java.util.List;

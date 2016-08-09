@@ -1,9 +1,9 @@
 package org.traccar.web.client;
 
-import org.traccar.web.shared.model.ApplicationSettings;
-import org.traccar.web.shared.model.Device;
-import org.traccar.web.shared.model.User;
-import org.traccar.web.shared.model.UserSettings;
+import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserSettings;
 
 import java.util.HashSet;
 import java.util.Set;
