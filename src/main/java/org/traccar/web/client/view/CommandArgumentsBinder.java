@@ -15,9 +15,13 @@ public class CommandArgumentsBinder {
     private final Map<String, Widget> widgetMap = new HashMap<>();
     
     public static CommandArgumentsBinder getInstance(String protocol, CommandDialog commandDialog) {
-        if(protocol.equals("h02"))
+        if(protocol.equals("h02")) {
             return new H02CommandArgumentsBinder(commandDialog);
-        return new CommandArgumentsBinder(commandDialog);
+        } else if (protocol.equals("minifinder")) {
+            return new MiniFinderCommandArgumentsBinder(commandDialog);
+        } else {
+            return new CommandArgumentsBinder(commandDialog);
+        }
     }
     
     public CommandArgumentsBinder(CommandDialog commandDialog) {    
@@ -105,3 +109,12 @@ class H02CommandArgumentsBinder extends CommandArgumentsBinder{
     }
 }
 
+class MiniFinderCommandArgumentsBinder extends CommandArgumentsBinder {
+    
+    public MiniFinderCommandArgumentsBinder(CommandDialog commandDialog) {
+        super(commandDialog);
+        visibilityInfo.remove(CommandType.setSOSNumbers);
+        visibilityInfo.put(CommandType.setSOSNumbers, 
+                new String[]{"lblSOSNumber1", "SOSNumber1"});
+    }
+}
