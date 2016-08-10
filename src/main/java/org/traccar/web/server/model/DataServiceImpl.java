@@ -420,6 +420,16 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                     device.setAlarmEnabled((boolean)other.get(ALARM_KEY));
                 if(other.get(IGNITION_KEY) != null)
                     device.setIgnitionEnabled((boolean)other.get(IGNITION_KEY));
+                
+                // Set ignition to disabled if device hasn't been seen for more than one hour
+                Long lastPositionTime = device.getLatestPosition().getServerTime().getTime();
+                Long currentTime = new Date().getTime();
+                Long lastPositionSecondsAgo = (currentTime - lastPositionTime) / 1000;
+                int oneHourSeconds = 3600;
+                if (lastPositionSecondsAgo > oneHourSeconds) {
+                    device.setIgnitionEnabled(false);
+                }
+                
                 String protocolName = device.getProtocol();
                 protocolName = protocolName.substring(0, 1).toUpperCase() + protocolName.substring(1);
                 
