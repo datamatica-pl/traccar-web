@@ -58,6 +58,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.persist.Transactional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hibernate.Session;
 
 import org.hibernate.proxy.HibernateProxy;
 import org.traccar.web.client.model.DataService;
@@ -107,7 +108,9 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     }
 
     EntityManager getSessionEntityManager() {
-        return entityManager.get();
+        EntityManager em = entityManager.get();
+        em.unwrap(Session.class).enableFilter("softDelete");
+        return em;
     }
 
     private void setSessionUser(User user) {

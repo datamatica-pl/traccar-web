@@ -99,7 +99,7 @@ public class DataServiceTest {
     public static void init() throws Exception {
         injector.getInstance(PersistService.class).start();
         dataService = injector.getInstance(DataService.class);
-
+        
         runInTransaction(new Callable<Object>() {
             @Override
             public Object call() throws Exception {
@@ -108,7 +108,7 @@ public class DataServiceTest {
             }
         });
     }
-
+    
     @After
     public void cleanup() {
         currentUserId = null;
@@ -260,8 +260,8 @@ public class DataServiceTest {
         user = dataService.addUser(user);
 
         Device device = new Device();
-        device.setUniqueId("1");
-        device.setName("D1");
+        device.setUniqueId("2");
+        device.setName("D2");
         device.setMaintenances(Collections.<Maintenance>emptyList());
         device.setSensors(Collections.<Sensor>emptyList());
         currentUserId = user.getId();

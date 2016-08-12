@@ -32,7 +32,7 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 @RemoteServiceRelativePath("dataService")
 public interface DataService extends RemoteService {
-
+  
     User authenticated();
 
     User login(String login, String password, boolean passwordHashed) throws TraccarException;
