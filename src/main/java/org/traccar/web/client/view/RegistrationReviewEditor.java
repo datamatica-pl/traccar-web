@@ -8,6 +8,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.datepicker.client.CalendarUtil;
 import com.sencha.gxt.cell.core.client.form.DateCell;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.ListStore;
@@ -23,7 +24,6 @@ import java.util.Date;
 import java.util.List;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.IMaintenanceProperties;
-import org.traccar.web.client.utils.DateHelper;
 import org.traccar.web.client.view.ReviewEditor.EditableColumnConfig;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.MaintenanceBase;
@@ -136,9 +136,8 @@ public class RegistrationReviewEditor {
                     sb.appendEscaped("");
                     return;
                 }
-                Date today = DateHelper.today();
                 
-                long remaining = DateHelper.dayDifference(today, serviceDate);
+                long remaining = CalendarUtil.getDaysBetween(new Date(), serviceDate);
 
                 if(remaining > 0) {
                     sb.appendHtmlConstant("<font color=\"green\">" + i18n.remaining() + " " + remaining + " " + i18n.days() + "</font>");
