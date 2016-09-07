@@ -28,7 +28,7 @@ import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.StringLabelProvider;
 import com.sencha.gxt.widget.core.client.Window;
-import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
+import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.*;
 import org.traccar.web.client.i18n.Messages;
@@ -37,12 +37,10 @@ import org.traccar.web.client.widget.TimeZoneComboBox;
 import org.traccar.web.shared.model.CommandType;
 import org.traccar.web.shared.model.Device;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 public class CommandDialog {
-    
     private static CommandDialogUiBinder uiBinder = GWT.create(CommandDialogUiBinder.class);
 
     interface CommandDialogUiBinder extends UiBinder<Widget, CommandDialog> {
@@ -124,7 +122,7 @@ public class CommandDialog {
 
     @UiField
     FieldLabel lblSOSNumber;
-    
+
     @UiField
     FieldLabel lblCenterNumber;
 
@@ -145,7 +143,10 @@ public class CommandDialog {
 
     @UiField
     TextField customMessage;
-    
+
+    @UiField
+    TextButton sendButton;
+
     final Device device;
     final CommandHandler commandHandler;
     final CommandArgumentsBinder contentBinder;
@@ -153,11 +154,11 @@ public class CommandDialog {
     public CommandDialog(Device device, CommandHandler commandHandler) {
         this.device = device;
         this.commandHandler = commandHandler;
-        
+
         ListStore<CommandType> commandTypes = new ListStore<>(new EnumKeyProvider<CommandType>());
         List<CommandType> supportedCommands = device.getSupportedCommands();
         commandTypes.addAll(device.getSupportedCommands());
-        
+
         this.typeCombo = new ComboBox<>(commandTypes, new LabelProvider<CommandType>() {
             @Override
             public String getLabel(CommandType item) {
@@ -179,6 +180,10 @@ public class CommandDialog {
 
         uiBinder.createAndBindUi(this);
         this.contentBinder = CommandArgumentsBinder.getInstance(device.getProtocol(), this);
+
+        if (commandTypes.size() == 0) {
+            this.sendButton.setEnabled(false);
+        }
 
         typeCombo.addSelectionHandler(new SelectionHandler<CommandType>() {
             @Override
@@ -257,7 +262,7 @@ public class CommandDialog {
     public void onCancelClicked(SelectEvent event) {
         window.hide();
     }
-    
+
     public void onAnswerReceived() {
         window.enable();
     }
