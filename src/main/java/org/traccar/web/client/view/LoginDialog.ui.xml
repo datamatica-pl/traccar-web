@@ -62,6 +62,13 @@
       <container:child layoutData="{verticalLayoutData}">
           <g:Label text="{i18n.clearCookies}" />
       </container:child>
+      <container:child layoutData="{verticalLayoutData}">
+          <g:HTMLPanel>
+            <a href="https://support.google.com/accounts/answer/32050?hl=pl">
+                <g:Label text="{i18n.howToClearCookies}" />
+            </a>
+          </g:HTMLPanel>
+      </container:child>
     </container:VerticalLayoutContainer>
       
     <gxt:button>
