@@ -39,8 +39,35 @@
           </form:widget>
         </form:FieldLabel>
       </container:child>
+      <container:child>
+          <g:HTMLPanel>
+              <hr />
+          </g:HTMLPanel>
+      </container:child>
+      <container:child layoutData="{verticalLayoutData}">
+          <g:Label text="{i18n.acceptTerms}" />
+      </container:child>
+      <container:child layoutData="{verticalLayoutData}">
+          <g:HTMLPanel>
+            <a href="https://drive.google.com/file/d/0B-HkhXkN6gkta2t0eWhvNVRKWnM/view">
+                <g:Label text="{i18n.termsLabel}" />
+            </a>
+          </g:HTMLPanel>
+      </container:child>
+      <container:child>
+          <g:HTMLPanel>
+              <hr />
+          </g:HTMLPanel>
+      </container:child>
       <container:child layoutData="{verticalLayoutData}">
           <g:Label text="{i18n.clearCookies}" />
+      </container:child>
+      <container:child layoutData="{verticalLayoutData}">
+          <g:HTMLPanel>
+            <a href="https://support.google.com/accounts/answer/32050?hl=pl">
+                <g:Label text="{i18n.howToClearCookies}" />
+            </a>
+          </g:HTMLPanel>
       </container:child>
     </container:VerticalLayoutContainer>
       

@@ -175,17 +175,20 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
         grid.getTreeView().setSortingEnabled(false);
         grid.setAutoExpand(true);
 
-        DragHandler dragHandler = new DragHandler();
-        TreeGridDragSource<Group> dragSource = new TreeGridDragSource<>(grid);
-        dragSource.addDragStartHandler(dragHandler);
-        dragSource.addDragCancelHandler(dragHandler);
-
-        TreeGridDropTarget<Group> dropTarget = new TreeGridDropTarget<>(grid);
-        dropTarget.setAllowSelfAsSource(true);
-        dropTarget.setAutoExpand(true);
-        dropTarget.setAllowDropOnLeaf(true);
-        dropTarget.setFeedback(DND.Feedback.BOTH);
-        dropTarget.addDropHandler(dragHandler);
+        // Drag and drop groups - temporary commented, does not work well, and may cause problems.
+        // Once I lost data consistency and I was forced to correct directly in DB
+        // TODO: Fix it, or remove completely
+//        DragHandler dragHandler = new DragHandler();
+//        TreeGridDragSource<Group> dragSource = new TreeGridDragSource<>(grid);
+//        dragSource.addDragStartHandler(dragHandler);
+//        dragSource.addDragCancelHandler(dragHandler);
+//
+//        TreeGridDropTarget<Group> dropTarget = new TreeGridDropTarget<>(grid);
+//        dropTarget.setAllowSelfAsSource(true);
+//        dropTarget.setAutoExpand(true);
+//        dropTarget.setAllowDropOnLeaf(true);
+//        dropTarget.setFeedback(DND.Feedback.BOTH);
+//        dropTarget.addDropHandler(dragHandler);
 
         uiBinder.createAndBindUi(this);
         

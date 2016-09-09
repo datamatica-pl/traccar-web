@@ -40,6 +40,10 @@ public enum CommandType implements IsSerializable {
     setCenterNumber,
     factorySettings,
     extendedCustom,
+    listenMode,
+    voiceCallMode,
+    sleepMode,
+    exitSleepMode,
     custom;
 
     public static final String KEY_FREQUENCY = "frequency";
