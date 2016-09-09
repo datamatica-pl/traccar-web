@@ -49,7 +49,7 @@
       </container:child>
       <container:child layoutData="{verticalLayoutData}">
           <g:HTMLPanel>
-            <a href="http://angelgts.eu/wp-content/uploads/2016/02/Regulamin_AngelGTS_v3.pdf">
+            <a href="https://drive.google.com/file/d/0B-HkhXkN6gkta2t0eWhvNVRKWnM/view">
                 <g:Label text="{i18n.termsLabel}" />
             </a>
           </g:HTMLPanel>
