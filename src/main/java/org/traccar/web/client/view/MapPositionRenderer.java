@@ -601,11 +601,11 @@ public class MapPositionRenderer {
             if(deviceData.track == null) {
                 for(List<Point> polyline : polylines) {
                     lineStrings.add(new LineString(polyline.toArray(new Point[polyline.size()])));
-                    deviceData.positions = track.getPositions();
+                    deviceData.positions = new ArrayList<>(track.getPositions());
                 }
                 deviceData.trackLine = new MultiLineString(lineStrings.toArray(new LineString[lineStrings.size()]));
             } else {
-                List<Position> trackPositions = track.getPositions();
+                List<Position> trackPositions = new ArrayList<>(track.getPositions());
                 if(deviceData.positions.get(deviceData.positions.size() - 1).equals(trackPositions.get(0))) {
                     trackPositions.remove(0);
                     List<Point> polyline = polylines.get(0);
@@ -733,6 +733,30 @@ public class MapPositionRenderer {
             selectPosition(position, true);
         }
     }
+    
+    //used only by LatestTrackPositionRenderer!
+    public void clearTrackPositions(Device device) {
+        DeviceData deviceData = getDeviceData(device);
+        if(deviceData.track != null) {
+            getVectorLayer().removeFeature(deviceData.track);
+            deviceData.trackLine.destroy();
+            deviceData.track.destroy();
+        }
+        for(VectorFeature arrow : deviceData.arrows.values())
+            getVectorLayer().removeFeature(arrow);
+        for(VectorFeature timeLabel : deviceData.timeLabels.values())
+            getVectorLayer().removeFeature(timeLabel);
+        for(VectorFeature point : deviceData.trackPoints) 
+            getVectorLayer().removeFeature(point);
+        
+        deviceData.track = null;
+        deviceData.trackLine = null;
+        deviceData.positions = null;
+        deviceData.arrows.clear();
+        deviceData.timeLabels.clear();
+        deviceData.trackPoints.clear();
+        deviceData.positionMap.clear();
+    }
 
     public void clearTrackPositions(Device device, Date before) {                
         DeviceData deviceData = getDeviceData(device);
@@ -789,6 +813,8 @@ public class MapPositionRenderer {
                     VectorFeature track = new VectorFeature(trackLine, deviceData.track.getStyle());
                     getVectorLayer().addFeature(track);
                     deviceData.track = track;
+                } else {
+                    deviceData.track = null;
                 }
             }
         }

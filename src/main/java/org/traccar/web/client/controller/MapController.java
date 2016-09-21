@@ -149,13 +149,14 @@ public class MapController implements ContentController, MapView.MapHandler,
                 if (ApplicationContext.getInstance().isRecordingTrace(device)) {
                     mapView.showLatestTrackPositions(Collections.singletonList(prevPosition));
                     mapView.showLatestTrack(new Track(Arrays.asList(prevPosition, position)));
-                    Short traceInterval = ApplicationContext.getInstance().getUserSettings().getTraceInterval();
-                    if (traceInterval != null) {
-                        mapView.clearLatestTrackPositions(device, new Date(position.getTime().getTime() - traceInterval * 60 * 1000));
-                    }
                 }
             }
             if (ApplicationContext.getInstance().isRecordingTrace(device)) {
+                Short traceInterval = ApplicationContext.getInstance().getUserSettings().getTraceInterval();
+                if (traceInterval != null) {
+                    mapView.clearLatestTrackPositions(device, new Date(System.currentTimeMillis() - traceInterval * 60 * 1000));
+                }
+                
                 Position prevTimestampPosition = timestampMap.get(device.getId());
 
                 if (prevTimestampPosition == null ||
@@ -164,9 +165,9 @@ public class MapController implements ContentController, MapView.MapHandler,
                     timestampMap.put(device.getId(), position);
                 }
             }
-            latestPositionMap.put(device.getId(), position);
             if(!ApplicationContext.getInstance().isRecordingTrace(device))
                 clearTrackTrace(device);
+            latestPositionMap.put(device.getId(), position);
         }
     }
 
