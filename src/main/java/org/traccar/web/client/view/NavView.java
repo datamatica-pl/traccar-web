@@ -111,6 +111,9 @@ public class NavView {
 
     @UiField
     TextButton reportsButton;
+    
+    @UiField
+    TextButton userGuideButton;
 
     @UiField(provided = true)
     final Messages i18n = GWT.create(Messages.class);
@@ -214,4 +217,14 @@ public class NavView {
     public void onGroupsClicked(SelectEvent event) {
         groupsHandler.onShowGroups();
     }
+    
+    @UiHandler("userGuideButton")
+    public void onUserGuideClicked(SelectEvent event) {
+        redirectToUserGuide();
+    }
+    
+    public static native void redirectToUserGuide() /*-{
+        // TODO: Redirect to real user's guide if available, now terms of use as a placeholder
+        $wnd.location = "http://angelgts.eu/wp-content/uploads/2016/02/Regulamin_AngelGTS_v3.pdf";
+    }-*/;
 }
