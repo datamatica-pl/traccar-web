@@ -55,6 +55,7 @@ public class UsersDialog implements SelectionChangedEvent.SelectionChangedHandle
 
     public interface UserHandler {
         void onAdd();
+        void onEdit(User user);
         void onRemove(User user);
         void onChangePassword(User user);
         void onSaveRoles();
@@ -67,6 +68,9 @@ public class UsersDialog implements SelectionChangedEvent.SelectionChangedHandle
 
     @UiField
     TextButton addButton;
+
+    @UiField
+    TextButton editButton;
 
     @UiField
     TextButton removeButton;
@@ -167,9 +171,15 @@ public class UsersDialog implements SelectionChangedEvent.SelectionChangedHandle
         removeButton.setEnabled(!event.getSelection().isEmpty());
         changePasswordButton.setEnabled(!event.getSelection().isEmpty());
     }
+
     @UiHandler("addButton")
     public void onAddClicked(SelectEvent event) {
         userHandler.onAdd();
+    }
+
+    @UiHandler("editButton")
+    public void onEditClicked(SelectEvent event) {
+        userHandler.onEdit(grid.getSelectionModel().getSelectedItem());
     }
 
     @UiHandler("removeButton")
