@@ -571,6 +571,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             throw new ValidationException();
         }
         EntityManager entityManager = getSessionEntityManager();
+        User currentUser = getSessionUser();
         TypedQuery<Device> query = entityManager.createQuery("SELECT x FROM Device x WHERE x.uniqueId = :id AND x.id <> :primary_id", Device.class);
         query.setParameter("primary_id", device.getId());
         query.setParameter("id", device.getUniqueId());
@@ -610,6 +611,9 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             tmp_device.setShowOdometer(device.isShowOdometer());
             tmp_device.setTimezoneOffset(device.getTimezoneOffset());
             tmp_device.setCommandPassword(device.getCommandPassword());
+            if (currentUser.getAdmin()) {
+                tmp_device.setValidTo(device.getValidTo());
+            }
 
             double prevOdometer = tmp_device.getOdometer();
             tmp_device.setOdometer(device.getOdometer());

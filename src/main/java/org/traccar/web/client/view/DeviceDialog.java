@@ -47,6 +47,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.TextField;
+import pl.datamatica.traccar.model.User;
 
 public class DeviceDialog implements Editor<Device> {
 
@@ -92,6 +93,9 @@ public class DeviceDialog implements Editor<Device> {
     
     @UiField
     TextField commandPassword;
+    
+    @UiField
+    DateField validTo;
 
     @UiField(provided = true)
     NumberPropertyEditor<Integer> integerPropertyEditor = new NumberPropertyEditor.IntegerPropertyEditor();
@@ -185,6 +189,13 @@ public class DeviceDialog implements Editor<Device> {
         }
 
         updatePhoto();
+        
+        User currentUser = ApplicationContext.getInstance().getUser();
+        if (currentUser.getAdmin()) {
+            validTo.setEnabled(true);
+        } else {
+            validTo.setEnabled(false);
+        }
 
         sensorsEditor = new SensorsEditor(device, deviceStore);
         //sensorsTab.add(sensorsEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));

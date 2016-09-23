@@ -184,6 +184,13 @@
                       </form:FieldLabel>
                   </container:child>
                   <container:child layoutData="{verticalLayoutData}">
+                    <form:FieldLabel text="{i18n.deviceValidTo}" labelWidth="180">
+                      <form:widget>
+                        <form:DateField ui:field="validTo" enabled="false"/>
+                      </form:widget>
+                    </form:FieldLabel>
+                  </container:child>
+                  <container:child layoutData="{verticalLayoutData}">
                       <form:FieldLabel text="{i18n.showProtocol}" labelWidth="180">
                           <form:widget>
                               <form:CheckBox ui:field="showProtocol" />
