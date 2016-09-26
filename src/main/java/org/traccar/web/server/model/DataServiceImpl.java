@@ -613,6 +613,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             tmp_device.setCommandPassword(device.getCommandPassword());
             if (currentUser.getAdmin()) {
                 tmp_device.setValidTo(device.getValidTo());
+                tmp_device.setHistoryLength(device.getHistoryLength());
             }
 
             double prevOdometer = tmp_device.getOdometer();

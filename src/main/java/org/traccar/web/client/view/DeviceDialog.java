@@ -90,10 +90,10 @@ public class DeviceDialog implements Editor<Device> {
 
     @UiField
     TextField vehicleInfo;
-    
+
     @UiField
     TextField commandPassword;
-    
+
     @UiField
     DateField validTo;
 
@@ -107,6 +107,9 @@ public class DeviceDialog implements Editor<Device> {
     NumberPropertyEditor<Double> doublePropertyEditor = new NumberPropertyEditor.DoublePropertyEditor();
 
     @UiField
+    NumberField<Integer> historyLength;
+
+    @UiField
     NumberField<Double> idleSpeedThreshold;
 
     @UiField
@@ -114,7 +117,7 @@ public class DeviceDialog implements Editor<Device> {
 
     @UiField
     NumberField<Double> speedLimit;
-    
+
     @UiField
     NumberField<Integer> timezoneOffset;
 
@@ -141,11 +144,11 @@ public class DeviceDialog implements Editor<Device> {
     @UiField
     VerticalLayoutContainer technicalReviewTab;
     final TechnicalReviewEditor technicalReviewEditor;
-    
+
     @UiField
     VerticalLayoutContainer registrationReviewTab;
     final RegistrationReviewEditor registrationReviewEditor;
-    
+
     @UiField
     VerticalLayoutContainer insuranceValidityTab;
 
@@ -189,12 +192,14 @@ public class DeviceDialog implements Editor<Device> {
         }
 
         updatePhoto();
-        
+
         User currentUser = ApplicationContext.getInstance().getUser();
         if (currentUser.getAdmin()) {
             validTo.setEnabled(true);
+            historyLength.setEnabled(true);
         } else {
             validTo.setEnabled(false);
+            historyLength.setEnabled(false);
         }
 
         sensorsEditor = new SensorsEditor(device, deviceStore);
@@ -202,7 +207,7 @@ public class DeviceDialog implements Editor<Device> {
 
         technicalReviewEditor = new TechnicalReviewEditor(device, deviceStore);
         technicalReviewTab.add(technicalReviewEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
-        
+
         registrationReviewEditor = new RegistrationReviewEditor(device, deviceStore);
         registrationReviewTab.add(registrationReviewEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1,1));
 
