@@ -56,6 +56,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.persist.Transactional;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hibernate.Session;
@@ -804,7 +806,18 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
 
         queryString += " ORDER BY x.time";
-
+        
+        if (!getSessionUser().getAdmin()) {
+            int historyLength = Device.DEFAULT_HISTORY_LENGTH_DAYS;
+            if (device.isValid()) {
+                historyLength = device.getHistoryLength();
+            }
+            
+            LocalDate today = LocalDate.now();
+            LocalDate oldestPossible = today.minusDays(historyLength);
+            from = Date.from(oldestPossible.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        }
+        
         TypedQuery<Position> query = entityManager.createQuery(queryString, Position.class);
         query.setParameter("device", device);
         query.setParameter("from", from);
