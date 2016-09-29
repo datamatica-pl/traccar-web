@@ -611,4 +611,8 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String devicesExpiresHeader();
     
     String devicesExpiresInfo();
+    
+    String deviceExpireDaysNum(int days);
+    
+    String deviceExpireDaysNumSingular(int days);
 }

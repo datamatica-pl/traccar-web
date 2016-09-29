@@ -343,7 +343,13 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
                 devicesCloseToExpireNum++;
                 devicesHtmlList += "<li>";
                 String safeDeviceName = SafeHtmlUtils.fromString(dev.getName()).asString();
-                devicesHtmlList += safeDeviceName + ": " + dev.getSubscriptionDaysLeft(today);
+                devicesHtmlList += safeDeviceName + ": ";
+                int daysLeft = dev.getSubscriptionDaysLeft(today);
+                if (daysLeft == 1) {
+                    devicesHtmlList += i18n.deviceExpireDaysNumSingular(daysLeft);
+                } else {
+                    devicesHtmlList += i18n.deviceExpireDaysNum(daysLeft);
+                }
                 devicesHtmlList += "</li>";
             }
         }
