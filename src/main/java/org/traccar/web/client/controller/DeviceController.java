@@ -38,6 +38,7 @@ import org.traccar.web.client.view.*;
 import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
@@ -110,6 +111,8 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
             public void onSuccess(List<Device> result) {
                 deviceStore.addAll(result);
                 deviceStore.addStoreHandlers(deviceStoreHandler);
+                
+                showDevicesSubscriptionLeftPopup();
             }
         });
     }
@@ -314,7 +317,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
     }
     
     @Override
-    public void onDevicesUpdated(List<Device> devices) {       
+    public void onDevicesUpdated(List<Device> devices) {
         for(Device result : devices) {
             deviceStore.update(result);
             mapController.updateIcon(result);
@@ -327,6 +330,29 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
             }
             mapController.updateAlert(result, showAlert);
             deviceVisibilityHandler.updated(result);
+        }
+    }
+
+    private void showDevicesSubscriptionLeftPopup() {
+        final Date today = new Date();
+        int devicesCloseToExpireNum = 0;
+
+        String devicesHtmlList = "<ul>" + i18n.devicesExpiresInfo();
+        for (Device dev : deviceStore.getAll()) {
+            if (dev.isCloseToExpire(today)) {
+                devicesCloseToExpireNum++;
+                devicesHtmlList += "<li>";
+                String safeDeviceName = SafeHtmlUtils.fromString(dev.getName()).asString();
+                devicesHtmlList += safeDeviceName + ": " + dev.getSubscriptionDaysLeft(today);
+                devicesHtmlList += "</li>";
+            }
+        }
+        devicesHtmlList += "</ul>";
+
+        if (devicesCloseToExpireNum > 0) {
+            String devicesExpHeader = "<h1>" + i18n.devicesExpiresHeader() + "</h1>";
+            MessageBox devicesExpPopup = new MessageBox(devicesExpHeader, devicesHtmlList);
+            devicesExpPopup.show();
         }
     }
 }
