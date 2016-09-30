@@ -341,23 +341,29 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
         final Date today = new Date();
         int devicesCloseToExpireNum = 0;
 
-        String devicesHtmlList = "<ul>" + i18n.devicesExpiresInfo();
+        String messageBoxBody = "<p>" + i18n.devicesExpiresInfo() + "</p>";
+        messageBoxBody += "<ul style='margin: 10px 0'>";
         for (Device dev : deviceStore.getAll()) {
             if (dev.isCloseToExpire(today)) {
                 devicesCloseToExpireNum++;
-                devicesHtmlList += "<li>";
+                messageBoxBody += "<li>";
                 String safeDeviceName = SafeHtmlUtils.fromString(dev.getName()).asString();
-                devicesHtmlList += safeDeviceName + ": ";
+                messageBoxBody += safeDeviceName + ": ";
                 int daysLeft = dev.getSubscriptionDaysLeft(today);
                 if (daysLeft == 1) {
-                    devicesHtmlList += i18n.deviceExpireDaysNumSingular(daysLeft);
+                    messageBoxBody += i18n.deviceExpireDaysNumSingular(daysLeft);
                 } else {
-                    devicesHtmlList += i18n.deviceExpireDaysNum(daysLeft);
+                    messageBoxBody += i18n.deviceExpireDaysNum(daysLeft);
                 }
-                devicesHtmlList += "</li>";
+                messageBoxBody += "</li>";
             }
         }
-        devicesHtmlList += "</ul>";
+        messageBoxBody += "</ul>";
+        messageBoxBody +=   "<p>" +
+                                "<a href='http://www.datamatica.pl/abonament-pl'>" +
+                                    i18n.buySubscriptionLinkName() +
+                                "</a>" +
+                            "</p>";
 
         if (devicesCloseToExpireNum > 0) {
             localStore = Storage.getLocalStorageIfSupported();
@@ -376,7 +382,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
             
             if (!isPopupShownToday) {
                 String devicesExpHeader = "<h1>" + i18n.devicesExpiresHeader() + "</h1>";
-                MessageBox devicesExpPopup = new MessageBox(devicesExpHeader, devicesHtmlList);
+                MessageBox devicesExpPopup = new MessageBox(devicesExpHeader, messageBoxBody);
                 devicesExpPopup.show();
             }
         }
