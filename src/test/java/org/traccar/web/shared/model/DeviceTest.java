@@ -138,4 +138,20 @@ public class DeviceTest {
 
         assertFalse(device.isCloseToExpire(from));
     }
+    
+    @Test
+    public void testCloseToExpireSameDay() throws Exception {
+        Date validTo = new Date(1475143201000L); // Thu Sep 29 12:00:01 2016 GMT+2
+        device.setValidTo(validTo);
+
+        assertTrue(device.isCloseToExpire(from));
+    }
+    
+    @Test
+    public void testCloseToExpireDeviceExpired() throws Exception {
+        Date validTo = new Date(1475099100000L); // Wed Sep 28 23:45:00 2016 GMT+2
+        device.setValidTo(validTo);
+
+        assertFalse(device.isCloseToExpire(from));
+    }
 }
