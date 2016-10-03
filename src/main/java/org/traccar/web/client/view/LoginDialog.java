@@ -82,6 +82,13 @@ public class LoginDialog {
 
     public void show() {
         window.show();
+        
+        // Set background around login window
+        window
+            .getBody()
+            .getOwnerDocument()
+            .getBody()
+            .setAttribute("style", "background-image: url(img/trackman_tlo.png); opacity: 0.8");
     }
 
     public void hide() {
