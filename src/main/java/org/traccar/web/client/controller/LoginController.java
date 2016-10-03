@@ -83,6 +83,7 @@ public class LoginController implements LoginDialog.LoginHandler {
                         dialog.hide();
                         loginHandler.onLogin();
                     }
+                    dialog.clearTrackmanBodyStyle();
                 }
                 @Override
                 public void onFailure(Throwable caught) {

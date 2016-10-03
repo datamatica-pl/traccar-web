@@ -24,6 +24,7 @@ import com.sencha.gxt.widget.core.client.form.ComboBox;
 import org.traccar.web.client.ApplicationContext;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.BodyElement;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -82,13 +83,20 @@ public class LoginDialog {
 
     public void show() {
         window.show();
-        
-        // Set background around login window
-        window
-            .getBody()
-            .getOwnerDocument()
-            .getBody()
-            .setAttribute("style", "background-image: url(img/trackman_tlo.png); opacity: 0.8");
+        setTrackmanBodyBackground();
+    }
+    
+    private BodyElement getBodyElement() {
+        return window.getBody().getOwnerDocument().getBody();
+    }
+    
+    public void setTrackmanBodyBackground() {
+        getBodyElement().setAttribute("style", "background-image: url(img/trackman_tlo.png); opacity: 0.8");
+    }
+    
+    // We use it to remove background attribute set for login screen by setTrackmanBodyBackground
+    public void clearTrackmanBodyStyle() {
+        getBodyElement().removeAttribute("style");
     }
 
     public void hide() {
