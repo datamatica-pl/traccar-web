@@ -15,6 +15,8 @@
  */
 
 package org.traccar.web.shared.model;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -29,6 +31,9 @@ public class DeviceTest {
 
     private Device device;
     private final Date from = new Date(1475128800000L); // Thu Sep 29 08:00:00 2016 GMT+2
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+    
 
     @Before
     public void initialize() {
@@ -154,4 +159,59 @@ public class DeviceTest {
 
         assertFalse(device.isCloseToExpire(from));
     }
+    
+    @Test
+    public void testLastAvailableDateDeviceExpired() throws ParseException {
+        Date validTo = dateTimeFormat.parse("2016-09-28 23:45:00");
+        device.setValidTo(validTo);
+        Date expectedLastAvailableDate = dateTimeFormat.parse("2016-09-27 00:00:00");
+        
+        assertEquals(expectedLastAvailableDate, device.getLastAvailablePositionDate(from));
+    }
+    
+    @Test
+    public void testLastAvailableDateDeviceValid5DaysHistory() throws ParseException {
+        Date validTo = dateTimeFormat.parse("2016-09-29 00:00:01");
+        device.setValidTo(validTo);
+        device.setHistoryLength(5);
+        Date expectedLastAvailableDate = dateTimeFormat.parse("2016-09-24 00:00:00");
+        
+        assertEquals(expectedLastAvailableDate, device.getLastAvailablePositionDate(from));
+    }
+    
+    @Test
+    public void testLastAvailableDateDeviceValid60DaysHistoryAfterDST() throws ParseException {
+        Date validTo = dateTimeFormat.parse("2016-12-02 00:00:00");
+        device.setValidTo(validTo);
+        device.setHistoryLength(60);
+        Date fromDate = dateTimeFormat.parse("2016-12-01 00:15:00");
+        Date expectedLastAvailableDate = dateTimeFormat.parse("2016-10-02 00:00:00");
+        
+        assertEquals(expectedLastAvailableDate, device.getLastAvailablePositionDate(fromDate));
+    }
+    
+    @Test
+    public void testIsValidTrue() throws ParseException {
+        device.setValidTo(dateFormat.parse("2016-10-05"));
+        assertTrue(device.isValid(from));
+    }
+    
+    @Test
+    public void testIsValidTrueSameDayLateEvening() throws ParseException {
+        device.setValidTo(dateFormat.parse("2016-10-30"));
+        assertTrue(device.isValid(dateTimeFormat.parse("2016-10-30 23:59:59")));
+    }
+    
+    @Test
+    public void testIsValidTrueSameDayMidnight() throws ParseException {
+        device.setValidTo(dateFormat.parse("2016-10-30"));
+        assertTrue(device.isValid(dateTimeFormat.parse("2016-10-30 00:00:00")));
+    }
+    
+    @Test
+    public void testIsValidFalse() throws ParseException {
+        device.setValidTo(dateFormat.parse("2016-10-30"));
+        assertFalse(device.isValid(dateTimeFormat.parse("2016-10-31 00:00:00")));
+    }
+    
 }
