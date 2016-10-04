@@ -91,7 +91,7 @@ public class LoginDialog {
     }
     
     public void setTrackmanBodyBackground() {
-        getBodyElement().setAttribute("style", "background-image: url(img/trackman_tlo.png); opacity: 0.8");
+        getBodyElement().setAttribute("style", "background-image: url(img/trackman_tlo.png)");
     }
     
     // We use it to remove background attribute set for login screen by setTrackmanBodyBackground
