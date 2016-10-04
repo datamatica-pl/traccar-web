@@ -102,6 +102,8 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String users();
 
     String global();
+    
+    String userGuide();
 
     String logout();
 
@@ -601,4 +603,18 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String speedAlarm();
     
     String ignition();
+    
+    String deviceValidTo();
+    
+    String historyLength();
+    
+    String devicesExpiresHeader();
+    
+    String devicesExpiresInfo();
+    
+    String deviceExpireDaysNum(int days);
+    
+    String deviceExpireDaysNumSingular(int days);
+    
+    String buySubscriptionLinkName();
 }

@@ -43,6 +43,7 @@
       <toolbar:FillToolItem/>
       <image:Image ui:field="logo" addStyleNames="{style.logo}"/>
       <toolbar:FillToolItem/>
+      <button:TextButton text="{i18n.userGuide}" ui:field="userGuideButton" />
       <button:TextButton text="{i18n.account}" ui:field="settingsAccount" />
       <button:TextButton text="{i18n.preferences}" ui:field="settingsPreferences" />
       <button:TextButton text="{i18n.logout}" ui:field="logoutButton" />

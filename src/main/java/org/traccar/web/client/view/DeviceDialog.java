@@ -47,6 +47,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.TextField;
+import pl.datamatica.traccar.model.User;
 
 public class DeviceDialog implements Editor<Device> {
 
@@ -89,9 +90,12 @@ public class DeviceDialog implements Editor<Device> {
 
     @UiField
     TextField vehicleInfo;
-    
+
     @UiField
     TextField commandPassword;
+
+    @UiField
+    DateField validTo;
 
     @UiField(provided = true)
     NumberPropertyEditor<Integer> integerPropertyEditor = new NumberPropertyEditor.IntegerPropertyEditor();
@@ -103,6 +107,9 @@ public class DeviceDialog implements Editor<Device> {
     NumberPropertyEditor<Double> doublePropertyEditor = new NumberPropertyEditor.DoublePropertyEditor();
 
     @UiField
+    NumberField<Integer> historyLength;
+
+    @UiField
     NumberField<Double> idleSpeedThreshold;
 
     @UiField
@@ -110,7 +117,7 @@ public class DeviceDialog implements Editor<Device> {
 
     @UiField
     NumberField<Double> speedLimit;
-    
+
     @UiField
     NumberField<Integer> timezoneOffset;
 
@@ -137,11 +144,11 @@ public class DeviceDialog implements Editor<Device> {
     @UiField
     VerticalLayoutContainer technicalReviewTab;
     final TechnicalReviewEditor technicalReviewEditor;
-    
+
     @UiField
     VerticalLayoutContainer registrationReviewTab;
     final RegistrationReviewEditor registrationReviewEditor;
-    
+
     @UiField
     VerticalLayoutContainer insuranceValidityTab;
 
@@ -186,12 +193,21 @@ public class DeviceDialog implements Editor<Device> {
 
         updatePhoto();
 
+        User currentUser = ApplicationContext.getInstance().getUser();
+        if (currentUser.getAdmin()) {
+            validTo.setEnabled(true);
+            historyLength.setEnabled(true);
+        } else {
+            validTo.setEnabled(false);
+            historyLength.setEnabled(false);
+        }
+
         sensorsEditor = new SensorsEditor(device, deviceStore);
         //sensorsTab.add(sensorsEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
 
         technicalReviewEditor = new TechnicalReviewEditor(device, deviceStore);
         technicalReviewTab.add(technicalReviewEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
-        
+
         registrationReviewEditor = new RegistrationReviewEditor(device, deviceStore);
         registrationReviewTab.add(registrationReviewEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1,1));
 

@@ -119,6 +119,17 @@ public class SettingsController implements NavView.SettingsHandler {
 
                         new UserDialog(new User(), new AddHandler()).show();
                     }
+                    
+                    @Override
+                    public void onEdit(final User user) {
+                        class EditHandler implements UserDialog.UserHandler {
+                            @Override
+                            public void onSave(final User user) {
+                                Application.getDataService().updateUser(user, new BaseAsyncCallback<User>(i18n));
+                            }
+                        }
+                        new UserDialog(user, new EditHandler()).show();
+                    }
 
                     @Override
                     public void onRemove(final User user) {

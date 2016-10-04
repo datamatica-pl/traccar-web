@@ -56,6 +56,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.persist.Transactional;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hibernate.Session;
@@ -298,60 +300,45 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         if (user.getLogin().isEmpty() || user.getPassword().isEmpty()) {
             throw new IllegalArgumentException();
         }
+        
         if (currentUser.getAdmin()
-            || (currentUser.getManager() && currentUser.getAllManagedUsers().contains(user))
-            || (currentUser.getId() == user.getId() && !user.getAdmin())) {
-            EntityManager entityManager = getSessionEntityManager();
-            // TODO: better solution?
-            if (currentUser.getId() == user.getId()) {
-                currentUser.setLogin(user.getLogin());
-                // Password is different or hash method has changed since login
-                if (!currentUser.getPassword().equals(user.getPassword())
-                        || currentUser.getPasswordHashMethod().equals(PasswordHashMethod.PLAIN)
-                        && !getApplicationSettings().getDefaultHashImplementation().equals(PasswordHashMethod.PLAIN)) {
-                    currentUser.setPasswordHashMethod(getApplicationSettings().getDefaultHashImplementation());
-                    currentUser.setPassword(currentUser.getPasswordHashMethod().doHash(user.getPassword(), getApplicationSettings().getSalt()));
-                }
-                if (currentUser.getAdmin() || currentUser.getManager())
-                {
-                    if (currentUser.getAdmin()) {
-                        currentUser.setAdmin(user.getAdmin());
-                    }
-                    currentUser.setManager(user.getManager());
-                }
-                currentUser.setUserSettings(user.getUserSettings());
-                currentUser.setEmail(user.getEmail());
-                currentUser.setNotificationEvents(user.getTransferNotificationEvents());
-                currentUser.setCompanyName(user.getCompanyName());
-                currentUser.setFirstName(user.getFirstName());
-                currentUser.setLastName(user.getLastName());
-                currentUser.setPhoneNumber(user.getPhoneNumber());
-
-                entityManager.merge(currentUser);
-                user = currentUser;
-            } else {
-                // update password
-                if (currentUser.getAdmin() || currentUser.getManager()) {
-                    User existingUser = entityManager.find(User.class, user.getId());
-                    // Checks if password has changed or default hash method not equal to current user hash method
-                    if (!existingUser.getPassword().equals(user.getPassword())
-                            && !existingUser.getPassword().equals(existingUser.getPasswordHashMethod().doHash(user.getPassword(), getApplicationSettings().getSalt()))
-                            || !existingUser.getPasswordHashMethod().equals(getApplicationSettings().getDefaultHashImplementation())) {
-                        existingUser.setPasswordHashMethod(getApplicationSettings().getDefaultHashImplementation());
-                        existingUser.setPassword(existingUser.getPasswordHashMethod().doHash(user.getPassword(), getApplicationSettings().getSalt()));
-                    }
-                    entityManager.merge(existingUser);
-                } else {
-                    throw new AccessDeniedException();
-                }
+                || (currentUser.getManager() && currentUser.getAllManagedUsers().contains(user))
+                || (currentUser.getId() == user.getId() && !user.getAdmin())) {
+            
+            EntityManager em = getSessionEntityManager();
+            User existingUser = em.find(User.class, user.getId());
+            
+            existingUser.setLogin(user.getLogin());
+            // Password is different or hash method has changed since login
+            if (!existingUser.getPassword().equals(user.getPassword())
+                    || existingUser.getPasswordHashMethod().equals(PasswordHashMethod.PLAIN)
+                    && !getApplicationSettings().getDefaultHashImplementation().equals(PasswordHashMethod.PLAIN)) {
+                existingUser.setPasswordHashMethod(getApplicationSettings().getDefaultHashImplementation());
+                existingUser.setPassword(existingUser.getPasswordHashMethod().doHash(user.getPassword(), getApplicationSettings().getSalt()));
             }
+            if (existingUser.getAdmin() || existingUser.getManager())
+            {
+                if (existingUser.getAdmin()) {
+                    existingUser.setAdmin(user.getAdmin());
+                }
+                existingUser.setManager(user.getManager());
+            }
+            existingUser.setUserSettings(user.getUserSettings());
+            existingUser.setEmail(user.getEmail());
+            existingUser.setNotificationEvents(user.getTransferNotificationEvents());
+            existingUser.setCompanyName(user.getCompanyName());
+            existingUser.setFirstName(user.getFirstName());
+            existingUser.setLastName(user.getLastName());
+            existingUser.setPhoneNumber(user.getPhoneNumber());
+
+            em.merge(existingUser);
 
             return fillUserSettings(new User(user));
         } else {
             throw new AccessDeniedException();
         }
     }
-
+    
     @Transactional
     @RequireUser
     @Override
@@ -586,6 +573,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             throw new ValidationException();
         }
         EntityManager entityManager = getSessionEntityManager();
+        User currentUser = getSessionUser();
         TypedQuery<Device> query = entityManager.createQuery("SELECT x FROM Device x WHERE x.uniqueId = :id AND x.id <> :primary_id", Device.class);
         query.setParameter("primary_id", device.getId());
         query.setParameter("id", device.getUniqueId());
@@ -625,6 +613,10 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             tmp_device.setShowOdometer(device.isShowOdometer());
             tmp_device.setTimezoneOffset(device.getTimezoneOffset());
             tmp_device.setCommandPassword(device.getCommandPassword());
+            if (currentUser.getAdmin()) {
+                tmp_device.setValidTo(device.getValidTo());
+                tmp_device.setHistoryLength(device.getHistoryLength());
+            }
 
             double prevOdometer = tmp_device.getOdometer();
             tmp_device.setOdometer(device.getOdometer());
@@ -814,7 +806,18 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
 
         queryString += " ORDER BY x.time";
-
+        
+        if (!getSessionUser().getAdmin()) {
+            int historyLength = Device.DEFAULT_HISTORY_LENGTH_DAYS;
+            if (device.isValid()) {
+                historyLength = device.getHistoryLength();
+            }
+            
+            LocalDate today = LocalDate.now();
+            LocalDate oldestPossible = today.minusDays(historyLength);
+            from = Date.from(oldestPossible.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        }
+        
         TypedQuery<Position> query = entityManager.createQuery(queryString, Position.class);
         query.setParameter("device", device);
         query.setParameter("from", from);

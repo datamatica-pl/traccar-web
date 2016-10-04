@@ -38,6 +38,9 @@ import org.traccar.web.client.view.*;
 import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.i18n.client.DateTimeFormat;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.storage.client.Storage;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
@@ -69,6 +72,8 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
     private final DeviceVisibilityHandler deviceVisibilityHandler;
 
     private Device selectedDevice;
+    
+    private Storage localStore = null;
 
     public DeviceController(MapController mapController,
                             DeviceView.GeoFenceHandler geoFenceHandler,
@@ -110,6 +115,8 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
             public void onSuccess(List<Device> result) {
                 deviceStore.addAll(result);
                 deviceStore.addStoreHandlers(deviceStoreHandler);
+                
+                showDevicesSubscriptionLeftPopup();
             }
         });
     }
@@ -314,7 +321,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
     }
     
     @Override
-    public void onDevicesUpdated(List<Device> devices) {       
+    public void onDevicesUpdated(List<Device> devices) {
         for(Device result : devices) {
             deviceStore.update(result);
             mapController.updateIcon(result);
@@ -327,6 +334,57 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
             }
             mapController.updateAlert(result, showAlert);
             deviceVisibilityHandler.updated(result);
+        }
+    }
+
+    private void showDevicesSubscriptionLeftPopup() {
+        final Date today = new Date();
+        int devicesCloseToExpireNum = 0;
+
+        String messageBoxBody = "<p>" + i18n.devicesExpiresInfo() + "</p>";
+        messageBoxBody += "<ul style='margin: 10px 0'>";
+        for (Device dev : deviceStore.getAll()) {
+            if (dev.isCloseToExpire(today)) {
+                devicesCloseToExpireNum++;
+                messageBoxBody += "<li>";
+                String safeDeviceName = SafeHtmlUtils.fromString(dev.getName()).asString();
+                messageBoxBody += safeDeviceName + ": ";
+                int daysLeft = dev.getSubscriptionDaysLeft(today);
+                if (daysLeft == 1) {
+                    messageBoxBody += i18n.deviceExpireDaysNumSingular(daysLeft);
+                } else {
+                    messageBoxBody += i18n.deviceExpireDaysNum(daysLeft);
+                }
+                messageBoxBody += "</li>";
+            }
+        }
+        messageBoxBody += "</ul>";
+        messageBoxBody +=   "<p>" +
+                                "<a href='http://www.datamatica.pl/abonament-pl'>" +
+                                    i18n.buySubscriptionLinkName() +
+                                "</a>" +
+                            "</p>";
+
+        if (devicesCloseToExpireNum > 0) {
+            localStore = Storage.getLocalStorageIfSupported();
+            boolean isPopupShownToday = false; // If local storage is not supported each login
+                                               // or refresh has an effect of show expiration pop-up
+            if (localStore != null) {
+                String currentDate = DateTimeFormat.getFormat("yyyy-MM-dd").format(today);
+                String lastCheckDate = localStore.getItem("lastSubscriptionExpireCheck");
+                
+                if (lastCheckDate.equals(currentDate)) {
+                    isPopupShownToday = true;
+                } else {
+                    localStore.setItem("lastSubscriptionExpireCheck", currentDate);
+                }
+            }
+            
+            if (!isPopupShownToday) {
+                String devicesExpHeader = "<h1>" + i18n.devicesExpiresHeader() + "</h1>";
+                MessageBox devicesExpPopup = new MessageBox(devicesExpHeader, messageBoxBody);
+                devicesExpPopup.show();
+            }
         }
     }
 }
