@@ -808,14 +808,10 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         queryString += " ORDER BY x.time";
         
         if (!getSessionUser().getAdmin()) {
-            int historyLength = Device.DEFAULT_HISTORY_LENGTH_DAYS;
-            if (device.isValid()) {
-                historyLength = device.getHistoryLength();
+            Date lastAvailableDate = device.getLastAvailablePositionDate(new Date());
+            if (from.before(lastAvailableDate)) {
+                from = lastAvailableDate;
             }
-            
-            LocalDate today = LocalDate.now();
-            LocalDate oldestPossible = today.minusDays(historyLength);
-            from = Date.from(oldestPossible.atStartOfDay(ZoneId.systemDefault()).toInstant());
         }
         
         TypedQuery<Position> query = entityManager.createQuery(queryString, Position.class);
