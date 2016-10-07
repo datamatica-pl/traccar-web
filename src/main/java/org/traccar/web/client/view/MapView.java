@@ -270,7 +270,7 @@ public class MapView {
     }
     
     public void clearLatestTrackPositions(Device device) {
-        latestPositionTrackRenderer.clearTrackPositions(device, new Date());
+        latestPositionTrackRenderer.clearTrackPositions(device);
     }
 
     public void showLatestTrackPositions(List<Position> positions) {
