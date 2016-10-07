@@ -225,6 +225,6 @@ public class NavView {
     
     public static native void redirectToUserGuide() /*-{
         // TODO: Redirect to real user's guide if available, now terms of use as a placeholder
-        $wnd.location = "http://angelgts.eu/wp-content/uploads/2016/02/Regulamin_AngelGTS_v3.pdf";
+        $wnd.location = "https://drive.google.com/open?id=0B-HkhXkN6gktN3dmdGVONGJ4Y2M";
     }-*/;
 }

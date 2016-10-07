@@ -360,7 +360,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
         }
         messageBoxBody += "</ul>";
         messageBoxBody +=   "<p>" +
-                                "<a href='http://www.datamatica.pl/abonament-pl'>" +
+                                "<a href='http://sklep.datamatica.pl'>" +
                                     i18n.buySubscriptionLinkName() +
                                 "</a>" +
                             "</p>";

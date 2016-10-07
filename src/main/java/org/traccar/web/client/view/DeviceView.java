@@ -719,10 +719,11 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             public String getPath() {
                 return "follow";
             }
-        }, 50, headerTemplate.render(AbstractImagePrototype.create(resources.eye()).getSafeHtml()));
+        }, 50, i18n.follow());
         colFollow.setCell(new DeviceOnlyCheckBoxCell(deviceStore));
         colFollow.setFixed(true);
-        colFollow.setResizable(false);
+        colFollow.setResizable(true);
+        colFollow.setWidth(65);
         colFollow.setToolTip(new SafeHtmlBuilder().appendEscaped(i18n.follow()).toSafeHtml());
         columnConfigList.add(colFollow);
 
@@ -753,10 +754,11 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             public String getPath() {
                 return "recordTrace";
             }
-        }, 50, headerTemplate.render(AbstractImagePrototype.create(resources.footprints()).getSafeHtml()));
+        }, 50, i18n.recordTrace());
         colRecordTrace.setCell(new DeviceOnlyCheckBoxCell(deviceStore));
         colRecordTrace.setFixed(true);
-        colRecordTrace.setResizable(false);
+        colRecordTrace.setResizable(true);
+        colRecordTrace.setWidth(45);
         colRecordTrace.setToolTip(new SafeHtmlBuilder().appendEscaped(i18n.recordTrace()).toSafeHtml());
         columnConfigList.add(colRecordTrace);
 
