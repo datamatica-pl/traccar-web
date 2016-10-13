@@ -7,3 +7,4 @@ src/main/webapp/traccar/
 .classpath
 .project
 .settings
+nb-configuration.xml
