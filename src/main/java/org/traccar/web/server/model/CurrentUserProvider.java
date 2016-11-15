@@ -22,6 +22,7 @@ import javax.inject.Provider;
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.hibernate.Session;
 
 public class CurrentUserProvider implements Provider<User> {
     static final String ATTRIBUTE_USER_ID = "userId";
@@ -34,7 +35,9 @@ public class CurrentUserProvider implements Provider<User> {
     @Override
     public User get() {
         HttpSession session = request.get().getSession();
+        EntityManager em = entityManager.get();
+        em.unwrap(Session.class).enableFilter("softDelete");
         Long userId = (Long) session.getAttribute(ATTRIBUTE_USER_ID);
-        return userId == null ? null : entityManager.get().find(User.class, userId);
+        return userId == null ? null : em.find(User.class, userId);
     }
 }
