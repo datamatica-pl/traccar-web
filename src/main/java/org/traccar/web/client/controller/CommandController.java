@@ -71,6 +71,9 @@ public class CommandController implements ContentController, DeviceView.CommandH
             case positionPeriodic:
                 command.getAttributes().put(CommandType.KEY_FREQUENCY, frequency);
                 break;
+            case positionStop:
+                command.getAttributes().put(CommandType.KEY_FREQUENCY, frequency);
+                break;
             case setTimezone:
                 command.getAttributes().put(CommandType.KEY_TIMEZONE, timezone);
                 break;
