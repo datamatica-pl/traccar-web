@@ -70,6 +70,10 @@ public class CommandController implements ContentController, DeviceView.CommandH
         switch (type) {
             case positionPeriodic:
                 command.getAttributes().put(CommandType.KEY_FREQUENCY, frequency);
+                if (extendedAttributes.get(CommandType.KEY_FREQUENCY_STOP) != null) {
+                    command.getAttributes().put(CommandType.KEY_FREQUENCY_STOP,
+                            extendedAttributes.get(CommandType.KEY_FREQUENCY_STOP));
+                }
                 break;
             case positionStop:
                 command.getAttributes().put(CommandType.KEY_FREQUENCY, frequency);
