@@ -186,18 +186,7 @@ public class CommandDialog {
         frequencyUnits.add(i18n.hour());
         
         this.frequencyUnit = new ComboBox<>(frequencyUnits, new StringLabelProvider<>());
-        
-        ListStore<String> frequencyUnitsStop = new ListStore<>(new ModelKeyProvider<String>() {
-            @Override
-            public String getKey(String item) {
-                return item;
-            }
-        });
-        frequencyUnitsStop.add(i18n.second());
-        frequencyUnitsStop.add(i18n.minute());
-        frequencyUnitsStop.add(i18n.hour());
-        
-        this.frequencyUnitStop = new ComboBox<>(frequencyUnitsStop, new StringLabelProvider<>());
+        this.frequencyUnitStop = new ComboBox<>(frequencyUnits, new StringLabelProvider<>());
         
         this.timeZone = new TimeZoneComboBox();
 
