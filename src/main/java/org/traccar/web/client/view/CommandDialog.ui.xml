@@ -48,6 +48,26 @@
                 </form:FieldLabel>
             </container:child>
             <container:child layoutData="{verticalLayoutData}">
+                <form:FieldLabel text="{i18n.frequencyStop}" ui:field="lblFrequencyStop" visible="false" labelWidth="120" height="30">
+                    <form:widget>
+                        <container:HorizontalLayoutContainer>
+                            <container:child layoutData="{horizontalLayoutData}">
+                                <form:NumberField editor="{integerPropertyEditor}"
+                                                  ui:field="frequencyStop"
+                                                  allowNegative="false"
+                                                  allowDecimals="false"
+                                                  allowBlank="false"
+                                                  visible="false"
+                                                  width="70"/>
+                            </container:child>
+                            <container:child layoutData="{horizontalLayoutData}">
+                                <form:ComboBox ui:field="frequencyUnitStop" triggerAction="ALL" visible="false" width="70" />
+                            </container:child>
+                        </container:HorizontalLayoutContainer>
+                    </form:widget>
+                </form:FieldLabel>
+            </container:child>
+            <container:child layoutData="{verticalLayoutData}">
                 <form:FieldLabel text="{i18n.timeZone}" ui:field="lblTimeZone" visible="false" labelWidth="120">
                     <form:widget>
                         <form:ComboBox ui:field="timeZone" allowBlank="false" />

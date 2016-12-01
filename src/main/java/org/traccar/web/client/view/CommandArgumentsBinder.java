@@ -19,6 +19,8 @@ public class CommandArgumentsBinder {
             return new H02CommandArgumentsBinder(commandDialog);
         } else if (protocol.equals("minifinder")) {
             return new MiniFinderCommandArgumentsBinder(commandDialog);
+        } else if (protocol.equals("gt06")) {
+            return new GT06CommandArgumentsBinder(commandDialog);
         } else {
             return new CommandArgumentsBinder(commandDialog);
         }
@@ -33,6 +35,10 @@ public class CommandArgumentsBinder {
         widgetMap.put("lblFrequency", commandDialog.lblFrequency);
         widgetMap.put("frequency", commandDialog.frequency);
         widgetMap.put("frequencyUnit", commandDialog.frequencyUnit);
+        
+        widgetMap.put("lblFrequencyStop", commandDialog.lblFrequencyStop);
+        widgetMap.put("frequencyStop", commandDialog.frequencyStop);
+        widgetMap.put("frequencyUnitStop", commandDialog.frequencyUnitStop);
         
         widgetMap.put("lblTimeZone", commandDialog.lblTimeZone);
         widgetMap.put("timeZone", commandDialog.timeZone);
@@ -68,6 +74,8 @@ public class CommandArgumentsBinder {
 
     private void initVisibilityInfo() {
         visibilityInfo.put(CommandType.positionPeriodic,
+                new String[]{"lblFrequency", "frequency", "frequencyUnit"});
+        visibilityInfo.put(CommandType.positionStop,
                 new String[]{"lblFrequency", "frequency", "frequencyUnit"});
         visibilityInfo.put(CommandType.custom,
                 new String[]{"lblCustomMessage", "customMessage"});
@@ -116,5 +124,15 @@ class MiniFinderCommandArgumentsBinder extends CommandArgumentsBinder {
         visibilityInfo.remove(CommandType.setSOSNumbers);
         visibilityInfo.put(CommandType.setSOSNumbers, 
                 new String[]{"lblSOSNumber1", "SOSNumber1"});
+    }
+}
+
+class GT06CommandArgumentsBinder extends CommandArgumentsBinder {
+    public GT06CommandArgumentsBinder(CommandDialog commandDialog) {
+        super(commandDialog);
+        visibilityInfo.remove(CommandType.positionPeriodic);
+        visibilityInfo.put(CommandType.positionPeriodic,
+                new String[]{"lblFrequency", "frequency", "frequencyUnit",
+                            "lblFrequencyStop", "frequencyStop", "frequencyUnitStop"});
     }
 }

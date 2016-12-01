@@ -71,12 +71,21 @@ public class CommandDialog {
 
     @UiField
     FieldLabel lblFrequency;
+    
+    @UiField
+    FieldLabel lblFrequencyStop;
 
     @UiField
     NumberField<Integer> frequency;
+    
+    @UiField
+    NumberField<Integer> frequencyStop;
 
     @UiField(provided = true)
     ComboBox<String> frequencyUnit;
+    
+    @UiField(provided = true)
+    ComboBox<String> frequencyUnitStop;
 
     @UiField
     FieldLabel lblTimeZone;
@@ -175,7 +184,10 @@ public class CommandDialog {
         frequencyUnits.add(i18n.second());
         frequencyUnits.add(i18n.minute());
         frequencyUnits.add(i18n.hour());
+        
         this.frequencyUnit = new ComboBox<>(frequencyUnits, new StringLabelProvider<>());
+        this.frequencyUnitStop = new ComboBox<>(frequencyUnits, new StringLabelProvider<>());
+        
         this.timeZone = new TimeZoneComboBox();
 
         uiBinder.createAndBindUi(this);
@@ -208,13 +220,21 @@ public class CommandDialog {
 
     @UiHandler("sendButton")
     public void onSendClicked(SelectEvent event) {
-        int frequency = -1;
+        int frequencyVal = -1;
         if (this.frequency.getCurrentValue() != null) {
             String unit = frequencyUnit.getCurrentValue();
-            frequency = this.frequency.getCurrentValue();
-            frequency *=
+            frequencyVal = this.frequency.getCurrentValue();
+            frequencyVal *=
                     i18n.minute().equals(unit) ? 60
                     : i18n.hour().equals(unit) ? 3600 : 1;
+        }
+        int frequencyStopVal = -1;
+        if (this.frequencyStop.getCurrentValue() != null) {
+            String frequencyStopUnit = frequencyUnitStop.getCurrentValue();
+            frequencyStopVal = this.frequencyStop.getCurrentValue();
+            frequencyStopVal *=
+                    i18n.minute().equals(frequencyStopUnit) ? 60
+                    : i18n.hour().equals(frequencyStopUnit) ? 3600 : 1;
         }
         int timezone = -1;
         if (this.timeZone.getCurrentValue() != null) {
@@ -245,11 +265,14 @@ public class CommandDialog {
         if (this.centerNumber.getCurrentValue() != null) {
             extendedAttributes.put(CommandType.KEY_CENTER_NUMBER, this.centerNumber.getCurrentValue());
         }
+        if (this.frequencyStop.getCurrentValue() != null) {
+            extendedAttributes.put(CommandType.KEY_FREQUENCY_STOP, frequencyStopVal);
+        }
 
         window.disable();
         commandHandler.onSend(device,
                 typeCombo.getCurrentValue(),
-                frequency,
+                frequencyVal,
                 timezone,
                 radius,
                 phoneNumber.getCurrentValue(),
