@@ -24,7 +24,7 @@
       <container:child layoutData="{verticalLayoutData}">
         <form:FieldLabel text="{i18n.user}" labelWidth="160">
           <form:widget>
-            <form:TextField ui:field="login" allowBlank="false" />
+            <form:TextField ui:field="login" readOnly="true" />
           </form:widget>
         </form:FieldLabel>
       </container:child>
