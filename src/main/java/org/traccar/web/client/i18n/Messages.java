@@ -619,4 +619,12 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String deviceExpireDaysNumSingular(int days);
     
     String buySubscriptionLinkName();
+    
+    String imei();
+    
+    String success();
+    
+    String validationMailSent();
+    
+    String errInvalidImei();
 }

@@ -15,6 +15,7 @@
     <inherits name="com.github.nmorel.gwtjackson.GwtJackson" />
     <inherits name="org.traccar.web.client.theme.Theme" />
     <inherits name="org.traccar.web.i18n.I18N" />
+    <inherits name="org.fusesource.restygwt.RestyGWT" />
     <inherits name="pl.datamatica.traccar.Orm" />
 
     <set-property name="gwt.logging.enabled" value="FALSE"/>

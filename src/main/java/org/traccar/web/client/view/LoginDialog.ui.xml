@@ -24,14 +24,23 @@
             <form:ComboBox ui:field="language" />
           </form:widget>
         </form:FieldLabel>
-      </container:child>
+      </container:child>      
       <container:child layoutData="{verticalLayoutData}">
-        <form:FieldLabel text="{i18n.user}" labelWidth="120">
+        <form:FieldLabel text="{i18n.email}" labelWidth="120">
           <form:widget>
             <form:TextField ui:field="login" />
           </form:widget>
         </form:FieldLabel>
       </container:child>
+      
+      <container:child layoutData="{verticalLayoutData}">
+        <form:FieldLabel text="{i18n.imei}" labelWidth="120">
+          <form:widget>
+            <form:TextField ui:field="imei" />
+          </form:widget>
+        </form:FieldLabel>
+      </container:child>
+      
       <container:child layoutData="{verticalLayoutData}">
         <form:FieldLabel text="{i18n.password}" labelWidth="120">
           <form:widget>
@@ -39,6 +48,7 @@
           </form:widget>
         </form:FieldLabel>
       </container:child>
+      
       <container:child>
           <g:HTMLPanel>
               <hr />

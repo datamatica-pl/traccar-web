@@ -41,8 +41,6 @@ public interface DataService extends RemoteService {
 
     boolean logout();
 
-    User register(String login, String password) throws AccessDeniedException;
-
     List<User> getUsers();
 
     User addUser(User user) throws InvalidMaxDeviceNumberForUserException;

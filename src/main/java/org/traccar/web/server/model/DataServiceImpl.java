@@ -200,36 +200,6 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     }
 
     @Transactional
-    @LogCall("Register '{0}'")
-    @Override
-    public User register(String login, String password) throws AccessDeniedException {
-        if (getApplicationSettings().getRegistrationEnabled()) {
-            TypedQuery<User> query = getSessionEntityManager().createQuery(
-                    "SELECT x FROM User x WHERE x.login = :login", User.class);
-            query.setParameter("login", login);
-            List<User> results = query.getResultList();
-            if (results.isEmpty()) {
-                    User user = new User();
-                    user.setLogin(login);
-                    user.setPasswordHashMethod(getApplicationSettings().getDefaultHashImplementation());
-                    user.setPassword(user.getPasswordHashMethod().doHash(password, getApplicationSettings().getSalt()));
-                    user.setManager(Boolean.TRUE); // registered users are always managers
-                    user.setUserSettings(new UserSettings());
-                    getSessionEntityManager().persist(user);
-                    getSessionEntityManager().persist(UIStateEntry.createDefaultArchiveGridStateEntry(user));
-                    setSessionUser(user);
-                    return fillUserSettings(new User(user));
-            }
-            else
-            {
-                throw new IllegalStateException();
-            }
-        } else {
-            throw new AccessDeniedException();
-        }
-    }
-
-    @Transactional
     @RequireUser(roles = { Role.ADMIN, Role.MANAGER })
     @Override
     public List<User> getUsers() {

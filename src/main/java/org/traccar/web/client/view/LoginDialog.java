@@ -48,7 +48,7 @@ public class LoginDialog {
 
     public interface LoginHandler {
         void onLogin(String login, String password);
-        void onRegister(String login, String password);
+        void onRegister(String login, String imei, String password);
     }
 
     private LoginHandler loginHandler;
@@ -61,6 +61,9 @@ public class LoginDialog {
 
     @UiField
     TextField login;
+    
+    @UiField
+    TextField imei;
 
     @UiField
     PasswordField password;
@@ -120,7 +123,7 @@ public class LoginDialog {
 
     @UiHandler("registerButton")
     public void onRegisterClicked(SelectEvent event) {
-        loginHandler.onRegister(login.getText(), password.getText());
+        loginHandler.onRegister(login.getText(), imei.getText(), password.getText());
     }
 
     @UiHandler({ "login", "password" })

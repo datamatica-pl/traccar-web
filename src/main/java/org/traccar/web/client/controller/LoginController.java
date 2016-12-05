@@ -26,6 +26,9 @@ import org.traccar.web.client.view.LoginDialog;
 import pl.datamatica.traccar.model.User;
 
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import org.fusesource.restygwt.client.Method;
+import org.fusesource.restygwt.client.MethodCallback;
+import org.traccar.web.client.model.api.UsersService;
 import org.traccar.web.shared.model.UserBlockedException;
 import org.traccar.web.shared.model.UserExpiredException;
 
@@ -71,6 +74,14 @@ public class LoginController implements LoginDialog.LoginHandler {
         }
         return true;
     }
+    
+    private boolean validate(String login, String imei, String password) {
+        if(imei == null || !imei.matches("^\\d+$")) {
+            new AlertMessageBox(i18n.error(), i18n.errInvalidImei()).show();
+            return false;
+        }
+        return validate(login, password);
+    }
 
     @Override
     public void onLogin(String login, String password) {
@@ -100,20 +111,19 @@ public class LoginController implements LoginDialog.LoginHandler {
     }
 
     @Override
-    public void onRegister(String login, String password) {
-        if (validate(login, password)) {
-            Application.getDataService().register(login, password, new BaseAsyncCallback<User>(i18n) {
+    public void onRegister(String email, String imei, String password) {
+        if (validate(email, imei, password)) {
+            UsersService users = GWT.create(UsersService.class);
+            UsersService.AddUserDto dto = new UsersService.AddUserDto(email, imei, password);
+            users.register(dto, new MethodCallback<Void>() {
                 @Override
-                public void onSuccess(User result) {
-                    ApplicationContext.getInstance().setUser(result);
-                    if (loginHandler != null) {
-                        dialog.hide();
-                        loginHandler.onLogin();
-                    }
-                }
-                @Override
-                public void onFailure(Throwable caught) {
+                public void onFailure(Method method, Throwable exception) {
                     new AlertMessageBox(i18n.error(), i18n.errUsernameTaken()).show();
+                }
+
+                @Override
+                public void onSuccess(Method method, Void response) {
+                    new AlertMessageBox(i18n.success(), i18n.validationMailSent()).show();
                 }
             });
         }
