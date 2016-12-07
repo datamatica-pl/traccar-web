@@ -112,7 +112,8 @@ public class ExportServlet extends HttpServlet {
 
     void csv(HttpServletResponse response, Locale locale, Device device, Date from, Date to, boolean filter) throws IOException, AccessDeniedException {
         response.setContentType("text/csv;charset=UTF-8");
-        response.setHeader("Content-Disposition", "attachment; filename=traccar-positions.csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\""
+                +device.getName()+"-positions.csv\"");
 
         DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(locale);
         final char SEPARATOR = formatSymbols.getDecimalSeparator() == ',' ? ';' : ',';
@@ -141,7 +142,8 @@ public class ExportServlet extends HttpServlet {
 
     void gpx(HttpServletResponse response, Device device, Date from, Date to, boolean filter) throws IOException, XMLStreamException, AccessDeniedException {
         response.setContentType("application/gpx+xml;charset=UTF-8");
-        response.setHeader("Content-Disposition", "attachment; filename=traccar-positions.gpx");
+        response.setHeader("Content-Disposition", "attachment; filename=\""
+                +device.getName()+"-positions.gpx\"");
 
         TimeZone tz = TimeZone.getTimeZone("UTC");
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
