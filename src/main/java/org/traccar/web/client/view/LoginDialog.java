@@ -61,9 +61,6 @@ public class LoginDialog {
 
     @UiField
     TextField login;
-    
-    @UiField
-    TextField imei;
 
     @UiField
     PasswordField password;
@@ -123,7 +120,13 @@ public class LoginDialog {
 
     @UiHandler("registerButton")
     public void onRegisterClicked(SelectEvent event) {
-        loginHandler.onRegister(login.getText(), imei.getText(), password.getText());
+        ImeiDialog dialog = new ImeiDialog(new ImeiDialog.ImeiHandler() {
+                @Override
+                public void onImei(String imei) {
+                    loginHandler.onRegister(login.getText(), imei, password.getText());
+                }
+            });
+        dialog.show();
     }
 
     @UiHandler({ "login", "password" })

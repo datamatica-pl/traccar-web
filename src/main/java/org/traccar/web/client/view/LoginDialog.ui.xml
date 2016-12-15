@@ -31,15 +31,7 @@
             <form:TextField ui:field="login" />
           </form:widget>
         </form:FieldLabel>
-      </container:child>
-      
-      <container:child layoutData="{verticalLayoutData}">
-        <form:FieldLabel text="{i18n.imei}" labelWidth="120">
-          <form:widget>
-            <form:TextField ui:field="imei" />
-          </form:widget>
-        </form:FieldLabel>
-      </container:child>
+      </container:child>    
       
       <container:child layoutData="{verticalLayoutData}">
         <form:FieldLabel text="{i18n.password}" labelWidth="120">

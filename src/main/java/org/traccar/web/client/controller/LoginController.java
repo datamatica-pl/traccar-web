@@ -16,6 +16,8 @@
 package org.traccar.web.client.controller;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.http.client.Response;
+import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.RootPanel;
 import org.traccar.web.client.Application;
@@ -26,6 +28,7 @@ import org.traccar.web.client.view.LoginDialog;
 import pl.datamatica.traccar.model.User;
 
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.model.api.UsersService;
@@ -115,15 +118,28 @@ public class LoginController implements LoginDialog.LoginHandler {
         if (validate(email, imei, password)) {
             UsersService users = GWT.create(UsersService.class);
             UsersService.AddUserDto dto = new UsersService.AddUserDto(email, imei, password);
-            users.register(dto, new MethodCallback<Void>() {
+            users.register(dto, new JsonCallback() {
+                @Override
+                public void onSuccess(Method method, JSONValue response) {
+                    switch (method.getResponse().getStatusCode()) {
+                        case Response.SC_CREATED:
+                            new AlertMessageBox(i18n.success(), i18n.validationMailSent()).show();
+                            break;
+                        case Response.SC_CONFLICT:
+                            new AlertMessageBox(i18n.error(), i18n.errUsernameTaken()).show();
+                            break;
+                        case Response.SC_BAD_REQUEST:
+                            new AlertMessageBox(i18n.error(), i18n.errInvalidImei()).show();
+                            break;
+                        default:
+                            new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                            break;
+                    }
+                }
+                
                 @Override
                 public void onFailure(Method method, Throwable exception) {
-                    new AlertMessageBox(i18n.error(), i18n.errUsernameTaken()).show();
-                }
-
-                @Override
-                public void onSuccess(Method method, Void response) {
-                    new AlertMessageBox(i18n.success(), i18n.validationMailSent()).show();
+                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                 }
             });
         }

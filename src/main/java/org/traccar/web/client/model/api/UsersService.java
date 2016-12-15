@@ -18,7 +18,7 @@ package org.traccar.web.client.model.api;
 import org.fusesource.restygwt.client.RestService;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import org.fusesource.restygwt.client.MethodCallback;
+import org.fusesource.restygwt.client.JsonCallback;
 
 
 @Path("../api/v1/users")
@@ -39,5 +39,5 @@ public interface UsersService extends RestService{
     }
     
     @POST
-    void register(AddUserDto dto, MethodCallback<Void> callback);
+    void register(AddUserDto dto, JsonCallback callback);
 }
