@@ -40,6 +40,7 @@ public class LanguageComboBox extends ComboBox<String> {
 
         getStore().clear();
         getStore().add("pl");
+        getStore().add("default");
         //getStore().addAll(Arrays.asList(LocaleInfo.getAvailableLocaleNames()));
         setForceSelection(true);
         setTriggerAction(ComboBoxCell.TriggerAction.ALL);
