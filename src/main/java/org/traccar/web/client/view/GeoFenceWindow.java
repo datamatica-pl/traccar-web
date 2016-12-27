@@ -21,8 +21,12 @@ import pl.datamatica.traccar.model.Device;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -38,8 +42,14 @@ import com.sencha.gxt.widget.core.client.ColorPalette;
 import com.sencha.gxt.widget.core.client.PlainTabPanel;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.container.CenterLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData;
+import com.sencha.gxt.widget.core.client.event.HeaderClickEvent;
+import com.sencha.gxt.widget.core.client.event.HeaderClickEvent.HeaderClickHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.*;
+import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
@@ -111,9 +121,6 @@ public class GeoFenceWindow implements Editor<GeoFence> {
 
     @UiField
     ColorPalette color;
-
-    @UiField
-    CheckBox allDevices;
 
     DrawFeature drawFeature;
 
@@ -196,16 +203,41 @@ public class GeoFenceWindow implements Editor<GeoFence> {
         }
 
         List<ColumnConfig<DeviceSelected, ?>> columnConfigList = new LinkedList<>();
-
-        ColumnConfig<DeviceSelected, Boolean> colSelected = new ColumnConfig<>(deviceSelectedProperties.selected(), 5, "");
+        
+        SafeHtmlBuilder shb = new SafeHtmlBuilder();
+        shb.appendHtmlConstant("<input type=\"checkbox\"></input>");
+        final ColumnConfig<DeviceSelected, Boolean> colSelected = new ColumnConfig<>(deviceSelectedProperties.selected(), 5, 
+                shb.toSafeHtml());
         colSelected.setCell(new CheckBoxCell());
         columnConfigList.add(colSelected);
-
+        
         columnConfigList.add(new ColumnConfig<>(deviceSelectedProperties.name(), 25, i18n.name()));
 
         columnModel = new ColumnModel<>(columnConfigList);
 
         uiBinder.createAndBindUi(this);
+        grid.addHeaderClickHandler(new HeaderClickHandler() {
+            boolean isChecked = false;
+            
+            @Override
+            public void onHeaderClick(HeaderClickEvent event) {
+                ColumnConfig<?,?> cc = grid.getColumnModel().getColumn(event.getColumnIndex());
+                if(cc == colSelected) {
+                    isChecked = !isChecked;
+                    SafeHtmlBuilder shb2 = new SafeHtmlBuilder();
+                    shb2.appendHtmlConstant("<input type=\"checkbox\" ");
+                    if(isChecked)
+                        shb2.appendHtmlConstant("checked=\"\"");
+                    shb2.appendHtmlConstant("></input>");
+                    grid.getView().getHeader().getHead(event.getColumnIndex()).setHeader(shb2.toSafeHtml());
+                    for(DeviceSelected ds : deviceSelectionStore.getAll())
+                        ds.selected = isChecked;
+                    grid.getView().refresh(false);
+                }
+            }
+            
+        });
+        grid.setSelectionModel(new CheckBoxSelectionModel(deviceSelectedProperties.selected()));
 
         driver.initialize(this);
         driver.edit(this.geoFence);

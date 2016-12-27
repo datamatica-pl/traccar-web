@@ -55,7 +55,7 @@
             <a href="https://drive.google.com/file/d/0B-HkhXkN6gkta2t0eWhvNVRKWnM/view">
                 <g:Label text="{i18n.termsLabel}" />
             </a>
-            <a href="http://google.pl/">
+            <a href="http://datamatica.pl/privacy-policy/">
                 <g:Label text="{i18n.privacyLabel}" />
             </a>
           </g:HTMLPanel>
