@@ -187,6 +187,7 @@ public class DeviceDialog implements Editor<Device> {
         driver.edit(device);
 
         idleSpeedThreshold.setValue(device.getIdleSpeedThreshold() * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactor());
+        speedLimit.addValidator(new MaxNumberValidator<>(255.));
         if (device.getSpeedLimit() != null) {
             speedLimit.setValue(device.getSpeedLimit() * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactor());
         }

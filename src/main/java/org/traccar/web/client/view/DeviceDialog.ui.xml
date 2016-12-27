@@ -29,7 +29,7 @@
 
   <ui:with type="com.sencha.gxt.widget.core.client.form.NumberPropertyEditor" field="integerPropertyEditor" />
   <ui:with type="com.sencha.gxt.widget.core.client.form.NumberPropertyEditor" field="doublePropertyEditor" />
-
+  
     <ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig" field="settingsTabConfig">
         <ui:attributes text="{i18n.settings}" />
     </ui:with>
