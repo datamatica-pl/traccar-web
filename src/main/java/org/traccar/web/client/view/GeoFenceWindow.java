@@ -21,11 +21,8 @@ import pl.datamatica.traccar.model.Device;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -42,9 +39,6 @@ import com.sencha.gxt.widget.core.client.ColorPalette;
 import com.sencha.gxt.widget.core.client.PlainTabPanel;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
-import com.sencha.gxt.widget.core.client.container.CenterLayoutContainer;
-import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
-import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData;
 import com.sencha.gxt.widget.core.client.event.HeaderClickEvent;
 import com.sencha.gxt.widget.core.client.event.HeaderClickEvent.HeaderClickHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
@@ -68,7 +62,6 @@ import org.traccar.web.client.GeoFenceDrawing;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.EnumKeyProvider;
 import org.traccar.web.client.model.GeoFenceProperties;
-import org.traccar.web.shared.model.*;
 
 import java.util.*;
 
@@ -128,49 +121,14 @@ public class GeoFenceWindow implements Editor<GeoFence> {
     final GeoFence geoFence;
     GeoFenceDrawing geoFenceDrawing;
 
-    // device selection
-    public class DeviceSelected {
-        public final Device device;
-        public boolean selected;
-
-        public DeviceSelected(Device device, boolean selected) {
-            this.device = device;
-            this.selected = selected;
-        }
-
-        public long getId() {
-            return device.getId();
-        }
-
-        public String getName() {
-            return device.getName();
-        }
-
-        public boolean isSelected() {
-            return selected;
-        }
-
-        public void setSelected(boolean selected) {
-            this.selected = selected;
-        }
-    }
-
-    public interface DeviceSelectedProperties extends PropertyAccess<DeviceSelected> {
-        ModelKeyProvider<DeviceSelected> id();
-
-        ValueProvider<DeviceSelected, String> name();
-
-        ValueProvider<DeviceSelected, Boolean> selected();
-    }
+    @UiField(provided = true)
+    ColumnModel<Device> columnModel;
 
     @UiField(provided = true)
-    ColumnModel<DeviceSelected> columnModel;
-
-    @UiField(provided = true)
-    ListStore<DeviceSelected> deviceSelectionStore;
+    ListStore<Device> deviceSelectionStore;
 
     @UiField
-    Grid<DeviceSelected> grid;
+    Grid<Device> grid;
 
     public GeoFenceWindow(GeoFence geoFence,
                           GeoFenceDrawing geoFenceDrawing,
@@ -193,51 +151,29 @@ public class GeoFenceWindow implements Editor<GeoFence> {
         type.setForceSelection(true);
         type.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
 
-        // device selection
-        DeviceSelectedProperties deviceSelectedProperties = GWT.create(DeviceSelectedProperties.class);
+        deviceSelectionStore = devices;
 
-        deviceSelectionStore = new ListStore<>(deviceSelectedProperties.id());
-
-        for (Device device : devices.getAll()) {
-            deviceSelectionStore.add(new DeviceSelected(device, geoFence.getTransferDevices().contains(device)));
-        }
-
-        List<ColumnConfig<DeviceSelected, ?>> columnConfigList = new LinkedList<>();
+        IdentityValueProvider<Device> id = new IdentityValueProvider<>();
+        final CheckBoxSelectionModel<Device> sel = new CheckBoxSelectionModel<>(id);
+        List<ColumnConfig<Device, ?>> columnConfigList = new LinkedList<>();
         
-        SafeHtmlBuilder shb = new SafeHtmlBuilder();
-        shb.appendHtmlConstant("<input type=\"checkbox\"></input>");
-        final ColumnConfig<DeviceSelected, Boolean> colSelected = new ColumnConfig<>(deviceSelectedProperties.selected(), 5, 
-                shb.toSafeHtml());
-        colSelected.setCell(new CheckBoxCell());
-        columnConfigList.add(colSelected);
-        
-        columnConfigList.add(new ColumnConfig<>(deviceSelectedProperties.name(), 25, i18n.name()));
+        columnConfigList.add(sel.getColumn());
+        columnConfigList.add(new ColumnConfig<>(new ToStringValueProvider<Device>() {
+            @Override
+            public String getValue(Device device) {
+                return device.getName();
+            }
+        }, 25, i18n.name()));
 
         columnModel = new ColumnModel<>(columnConfigList);
 
         uiBinder.createAndBindUi(this);
-        grid.addHeaderClickHandler(new HeaderClickHandler() {
-            boolean isChecked = false;
-            
-            @Override
-            public void onHeaderClick(HeaderClickEvent event) {
-                ColumnConfig<?,?> cc = grid.getColumnModel().getColumn(event.getColumnIndex());
-                if(cc == colSelected) {
-                    isChecked = !isChecked;
-                    SafeHtmlBuilder shb2 = new SafeHtmlBuilder();
-                    shb2.appendHtmlConstant("<input type=\"checkbox\" ");
-                    if(isChecked)
-                        shb2.appendHtmlConstant("checked=\"\"");
-                    shb2.appendHtmlConstant("></input>");
-                    grid.getView().getHeader().getHead(event.getColumnIndex()).setHeader(shb2.toSafeHtml());
-                    for(DeviceSelected ds : deviceSelectionStore.getAll())
-                        ds.selected = isChecked;
-                    grid.getView().refresh(false);
-                }
-            }
-            
-        });
-        grid.setSelectionModel(new CheckBoxSelectionModel(deviceSelectedProperties.selected()));
+        
+        grid.setSelectionModel(sel);
+        grid.getView().setAutoFill(true);
+        grid.getView().setStripeRows(true);
+        for(Device d : geoFence.getTransferDevices())
+            grid.getSelectionModel().select(d, true);
 
         driver.initialize(this);
         driver.edit(this.geoFence);
@@ -358,17 +294,10 @@ public class GeoFenceWindow implements Editor<GeoFence> {
             updated.points(points);
         }
         // set up devices
-        for (Store<DeviceSelected>.Record record : deviceSelectionStore.getModifiedRecords()) {
-            DeviceSelected next = new DeviceSelected(record.getModel().device, record.getModel().selected);
-            for (Store.Change<DeviceSelected, ?> change : record.getChanges()) {
-                change.modify(next);
-            }
-            if (next.selected) {
-                updated.getTransferDevices().add(next.device);
-            } else {
-                updated.getTransferDevices().remove(next.device);
-            }
-        }
+        updated.getTransferDevices().clear();
+        for(Device d : grid.getSelectionModel().getSelectedItems())
+            updated.getTransferDevices().add(d);
+
         return updated;
     }
 
