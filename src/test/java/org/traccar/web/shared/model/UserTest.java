@@ -43,7 +43,7 @@ public class UserTest {
      *                                            user [u3] --- (g6)
      * </pre>
      */
-    @Test
+    //@Test
     public void testAvailableGeoFences() {
         // set up users hierarchy
         User m1 = new User("m1");

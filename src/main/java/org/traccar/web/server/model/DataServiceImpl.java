@@ -56,8 +56,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.persist.Transactional;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hibernate.Session;
@@ -959,17 +957,26 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     public void saveDeviceShare(Device device, Map<User, Boolean> share) {
         EntityManager entityManager = getSessionEntityManager();
         device = entityManager.find(Device.class, device.getId());
+        TypedQuery<GeoFence> tq = entityManager.createQuery("from GeoFence gf "
+                + "where :device in (elements(gf.devices))", GeoFence.class);
+        tq.setParameter("device", device);
+        List<GeoFence> geofences = tq.getResultList();
 
         for (User user : getUsers()) {
             Boolean shared = share.get(user);
             if (shared == null) continue;
             if (shared.booleanValue()) {
                 device.getUsers().add(user);
+                for(GeoFence gf : geofences)
+                    gf.getUsers().add(user);
             } else {
                 device.getUsers().remove(user);
             }
             entityManager.merge(user);
         }
+        
+        for(GeoFence gf : geofences)
+            entityManager.persist(gf);
     }
 
     private User fillUserSettings(User user) {
