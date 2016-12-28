@@ -631,4 +631,6 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String errInvalidImei();
     
     String ok();
+    
+    String selectAll();
 }

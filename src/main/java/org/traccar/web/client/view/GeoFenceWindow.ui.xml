@@ -84,7 +84,14 @@
           </gxt:child>
 
           <gxt:child config="{devicesTabConfig}">
-              <grid:Grid ui:field="grid" store="{deviceSelectionStore}" cm="{columnModel}" view="{view}" />
+              <container:VerticalLayoutContainer>
+                  <container:child layoutData="{verticalLayoutData}">
+                      <button:TextButton ui:field="selectAllButton" text="{i18n.selectAll}" />
+                  </container:child>
+                  <container:child layoutData="{verticalLayoutData}">
+                      <grid:Grid ui:field="grid" store="{deviceSelectionStore}" cm="{columnModel}" view="{view}" />
+                  </container:child>
+              </container:VerticalLayoutContainer>
           </gxt:child>
       </gxt:PlainTabPanel>
 

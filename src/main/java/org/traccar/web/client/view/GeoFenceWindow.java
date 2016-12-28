@@ -15,6 +15,7 @@
  */
 package org.traccar.web.client.view;
 
+import com.google.gwt.cell.client.Cell;
 import pl.datamatica.traccar.model.GeoFenceType;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.Device;
@@ -23,28 +24,27 @@ import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
-import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell;
 import com.sencha.gxt.core.client.*;
+import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.data.shared.ListStore;
-import com.sencha.gxt.data.shared.ModelKeyProvider;
-import com.sencha.gxt.data.shared.PropertyAccess;
-import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.widget.core.client.ColorPalette;
+import com.sencha.gxt.widget.core.client.Header;
 import com.sencha.gxt.widget.core.client.PlainTabPanel;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
-import com.sencha.gxt.widget.core.client.event.HeaderClickEvent;
-import com.sencha.gxt.widget.core.client.event.HeaderClickEvent.HeaderClickHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.*;
 import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel;
+import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel.CheckBoxColumnAppearance;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
+import com.sencha.gxt.widget.core.client.grid.ColumnHeader;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import org.gwtopenmaps.openlayers.client.*;
@@ -152,9 +152,8 @@ public class GeoFenceWindow implements Editor<GeoFence> {
         type.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
 
         deviceSelectionStore = devices;
-
-        IdentityValueProvider<Device> id = new IdentityValueProvider<>();
-        final CheckBoxSelectionModel<Device> sel = new CheckBoxSelectionModel<>(id);
+        
+        final CheckBoxSelectionModel<Device> sel = new CheckBoxSelectionModel<>();
         List<ColumnConfig<Device, ?>> columnConfigList = new LinkedList<>();
         
         columnConfigList.add(sel.getColumn());
@@ -163,15 +162,13 @@ public class GeoFenceWindow implements Editor<GeoFence> {
             public String getValue(Device device) {
                 return device.getName();
             }
-        }, 25, i18n.name()));
-
+        }, 25, i18n.name()));        
+        
         columnModel = new ColumnModel<>(columnConfigList);
-
+        
         uiBinder.createAndBindUi(this);
         
         grid.setSelectionModel(sel);
-        grid.getView().setAutoFill(true);
-        grid.getView().setStripeRows(true);
         for(Device d : geoFence.getTransferDevices())
             grid.getSelectionModel().select(d, true);
 
@@ -194,6 +191,12 @@ public class GeoFenceWindow implements Editor<GeoFence> {
     public void hide() {
         window.hide();
     }
+    
+    @UiHandler("selectAllButton")
+    public void onSelectAllClicked(SelectEvent event) {
+        grid.getSelectionModel().selectAll();
+    }
+    
 
     @UiHandler("saveButton")
     public void onSaveClicked(SelectEvent event) {
