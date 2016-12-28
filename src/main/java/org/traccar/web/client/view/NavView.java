@@ -17,8 +17,6 @@ package org.traccar.web.client.view;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.resources.client.ClientBundle;
-import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -224,7 +222,6 @@ public class NavView {
     }
     
     public static native void redirectToUserGuide() /*-{
-        // TODO: Redirect to real user's guide if available, now terms of use as a placeholder
-        $wnd.location = "https://drive.google.com/open?id=0B-HkhXkN6gktN3dmdGVONGJ4Y2M";
+        $wnd.location = "http://dm.trackman.pl/pl/trackman-help";
     }-*/;
 }
