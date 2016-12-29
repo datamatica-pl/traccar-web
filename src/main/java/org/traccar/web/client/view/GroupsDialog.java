@@ -284,6 +284,7 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
 
     @UiHandler("saveButton")
     public void onSaveClicked(SelectEvent event) {
+        window.hide();
         groupsHandler.onSave(new GroupsController.ChangesSaveHandler() {
             @Override
             public void changesSaved() {

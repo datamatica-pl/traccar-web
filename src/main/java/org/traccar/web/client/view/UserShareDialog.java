@@ -142,6 +142,7 @@ public class UserShareDialog {
 
     @UiHandler("saveButton")
     public void onSaveClicked(SelectEvent event) {
+        window.hide();
         Map<User, Boolean> updatedShare = new HashMap<>(shareStore.getModifiedRecords().size());
         for (Store<UserShared>.Record record : shareStore.getModifiedRecords()) {
             UserShared updated = new UserShared(record.getModel().user, record.getModel().shared);

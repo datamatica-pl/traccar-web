@@ -194,6 +194,7 @@ public class UsersDialog implements SelectionChangedEvent.SelectionChangedHandle
 
     @UiHandler("saveButton")
     public void onSaveClicked(SelectEvent event) {
+        window.hide();
         userHandler.onSaveRoles();
     }
 
