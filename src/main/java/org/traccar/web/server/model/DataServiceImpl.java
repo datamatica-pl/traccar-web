@@ -61,6 +61,7 @@ import java.util.logging.Logger;
 import org.hibernate.Session;
 
 import org.hibernate.proxy.HibernateProxy;
+import org.slf4j.LoggerFactory;
 import org.traccar.web.client.model.DataService;
 import org.traccar.web.client.model.EventService;
 import org.traccar.web.server.utils.JsonXmlParser;
@@ -87,6 +88,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
 
     @Inject
     private MovementDetector movementDetector;
+    
+    private org.slf4j.Logger logger = LoggerFactory.getLogger("database");
 
     @Override
     public void init() throws ServletException {
@@ -244,6 +247,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             user.setNotificationEvents(user.getTransferNotificationEvents());
             getSessionEntityManager().persist(user);
             getSessionEntityManager().persist(UIStateEntry.createDefaultArchiveGridStateEntry(user));
+            logger.info("{} created user {}", currentUser.getLogin(), user.getLogin());
             return fillUserSettings(user);
         } else {
             throw new IllegalStateException();
@@ -300,7 +304,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             existingUser.setPhoneNumber(user.getPhoneNumber());
 
             em.merge(existingUser);
-
+            
+            logger.info("{} updated user {}", currentUser.getLogin(), existingUser.getLogin());
             return fillUserSettings(new User(user));
         } else {
             throw new AccessDeniedException();
@@ -324,14 +329,15 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     @RequireWrite
     @Override
     public User removeUser(User user) throws AccessDeniedException {
+        User currentUser = getSessionUser();
         EntityManager entityManager = getSessionEntityManager();
         user = entityManager.find(User.class, user.getId());
         // Don't allow user to delete himself
-        if (user.equals(getSessionUser())) {
+        if (user.equals(currentUser)) {
             throw new IllegalArgumentException();
         }
         // Allow manager to remove users only managed by himself
-        if (!getSessionUser().getAdmin() && !getSessionUser().getAllManagedUsers().contains(user)) {
+        if (!currentUser.getAdmin() && !currentUser.getAllManagedUsers().contains(user)) {
             throw new AccessDeniedException();
         }
         entityManager.createQuery("DELETE FROM UIStateEntry s WHERE s.user=:user").setParameter("user", user).executeUpdate();
@@ -362,6 +368,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
 
         entityManager.remove(user);
+        logger.info("{} deleted user {}", currentUser.getLogin(), user.getLogin());
         return fillUserSettings(user);
     }
 
@@ -524,6 +531,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 sensor.setId(0);
                 entityManager.persist(sensor);
             }
+            logger.info("{} created device {} (id={})", 
+                    user.getLogin(), device.getName(), device.getId());
             return device;
         } else {
             throw new DeviceExistsException();
@@ -650,7 +659,9 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 sensor.setDevice(tmp_device);
                 getSessionEntityManager().persist(sensor);
             }
-
+            
+            logger.info("{} updated device {} (id={})", 
+                    currentUser.getLogin(), device.getName(), device.getId());
             return tmp_device;
         } else {
             throw new DeviceExistsException();
@@ -684,6 +695,9 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             getSessionEntityManager().persist(maintenance);
             currentMaintenances.add(maintenance);
         }
+        
+        logger.info("{} updated maintenances for device {} (id={})",
+                getSessionUser().getLogin(), tmp_device.getName(), tmp_device.getId());
     }
 
     @Transactional
@@ -740,6 +754,11 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             }
 
             entityManager.remove(device);
+            logger.info("{} deleted device {} (id={})", 
+                    user.getLogin(), device.getName(), device.getId());
+        } else {
+            logger.info("{} stopped seeing device {} (id={})", 
+                    user.getLogin(), device.getName(), device.getId());
         }
         return device;
     }
@@ -906,6 +925,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     public void updateApplicationSettings(ApplicationSettings applicationSettings) {
         getSessionEntityManager().merge(applicationSettings);
         eventService.applicationSettingsChanged();
+        logger.info("{} changed application settings", getSessionUser().getLogin());
     }
 
     @Transactional
@@ -933,6 +953,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 user.setMaxNumOfDevices(_user.getMaxNumOfDevices());
                 user.setExpirationDate(_user.getExpirationDate());
             }
+            logger.info("{} changed roles for user {}", 
+                    currentUser.getLogin(), user.getLogin());
         }
     }
 
@@ -955,6 +977,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     @RefreshBackendPermissions
     @Override
     public void saveDeviceShare(Device device, Map<User, Boolean> share) {
+        User currentUser = getSessionUser();
         EntityManager entityManager = getSessionEntityManager();
         device = entityManager.find(Device.class, device.getId());
         TypedQuery<GeoFence> tq = entityManager.createQuery("from GeoFence gf "
@@ -967,10 +990,16 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             if (shared == null) continue;
             if (shared.booleanValue()) {
                 device.getUsers().add(user);
+                logger.info("{} shared device {}({}) with {}",
+                        currentUser.getLogin(), device.getName(), device.getId(),
+                        user.getLogin());
                 for(GeoFence gf : geofences)
                     gf.getUsers().add(user);
             } else {
                 device.getUsers().remove(user);
+                logger.info("{} stopped sharing device {}({}) with {}",
+                        currentUser.getLogin(), device.getName(), device.getId(),
+                        user.getLogin());
             }
             entityManager.merge(user);
         }
@@ -1023,15 +1052,18 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     @RequireWrite
     @Override
     public GeoFence addGeoFence(GeoFence geoFence) throws TraccarException {
+        User user = getSessionUser();
         if (geoFence.getName() == null || geoFence.getName().trim().isEmpty()) {
             throw new ValidationException();
         }
 
         geoFence.setUsers(new HashSet<User>());
-        geoFence.getUsers().add(getSessionUser());
+        geoFence.getUsers().add(user);
         geoFence.setDevices(geoFence.getTransferDevices());
         getSessionEntityManager().persist(geoFence);
-
+        logger.info("{} created geofence {} ({})", 
+                user.getLogin(), geoFence.getName(), geoFence.getId());
+        
         return geoFence;
     }
 
@@ -1059,6 +1091,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
         updatedGeoFence.getTransferDevices().retainAll(devices);
         geoFence.getDevices().addAll(updatedGeoFence.getTransferDevices());
+        logger.info("{} updated geofence {}({})", 
+                getSessionUser().getLogin(), updatedGeoFence.getName(), updatedGeoFence.getId());
 
         return geoFence;
     }
@@ -1087,6 +1121,11 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             }
 
             getSessionEntityManager().remove(geoFence);
+            logger.info("{} deleted geofence {}({})",
+                    user.getLogin(), geoFence.getName(), geoFence.getId());
+        } else {
+            logger.info("{} stopped seing geofence {}({})", 
+                    user.getLogin(), geoFence.getName(), geoFence.getId());
         }
         return geoFence;
     }
@@ -1109,6 +1148,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     @RequireWrite
     @Override
     public void saveGeoFenceShare(GeoFence geoFence, Map<User, Boolean> share) {
+        User requestUser = getSessionUser();
         EntityManager entityManager = getSessionEntityManager();
         geoFence = entityManager.find(GeoFence.class, geoFence.getId());
 
@@ -1117,8 +1157,14 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             if (shared == null) continue;
             if (shared) {
                 geoFence.getUsers().add(user);
+                logger.info("{} shared geofence {}({}) with {}",
+                        requestUser.getLogin(), geoFence.getName(), geoFence.getId(),
+                        user.getLogin());
             } else {
                 geoFence.getUsers().remove(user);
+                logger.info("{} stopped sharing geofence {}({}) with {}",
+                        requestUser.getLogin(), geoFence.getName(), geoFence.getId(),
+                        user.getLogin());
             }
             entityManager.merge(user);
         }
