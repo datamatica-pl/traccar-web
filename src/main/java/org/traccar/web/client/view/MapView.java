@@ -178,7 +178,7 @@ public class MapView {
         seamarkOptions.setNumZoomLevels(20);
         seamarkOptions.setIsBaseLayer(false);
         seamarkOptions.setDisplayOutsideMaxExtent(true);
-        seamarkLayer = new TMS(i18n.overlayType(UserSettings.OverlayType.SEAMARK), "http://t1.openseamap.org/seamark/", seamarkOptions);
+        seamarkLayer = new TMS(i18n.overlayType(UserSettings.OverlayType.SEAMARK), "https://t1.openseamap.org/seamark/", seamarkOptions);
         map.addLayer(seamarkLayer);
         seamarkLayer.setIsVisible(userOverlays.contains(UserSettings.OverlayType.SEAMARK));
 
