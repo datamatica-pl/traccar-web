@@ -36,4 +36,14 @@
   <listener>
     <listener-class>org.traccar.web.server.model.GuiceServletConfig</listener-class>
   </listener>
+  
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Everything</web-resource-name>
+      <url-pattern>/*</url-pattern>
+    </web-resource-collection>
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
+  </security-constraint>
 </web-app>
