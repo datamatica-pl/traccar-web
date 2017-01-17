@@ -244,7 +244,7 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
     }
     @UiHandler("addButton")
     public void onAddClicked(SelectEvent event) {
-        final Group parent = grid.getSelectionModel().getSelectedItem();
+        final Group parent = null; // Create new group at the first level
         Group newGroup = new Group();
 
         groupsHandler.onAdd(parent, newGroup, new GroupsController.GroupAddHandler() {
@@ -284,7 +284,6 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
 
     @UiHandler("saveButton")
     public void onSaveClicked(SelectEvent event) {
-        window.hide();
         groupsHandler.onSave(new GroupsController.ChangesSaveHandler() {
             @Override
             public void changesSaved() {
