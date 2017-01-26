@@ -42,7 +42,6 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
-import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
 import com.sencha.gxt.core.client.Style.SelectionMode;
@@ -87,7 +86,6 @@ import org.traccar.web.client.model.GeoFenceProperties;
 import org.traccar.web.client.model.GroupStore;
 import org.traccar.web.client.state.DeviceVisibilityChangeHandler;
 import org.traccar.web.client.state.DeviceVisibilityHandler;
-import org.traccar.web.shared.model.*;
 
 import java.util.*;
 
@@ -463,7 +461,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         private ImageResource ignition;
         private ImageResource alarm;
-        private ImageResource speedAlarm;
+        private ImageResource alarms;
         
         private String name;
         
@@ -476,7 +474,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         private void init(Device device, Resources resources) {
             ignition = device.isIgnitionEnabled() ? resources.ignitionEnabled() : resources.ignitionDisabled();
-            speedAlarm = device.getSpeedAlarm() ? resources.speedAlarmActive() : resources.speedAlarmInactive();
+            alarms = device.hasUnreadAlarms()? resources.speedAlarmActive() : resources.speedAlarmInactive();
         }
         
         @Override
@@ -486,7 +484,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         @Override
         public void bindIcons(SafeHtmlBuilder sb) {
-            appendIfExists(sb, speedAlarm, i18n.speedAlarm());
+            appendIfExists(sb, alarms, i18n.speedAlarm());
             appendIfExists(sb, ignition, i18n.ignition());
         }
 

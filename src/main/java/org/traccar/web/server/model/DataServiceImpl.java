@@ -66,6 +66,7 @@ import org.traccar.web.client.model.DataService;
 import org.traccar.web.client.model.EventService;
 import org.traccar.web.server.utils.JsonXmlParser;
 import org.traccar.web.shared.model.*;
+import pl.datamatica.traccar.model.UserDeviceStatus;
 
 @Singleton
 public class DataServiceImpl extends RemoteServiceServlet implements DataService {
@@ -395,8 +396,20 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 }
             });
         }
+        TypedQuery<UserDeviceStatus> alarmQuery = getSessionEntityManager().createQuery(
+                "FROM UserDeviceStatus x "
+              + "WHERE x.id.user = :user AND x.id.device in (:devices)", UserDeviceStatus.class);
+        alarmQuery.setParameter("user", user);
+        alarmQuery.setParameter("devices", devices);
+        Map<Device, UserDeviceStatus> statesMap = new HashMap<>();
+        for(UserDeviceStatus x : alarmQuery.getResultList())
+            statesMap.put(x.getDevice(), x);
         for(Device device : devices) {
             try {
+                UserDeviceStatus deviceStatus = statesMap.get(device);                
+                if(deviceStatus != null)
+                    device.setUnreadAlarms(deviceStatus.hasUnreadAlarms());
+                
                 if(device.getLatestPosition() == null)
                     continue;
                 device.setProtocol(device.getLatestPosition().getProtocol());

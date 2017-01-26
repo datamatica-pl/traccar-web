@@ -37,6 +37,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import javax.persistence.TypedQuery;
+import pl.datamatica.traccar.model.LastDeviceEventTime;
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserDeviceStatus;
 
 @Singleton
 public class EventServiceImpl extends RemoteServiceServlet implements EventService {
@@ -209,6 +213,30 @@ public class EventServiceImpl extends RemoteServiceServlet implements EventServi
             for (EventProducer eventProducer : eventProducers) {
                 eventProducer.after();
             }
+            
+            EntityManager em = entityManager.get();
+            TypedQuery<LastDeviceEventTime> lastEventTimes = em
+                    .createQuery(String.format("SELECT NEW %s(x.device.id, max(x.time)) "
+                                             + "FROM DeviceEvent x "
+                                             + "GROUP BY x.device.id", 
+                            LastDeviceEventTime.class.getCanonicalName()), 
+                            LastDeviceEventTime.class);
+            if(lastEventTimes != null)
+                for(LastDeviceEventTime ev : lastEventTimes.getResultList()) {
+                    Device d = em.find(Device.class, ev.getDeviceId());
+                    for(User u : d.getUsers()) {
+                        UserDeviceStatus.IdClass id = new UserDeviceStatus.IdClass(u, d);
+                        UserDeviceStatus status = em.find(UserDeviceStatus.class, id);
+                        if(status == null)
+                            status = new UserDeviceStatus(id);
+                        if(status.getLastCheck() == null 
+                                || status.getLastCheck().before(ev.getTime())) {
+                            status.setUnreadAlarms(true);
+                            em.persist(status);
+                        }
+                    }
+                }
+            
         }
     }
 
