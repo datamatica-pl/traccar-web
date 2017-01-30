@@ -41,6 +41,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
@@ -107,6 +108,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         void onMouseOut(int mouseX, int mouseY, Device device);
         void doubleClicked(Device device);
         void onClearSelection();
+        void onShowAlarms(Device device);
     }
 
     public interface GeoFenceHandler {
@@ -453,17 +455,17 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     
     static class GroupedDeviceBinding implements IGroupedDeviceBinding {
         interface Templates extends SafeHtmlTemplates {
-            @Template("<div style=\"float: left; margin: auto 0.1cm\" title=\"{1}\">{0}</div>")
-            SafeHtml cell(SafeHtml value, String title);
+            @Template("<div style=\"float: left; margin: auto 0.1cm\" title=\"{1}\" name=\"{2}\">{0}</div>")
+            SafeHtml cell(SafeHtml value, String title, String name);
         }
         private static final Templates templates = GWT.create(Templates.class);
         private static final Messages i18n = GWT.create(Messages.class);
         
         private ImageResource ignition;
-        private ImageResource alarm;
         private ImageResource alarms;
-        
         private String name;
+        
+        private Device device;
         
         public GroupedDeviceBinding(GroupedDevice groupedDevice, Resources resources) {
             name = groupedDevice.getName();
@@ -473,6 +475,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         }
         
         private void init(Device device, Resources resources) {
+            this.device = device;
             ignition = device.isIgnitionEnabled() ? resources.ignitionEnabled() : resources.ignitionDisabled();
             alarms = device.hasUnreadAlarms()? resources.speedAlarmActive() : resources.speedAlarmInactive();
         }
@@ -484,13 +487,17 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         @Override
         public void bindIcons(SafeHtmlBuilder sb) {
-            appendIfExists(sb, alarms, i18n.speedAlarm());
-            appendIfExists(sb, ignition, i18n.ignition());
+            appendIfExists(sb, alarms, i18n.speedAlarm(), "alarms");
+            appendIfExists(sb, ignition, i18n.ignition(), "ignition");
+        }
+        
+        private Device getDevice() {
+            return device;
         }
 
-        private void appendIfExists(SafeHtmlBuilder sb, ImageResource image, String title) {
+        private void appendIfExists(SafeHtmlBuilder sb, ImageResource image, String title, String name) {
             if(image != null) {
-                sb.append(templates.cell(AbstractImagePrototype.create(image).getSafeHtml(), title));
+                sb.append(templates.cell(AbstractImagePrototype.create(image).getSafeHtml(), title, name));
             }
         }
     }
@@ -676,7 +683,30 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             }
             
         }, 60, i18n.status());
-        colStatus.setCell(new AbstractCell<GroupedDeviceBinding>(){
+        //webcentersuite.blogspot.com/2011/11/custom-gwt-clickable-cell-with-multiple.html
+        colStatus.setCell(new AbstractCell<GroupedDeviceBinding>("click"){    
+            @Override
+            public void onBrowserEvent(Cell.Context context, Element parent, GroupedDeviceBinding value, 
+                    NativeEvent event, ValueUpdater<GroupedDeviceBinding> valueUpdater) {
+                super.onBrowserEvent(context, parent, value, event, valueUpdater);
+                if("click".equals(event.getType())) {
+                    EventTarget eventTarget = event.getEventTarget();
+                    if(parent.isOrHasChild(Element.as(eventTarget))) {
+                        Element el = Element.as(eventTarget);
+                        if(el.getNodeName().equalsIgnoreCase("IMG"))
+                            onClick(el.getParentElement().getAttribute("name"), value);
+                    }
+                }
+            }
+            
+            protected void onClick(String name, GroupedDeviceBinding binding) {
+                if("alarms".equals(name)) {
+                    final Device device = binding.getDevice();
+                    if(device.hasUnreadAlarms())
+                        deviceHandler.onShowAlarms(device);
+                }
+            }
+            
             @Override
             public void render(Cell.Context context, GroupedDeviceBinding value, SafeHtmlBuilder sb) {
                 if(value == null)

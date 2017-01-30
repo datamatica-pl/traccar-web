@@ -407,8 +407,10 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         for(Device device : devices) {
             try {
                 UserDeviceStatus deviceStatus = statesMap.get(device);                
-                if(deviceStatus != null)
+                if(deviceStatus != null) {
                     device.setUnreadAlarms(deviceStatus.hasUnreadAlarms());
+                    device.setLastAlarmsCheck(deviceStatus.getLastCheck());
+                }
                 
                 if(device.getLatestPosition() == null)
                     continue;
@@ -1274,6 +1276,20 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             log("Unable to prepare JSON result", e);
             return "{success: false, reason: \"Unable to prepare result\"}";
         }
+    }
+
+    @Transactional
+    @RequireUser
+    @Override
+    public void updateAlarmsViewTime(Device device) {
+        EntityManager em = getSessionEntityManager();
+        Device dbDevice = em.find(Device.class, device.getId());
+        User user = unproxy(getSessionUser());
+        UserDeviceStatus status = em.find(UserDeviceStatus.class, 
+                new UserDeviceStatus.IdClass(user, dbDevice));
+        status.setLastCheck(new Date());
+        status.setUnreadAlarms(false);
+        em.merge(status);
     }
     
     public static class CommandHandler implements ICommandHandler{

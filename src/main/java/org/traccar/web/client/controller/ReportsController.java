@@ -75,7 +75,7 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
                            });
     }
 
-    private void generate(Report report) {
+    public void generate(Report report) {
         String format = report.getFormat() == ReportFormat.HTML ? ".html" : ".csv";
         
         FormPanel form = new FormPanel("_blank");

@@ -86,4 +86,6 @@ public interface DataService extends RemoteService {
     void saveGeoFenceShare(GeoFence geoFence, Map<User, Boolean> share);
 
     String sendCommand(Command command) throws AccessDeniedException;
+    
+    void updateAlarmsViewTime(Device device);
 }
