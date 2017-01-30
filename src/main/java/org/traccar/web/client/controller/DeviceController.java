@@ -399,12 +399,15 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
         Date fromDate = new Date(0);
         if(device.getLastAlarmsCheck() != null)
             fromDate = device.getLastAlarmsCheck();
+        Set<GeoFence> geofences = Collections.EMPTY_SET;
+        if(deviceGeoFences.get(device.getId()) != null)
+            geofences = deviceGeoFences.get(device.getId());
         
         Report report = new Report();
         report.setType(ReportType.EVENTS);
         report.setName(name);
         report.setDevices(Collections.singleton(device));
-        report.setGeoFences(deviceGeoFences.get(device.getId()));
+        report.setGeoFences(geofences);
         report.setFromDate(fromDate);
         report.setToDate(new Date());
         report.setPreview(true);
