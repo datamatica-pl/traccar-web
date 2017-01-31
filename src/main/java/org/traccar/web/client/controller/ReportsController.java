@@ -24,6 +24,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
+import java.text.SimpleDateFormat;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.model.ReportService;
@@ -75,7 +76,7 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
                            });
     }
 
-    private void generate(Report report) {
+    public void generate(Report report) {
         String format = report.getFormat() == ReportFormat.HTML ? ".html" : ".csv";
         
         FormPanel form = new FormPanel("_blank");

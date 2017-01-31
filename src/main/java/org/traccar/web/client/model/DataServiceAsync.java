@@ -84,4 +84,6 @@ public interface DataServiceAsync {
     void saveGeoFenceShare(GeoFence geoFence, Map<User, Boolean> share, AsyncCallback<Void> async);
 
     void sendCommand(Command command, AsyncCallback<String> async);
+    
+    void updateAlarmsViewTime(Device device, AsyncCallback<Void> async);
 }

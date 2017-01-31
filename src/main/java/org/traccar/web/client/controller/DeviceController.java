@@ -47,6 +47,8 @@ import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
+import pl.datamatica.traccar.model.ReportFormat;
+import pl.datamatica.traccar.model.ReportType;
 
 public class DeviceController implements ContentController, DeviceView.DeviceHandler, 
         GroupsController.GroupRemoveHandler, UpdatesController.DevicesListener {
@@ -74,6 +76,8 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
     private Device selectedDevice;
     
     private Storage localStore = null;
+    
+    private final ReportsController reportHandler;
 
     public DeviceController(MapController mapController,
                             DeviceView.GeoFenceHandler geoFenceHandler,
@@ -85,7 +89,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
                             Map<Long, Set<GeoFence>> deviceGeoFences,
                             GroupStore groupStore,
                             final ListStore<Report> reportStore,
-                            ReportsMenu.ReportHandler reportHandler,
+                            ReportsController reportHandler,
                             Application application) {
         this.application = application;
         this.mapController = mapController;
@@ -95,7 +99,8 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
         this.deviceGeoFences = deviceGeoFences;
         this.groupStore = groupStore;
         this.deviceVisibilityHandler = deviceVisibilityHandler;
-
+        this.reportHandler = reportHandler;
+        
         deviceView = new DeviceView(this, geoFenceHandler, commandHandler, deviceVisibilityHandler, deviceStore, geoFenceStore, groupStore, reportStore, reportHandler);
     }
 
@@ -386,5 +391,28 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
                 devicesExpPopup.show();
             }
         }
+    }
+
+    @Override
+    public void onShowAlarms(Device device) {
+        String name = device.getName()+"_alarms";
+        Date fromDate = new Date(0);
+        if(device.getLastAlarmsCheck() != null)
+            fromDate = device.getLastAlarmsCheck();
+        Set<GeoFence> geofences = Collections.EMPTY_SET;
+        if(deviceGeoFences.get(device.getId()) != null)
+            geofences = deviceGeoFences.get(device.getId());
+        
+        Report report = new Report();
+        report.setType(ReportType.EVENTS);
+        report.setName(name);
+        report.setDevices(Collections.singleton(device));
+        report.setGeoFences(geofences);
+        report.setFromDate(fromDate);
+        report.setToDate(new Date());
+        report.setPreview(true);
+        report.setFormat(ReportFormat.HTML);
+        reportHandler.generate(report);
+        Application.getDataService().updateAlarmsViewTime(device, null);
     }
 }

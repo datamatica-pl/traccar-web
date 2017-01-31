@@ -66,6 +66,7 @@ import org.traccar.web.client.model.DataService;
 import org.traccar.web.client.model.EventService;
 import org.traccar.web.server.utils.JsonXmlParser;
 import org.traccar.web.shared.model.*;
+import pl.datamatica.traccar.model.UserDeviceStatus;
 
 @Singleton
 public class DataServiceImpl extends RemoteServiceServlet implements DataService {
@@ -395,8 +396,22 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 }
             });
         }
+        TypedQuery<UserDeviceStatus> alarmQuery = getSessionEntityManager().createQuery(
+                "FROM UserDeviceStatus x "
+              + "WHERE x.id.user = :user AND x.id.device in (:devices)", UserDeviceStatus.class);
+        alarmQuery.setParameter("user", user);
+        alarmQuery.setParameter("devices", devices);
+        Map<Device, UserDeviceStatus> statesMap = new HashMap<>();
+        for(UserDeviceStatus x : alarmQuery.getResultList())
+            statesMap.put(x.getDevice(), x);
         for(Device device : devices) {
             try {
+                UserDeviceStatus deviceStatus = statesMap.get(device);                
+                if(deviceStatus != null) {
+                    device.setUnreadAlarms(deviceStatus.hasUnreadAlarms());
+                    device.setLastAlarmsCheck(deviceStatus.getLastCheck());
+                }
+                
                 if(device.getLatestPosition() == null)
                     continue;
                 device.setProtocol(device.getLatestPosition().getProtocol());
@@ -1261,6 +1276,20 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             log("Unable to prepare JSON result", e);
             return "{success: false, reason: \"Unable to prepare result\"}";
         }
+    }
+
+    @Transactional
+    @RequireUser
+    @Override
+    public void updateAlarmsViewTime(Device device) {
+        EntityManager em = getSessionEntityManager();
+        Device dbDevice = em.find(Device.class, device.getId());
+        User user = unproxy(getSessionUser());
+        UserDeviceStatus status = em.find(UserDeviceStatus.class, 
+                new UserDeviceStatus.IdClass(user, dbDevice));
+        status.setLastCheck(new Date());
+        status.setUnreadAlarms(false);
+        em.merge(status);
     }
     
     public static class CommandHandler implements ICommandHandler{
