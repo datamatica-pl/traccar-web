@@ -487,7 +487,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         @Override
         public void bindIcons(SafeHtmlBuilder sb) {
-            appendIfExists(sb, alarms, i18n.speedAlarm(), "alarms");
+            appendIfExists(sb, alarms, i18n.alarmIconHint(), "alarms");
             appendIfExists(sb, ignition, i18n.ignition(), "ignition");
         }
         
