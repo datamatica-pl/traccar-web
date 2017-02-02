@@ -42,6 +42,7 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.persistence.TypedQuery;
 
 public class StopMoveDetectorTest {
     @Rule
@@ -52,6 +53,9 @@ public class StopMoveDetectorTest {
 
     @Mock
     EntityManager entityManager;
+    
+    @Mock
+    TypedQuery query;
 
     StopMoveDetector stopMoveDetector = new StopMoveDetector();
 
@@ -67,6 +71,7 @@ public class StopMoveDetectorTest {
     @Before
     public void init() {
         when(emProvider.get()).thenReturn(entityManager);
+        when(entityManager.createQuery(anyString(), anyObject())).thenReturn(query);
 
         device.setMinIdleTime(60);
 

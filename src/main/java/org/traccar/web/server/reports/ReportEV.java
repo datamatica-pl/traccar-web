@@ -23,9 +23,11 @@ import pl.datamatica.traccar.model.Device;
 import org.traccar.web.shared.model.*;
 
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static pl.datamatica.traccar.model.DeviceEventType.*;
 
 public class ReportEV extends ReportGenerator {
     @Override
@@ -35,10 +37,13 @@ public class ReportEV extends ReportGenerator {
         for (Device device : getDevices(report)) {
             List<DeviceEvent> events = entityManager.createQuery("SELECT e FROM DeviceEvent e" +
                     " INNER JOIN FETCH e.position" +
-                    " WHERE e.device=:device AND e.time BETWEEN :from AND :to ORDER BY e.time", DeviceEvent.class)
+                    " WHERE e.device=:device AND e.time BETWEEN :from AND :to "
+                    + "AND e.type in (:validTypes)"
+                    + "ORDER BY e.time", DeviceEvent.class)
                     .setParameter("device", device)
                     .setParameter("from", report.getFromDate())
                     .setParameter("to", report.getToDate())
+                    .setParameter("validTypes", EnumSet.of(GEO_FENCE_ENTER, GEO_FENCE_EXIT, OVERSPEED))
                     .getResultList();
             panelStart();
 

@@ -25,7 +25,6 @@ import pl.datamatica.traccar.model.Device;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.persist.Transactional;
 import org.traccar.web.client.model.EventService;
-import org.traccar.web.shared.model.*;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -38,6 +37,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import javax.persistence.TypedQuery;
+import static pl.datamatica.traccar.model.DeviceEventType.*;
 import pl.datamatica.traccar.model.LastDeviceEventTime;
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UserDeviceStatus;
@@ -218,24 +218,26 @@ public class EventServiceImpl extends RemoteServiceServlet implements EventServi
             TypedQuery<LastDeviceEventTime> lastEventTimes = em
                     .createQuery(String.format("SELECT NEW %s(x.device.id, max(x.time)) "
                                              + "FROM DeviceEvent x "
+                                             + "WHERE x.type in (:validTypes)"
                                              + "GROUP BY x.device.id", 
                             LastDeviceEventTime.class.getCanonicalName()), 
                             LastDeviceEventTime.class);
-            if(lastEventTimes != null)
-                for(LastDeviceEventTime ev : lastEventTimes.getResultList()) {
-                    Device d = em.find(Device.class, ev.getDeviceId());
-                    for(User u : d.getUsers()) {
-                        UserDeviceStatus.IdClass id = new UserDeviceStatus.IdClass(u, d);
-                        UserDeviceStatus status = em.find(UserDeviceStatus.class, id);
-                        if(status == null)
-                            status = new UserDeviceStatus(id);
-                        if(status.getLastCheck() == null 
-                                || status.getLastCheck().before(ev.getTime())) {
-                            status.setUnreadAlarms(true);
-                            em.persist(status);
-                        }
+            lastEventTimes
+                    .setParameter("validTypes", EnumSet.of(GEO_FENCE_ENTER, GEO_FENCE_EXIT, OVERSPEED));
+            for(LastDeviceEventTime ev : lastEventTimes.getResultList()) {
+                Device d = em.find(Device.class, ev.getDeviceId());
+                for(User u : d.getUsers()) {
+                    UserDeviceStatus.IdClass id = new UserDeviceStatus.IdClass(u, d);
+                    UserDeviceStatus status = em.find(UserDeviceStatus.class, id);
+                    if(status == null)
+                        status = new UserDeviceStatus(id);
+                    if(status.getLastCheck() == null 
+                            || status.getLastCheck().before(ev.getTime())) {
+                        status.setUnreadAlarms(true);
+                        em.persist(status);
                     }
                 }
+            }
             
         }
     }
