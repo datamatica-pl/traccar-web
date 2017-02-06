@@ -15,6 +15,7 @@
  */
 package org.traccar.web.client.view;
 
+import com.gargoylesoftware.htmlunit.javascript.host.Console;
 import pl.datamatica.traccar.model.UserSettings;
 import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.PositionIcon;
@@ -765,11 +766,12 @@ public class MapPositionRenderer {
     public void clearTrackPositions(Device device, Date before) {                
         DeviceData deviceData = getDeviceData(device);
         if (deviceData.track != null) {
+            getVectorLayer().removeFeature(deviceData.track);
             boolean updated = false;
             MultiLineString trackLine = deviceData.trackLine;
             LineString currentPolyline = LineString.narrowToLineString(trackLine.getComponent(0));
-            trackLine.removeComponent(currentPolyline);
-
+            
+            GWT.log("Comparing with time "+before);
             while (deviceData.positions.size() > 0) {
                 if (deviceData.positions.get(0).getTime().after(before)) {
                     break;
@@ -779,16 +781,21 @@ public class MapPositionRenderer {
                 if(currentPolyline.getVertices(true).length > 2)
                     currentPolyline.removePoint(Point.narrowToPoint(currentPolyline.getComponent(0)));
                 else if(trackLine != null) {
+                    trackLine.removeComponent(currentPolyline);
+                    currentPolyline.destroy();
                     if(trackLine.getNumberOfComponents() == 0) {
+                        trackLine.destroy();
                         trackLine = null;
                         deviceData.trackLine = null;
                     } else {
                         currentPolyline = LineString.narrowToLineString(trackLine.getComponent(0));
-                        trackLine.removeComponent(currentPolyline);
                     }
                 }
-                if(!deviceData.trackPoints.isEmpty())
-                    getVectorLayer().removeFeature(deviceData.trackPoints.remove(0));
+                if(!deviceData.trackPoints.isEmpty()) {
+                    VectorFeature vf = deviceData.trackPoints.remove(0);
+                    GWT.log("position "+vf.getAttributes().getAttributeAsString("p_id")+" removed");
+                    getVectorLayer().removeFeature(vf);
+                }
                 
                 updated = true;
 
@@ -811,7 +818,6 @@ public class MapPositionRenderer {
                 }
             }
             if (updated) {
-                getVectorLayer().removeFeature(deviceData.track);
                 deviceData.track.destroy();
                 if(trackLine != null) {
                     VectorFeature track = new VectorFeature(trackLine, deviceData.track.getStyle());
@@ -821,6 +827,8 @@ public class MapPositionRenderer {
                     deviceData.track = null;
                 }
             }
+            if(deviceData.track != null)
+                getVectorLayer().addFeature(deviceData.track);
         }
     }
 
@@ -834,6 +842,8 @@ public class MapPositionRenderer {
                 deviceData.trackPoints.add(point);
                 deviceData.markerMap.put(position.getId(), point);
                 deviceData.positionMap.put(position.getId(), position);
+                GWT.log("Position "+point.getAttributes().getAttributeAsString("p_id")+" added ("+
+                        position.getTime()+")");
             }
         }
     }
