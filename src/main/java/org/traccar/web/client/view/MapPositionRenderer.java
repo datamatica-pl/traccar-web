@@ -46,7 +46,6 @@ import org.traccar.web.client.Track;
 import org.traccar.web.client.TrackSegment;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.state.DeviceVisibilityProvider;
-import org.traccar.web.shared.model.*;
 
 public class MapPositionRenderer {
 
@@ -612,8 +611,7 @@ public class MapPositionRenderer {
                 List<Position> trackPositions = new ArrayList<>(track.getPositions());
                 if(deviceData.positions.get(deviceData.positions.size() - 1).equals(trackPositions.get(0))) {
                     trackPositions.remove(0);
-                    List<Point> polyline = polylines.get(0);
-                    polylines.remove(0);
+                    List<Point> polyline = polylines.remove(0);
                     LineString lastSegment = LineString.narrowToLineString(
                         deviceData.trackLine.getComponent(deviceData.trackLine.getNumberOfComponents() -1));
                     for(int i = 1; i < polyline.size(); ++i) {
@@ -765,30 +763,36 @@ public class MapPositionRenderer {
     public void clearTrackPositions(Device device, Date before) {                
         DeviceData deviceData = getDeviceData(device);
         if (deviceData.track != null) {
+            getVectorLayer().removeFeature(deviceData.track);
             boolean updated = false;
             MultiLineString trackLine = deviceData.trackLine;
             LineString currentPolyline = LineString.narrowToLineString(trackLine.getComponent(0));
-            trackLine.removeComponent(currentPolyline);
-
+            
+            GWT.log("Comparing with time "+before);
             while (deviceData.positions.size() > 0) {
                 if (deviceData.positions.get(0).getTime().after(before)) {
                     break;
                 }
                 Position position = deviceData.positions.remove(0);
                 
-                if(currentPolyline.getVertices(true).length > 2)
+                if(currentPolyline.getNumberOfComponents() > 2)
                     currentPolyline.removePoint(Point.narrowToPoint(currentPolyline.getComponent(0)));
                 else if(trackLine != null) {
+                    trackLine.removeComponent(currentPolyline);
+                    currentPolyline.destroy();
                     if(trackLine.getNumberOfComponents() == 0) {
+                        trackLine.destroy();
                         trackLine = null;
                         deviceData.trackLine = null;
                     } else {
                         currentPolyline = LineString.narrowToLineString(trackLine.getComponent(0));
-                        trackLine.removeComponent(currentPolyline);
                     }
                 }
-                if(!deviceData.trackPoints.isEmpty())
-                    getVectorLayer().removeFeature(deviceData.trackPoints.remove(0));
+                if(!deviceData.trackPoints.isEmpty()) {
+                    VectorFeature vf = deviceData.trackPoints.remove(0);
+                    GWT.log("position "+vf.getAttributes().getAttributeAsString("p_id")+" removed");
+                    getVectorLayer().removeFeature(vf);
+                }
                 
                 updated = true;
 
@@ -811,7 +815,6 @@ public class MapPositionRenderer {
                 }
             }
             if (updated) {
-                getVectorLayer().removeFeature(deviceData.track);
                 deviceData.track.destroy();
                 if(trackLine != null) {
                     VectorFeature track = new VectorFeature(trackLine, deviceData.track.getStyle());
@@ -821,6 +824,8 @@ public class MapPositionRenderer {
                     deviceData.track = null;
                 }
             }
+            if(deviceData.track != null)
+                getVectorLayer().addFeature(deviceData.track);
         }
     }
 
@@ -834,6 +839,8 @@ public class MapPositionRenderer {
                 deviceData.trackPoints.add(point);
                 deviceData.markerMap.put(position.getId(), point);
                 deviceData.positionMap.put(position.getId(), position);
+                GWT.log("Position "+point.getAttributes().getAttributeAsString("p_id")+" added ("+
+                        position.getTime()+")");
             }
         }
     }
