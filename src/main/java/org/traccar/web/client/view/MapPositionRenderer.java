@@ -15,7 +15,6 @@
  */
 package org.traccar.web.client.view;
 
-import com.gargoylesoftware.htmlunit.javascript.host.Console;
 import pl.datamatica.traccar.model.UserSettings;
 import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.PositionIcon;
@@ -47,7 +46,6 @@ import org.traccar.web.client.Track;
 import org.traccar.web.client.TrackSegment;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.state.DeviceVisibilityProvider;
-import org.traccar.web.shared.model.*;
 
 public class MapPositionRenderer {
 
@@ -613,8 +611,7 @@ public class MapPositionRenderer {
                 List<Position> trackPositions = new ArrayList<>(track.getPositions());
                 if(deviceData.positions.get(deviceData.positions.size() - 1).equals(trackPositions.get(0))) {
                     trackPositions.remove(0);
-                    List<Point> polyline = polylines.get(0);
-                    polylines.remove(0);
+                    List<Point> polyline = polylines.remove(0);
                     LineString lastSegment = LineString.narrowToLineString(
                         deviceData.trackLine.getComponent(deviceData.trackLine.getNumberOfComponents() -1));
                     for(int i = 1; i < polyline.size(); ++i) {
@@ -778,7 +775,7 @@ public class MapPositionRenderer {
                 }
                 Position position = deviceData.positions.remove(0);
                 
-                if(currentPolyline.getVertices(true).length > 2)
+                if(currentPolyline.getNumberOfComponents() > 2)
                     currentPolyline.removePoint(Point.narrowToPoint(currentPolyline.getComponent(0)));
                 else if(trackLine != null) {
                     trackLine.removeComponent(currentPolyline);
