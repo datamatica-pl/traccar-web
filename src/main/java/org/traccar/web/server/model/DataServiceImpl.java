@@ -854,6 +854,12 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                     add = positionB.getDistance() >= filters.getMinDistance();
                 }
             }
+            
+            // Always allow positon with valid status only
+            if (add) {
+                add = position.hasProperValidStatus();
+            }
+            
             // calculate Idle state
             if (position.getSpeed() != null) {
                 if (position.getSpeed() > position.getDevice().getIdleSpeedThreshold()) {
