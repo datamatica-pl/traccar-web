@@ -65,6 +65,7 @@ import org.slf4j.LoggerFactory;
 import org.traccar.web.client.model.DataService;
 import org.traccar.web.client.model.EventService;
 import org.traccar.web.server.utils.JsonXmlParser;
+import org.traccar.web.server.utils.StopsDetector;
 import org.traccar.web.shared.model.*;
 import pl.datamatica.traccar.model.UserDeviceStatus;
 
@@ -838,11 +839,13 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 : lastNonIdlePositionsQueryResult.get(0);
         final long MIN_IDLE_TIME = (long) device.getMinIdleTime() * 1000;
 
-        for (int i = 0; i < queryResult.size(); i++) {
+        StopsDetector stopsDetector = new StopsDetector();
+        List<Position> deviceTrack = stopsDetector.detectStops(queryResult);
+        for (int i = 0; i < deviceTrack.size(); i++) {
             boolean add = true;
-            Position position = queryResult.get(i);
+            Position position = deviceTrack.get(i);
             if (i > 0) {
-                Position positionA = queryResult.get(i - 1);
+                Position positionA = deviceTrack.get(i - 1);
                 Position positionB = position;
 
                 positionB.setDistance(GeoFenceCalculator.getDistance(positionA.getLongitude(), positionA.getLatitude(), positionB.getLongitude(), positionB.getLatitude()));
@@ -879,7 +882,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                     }
                 }
             }
-            if (add) positions.add(queryResult.get(i));
+            if (add) positions.add(deviceTrack.get(i));
         }
 
         return new ArrayList<>(positions);

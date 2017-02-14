@@ -58,6 +58,9 @@ public class PositionInfoPopup {
                 "<tr>" +
                 (position.getSpeed() == null ? "" : ("<td style=\"font-size: 12pt; border-width: 0px 1px 1px 0px; border-style: solid; border-color: #000000; padding: 3px 10px 3px 0px;\" valign=\"bottom\">v: " + ApplicationContext.getInstance().getFormatterUtil().getSpeedFormat().format(position.getSpeed()) + "</td>")) +
                 (position.getAltitude() == null ? "" : ("<td style=\"font-size: 10pt; border-bottom: 1px solid #000000; padding: 3px 10px 3px 10px;\" valign=\"bottom\"" + (position.getSpeed() == null ? " colspan=\"2\" align=\"right\"" : "") + ">h: " + position.getAltitude() + " " + i18n.meter() + "</td>")) +
+                "</tr>"+ 
+                "<tr>"+
+                (position.getStopTime() == 0 ? "" : "<td>Stop time</td><td>"+formatDateTimeDiff(position.getStopTime()*1000)+"</td>")+
                 "</tr>";
 
         boolean admin = ApplicationContext.getInstance().getUser().getAdmin();
