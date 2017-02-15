@@ -56,7 +56,10 @@ public class ReportDS extends ReportGenerator {
             deviceDetails(device);
             // data table
             if (!positions.isEmpty()) {
-                drawTable(calculate(positions));
+                List<Data> datas = calculate(positions);
+                drawTable(datas);
+                if(!datas.isEmpty() && report.isIncludeMap())
+                    map(datas);
             } else {
                 drawSummary(0d, 0, 0, 0d, 0d);
             }
@@ -65,6 +68,23 @@ public class ReportDS extends ReportGenerator {
 
             panelEnd();
         }
+    }
+
+    private void map(List<Data> datas) {
+        MapBuilder builder = getMapBuilder();
+        for(Data data : datas) {
+            if(data.idle) {
+                builder.marker(data.start, "Idle", MapBuilder.IMG_ROUTE_START);
+            } else {
+                List<Position> positions = new ArrayList<>();
+                positions.add(data.start);
+                positions.add(data.end);
+                builder.polyline(positions, "#000", 1);
+                builder.marker(data.start, "Non-idle", MapBuilder.IMG_ROUTE_END);
+                builder.marker(data.end, "Non-idle", MapBuilder.IMG_ROUTE_END);
+            }
+        }
+        html(builder.create());
     }
 
     static class Data {
