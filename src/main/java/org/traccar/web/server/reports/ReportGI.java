@@ -56,7 +56,11 @@ public class ReportGI extends ReportGenerator {
             // data table
             dataTable(new Info(positions).calculate());
             if (!positions.isEmpty() && report.isIncludeMap()) {
-                mapWithRoute(positions, "100%", "400px");
+                html(getMapBuilder()
+                        .polyline(positions, "#00f", 2)
+                        .marker(positions.get(0), "Route Start", MapBuilder.IMG_ROUTE_START)
+                        .marker(positions.get(positions.size()-1), "Route End", MapBuilder.IMG_ROUTE_END)
+                        .create());
             }
             panelBodyEnd();
 

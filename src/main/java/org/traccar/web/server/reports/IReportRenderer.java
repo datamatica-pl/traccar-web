@@ -71,10 +71,10 @@ public interface IReportRenderer {
     void h2(String text);
 
     void h3(String text);
+    
+    void html(String html);
 
     void link(String url, String target, String text);
-
-    void mapWithRoute(List<Position> positions, UserSettings.MapType mapType, int zoomLevel, String width, String height);
 
     void panelBodyEnd();
 

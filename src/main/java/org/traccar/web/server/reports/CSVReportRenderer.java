@@ -1,7 +1,17 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright 2016 Datamatica (dev@datamatica.pl)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.traccar.web.server.reports;
 
@@ -15,11 +25,7 @@ import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.Report;
 import pl.datamatica.traccar.model.UserSettings;
 
-/**
- *
- * @author admin
- */
-public class CSVReportRenderer implements IReportRenderer{
+public class CSVReportRenderer implements IReportRenderer {
     private class CellLock{
         public int startCol;
         public int rowSpan;
@@ -218,13 +224,13 @@ public class CSVReportRenderer implements IReportRenderer{
     @Override
     public void h3(String text) {
     }
-
+    
     @Override
-    public void link(String url, String target, String text) {
+    public void html(String html) {
     }
 
     @Override
-    public void mapWithRoute(List<Position> positions, UserSettings.MapType mapType, int zoomLevel, String width, String height) {
+    public void link(String url, String target, String text) {
     }
 
     @Override

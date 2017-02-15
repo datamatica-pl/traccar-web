@@ -234,11 +234,15 @@ public abstract class ReportGenerator {
                 lonLatFormat.format(latitude) + "/" + lonLatFormat.format(longitude),
                 "_blank", text);
     }
-
-    void mapWithRoute(List<Position> positions, String width, String height) {
-        renderer.mapWithRoute(positions, currentUser.getUserSettings().getMapType(), currentUser.getUserSettings().getZoomLevel(), width, height);
+    
+    protected MapBuilder getMapBuilder() {
+        return new MapBuilder("100%", "400px");
     }
-
+    
+    void html(String html) {
+        renderer.html(html);
+    }
+    
     void dataRow(String title, String text) {
         tableRowStart();
         tableCellStart();
