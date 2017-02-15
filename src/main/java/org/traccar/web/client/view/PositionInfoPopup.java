@@ -60,7 +60,7 @@ public class PositionInfoPopup {
                 (position.getAltitude() == null ? "" : ("<td style=\"font-size: 10pt; border-bottom: 1px solid #000000; padding: 3px 10px 3px 10px;\" valign=\"bottom\"" + (position.getSpeed() == null ? " colspan=\"2\" align=\"right\"" : "") + ">h: " + position.getAltitude() + " " + i18n.meter() + "</td>")) +
                 "</tr>"+ 
                 "<tr>"+
-                (position.getStopTime() == 0 ? "" : "<td>Stop time</td><td>"+formatDateTimeDiff(position.getStopTime()*1000)+"</td>")+
+                (position.getStopTime() == 0 ? "" : "<td>"+i18n.stopDuration()+"</td><td>"+formatDateTimeDiff(position.getStopTime()*1000)+"</td>")+
                 "</tr>";
 
         boolean admin = ApplicationContext.getInstance().getUser().getAdmin();
