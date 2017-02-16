@@ -59,6 +59,39 @@ public class MapBuilder {
         return this;
     }
     
+    public MapBuilder movementPoint(Position position) {
+        String label = "T: "+position.getTime();
+        if(position.getSpeedInKmh() != null) {
+            label += "\\nV:"+position.getSpeedInKmh()+" km/h";
+        }
+        String id = "v"+vectors.size();
+        StringBuilder sb = new StringBuilder();
+        sb.append("var ").append(id).append(" = marker([").append(position.getLongitude())
+                .append(", ").append(position.getLatitude()).append("], '").append("');\r\n");
+        sb.append(id).append(".setStyle(new ol.style.Style({\r\n")
+                .append("  image: new ol.style.Icon({src: '/MapMarker?color=000000', rotation: ").append(position.getCourse()).append("}),\r\n")
+                .append("  text: new ol.style.Text({ text: '").append(label).append("', offsetY: -12})\r\n")
+                .append("}));");
+        
+        vectors.add(sb.toString());
+        return this;
+    }
+    
+    public MapBuilder stopPoint(Position position, long duration) {
+        String label = String.format("T: %s\\nD: %d m", position.getTime(), duration/60000);
+        String id = "v"+vectors.size();
+        StringBuilder sb = new StringBuilder();
+        sb.append("var ").append(id).append(" = marker([").append(position.getLongitude())
+                .append(", ").append(position.getLatitude()).append("], '").append("');\r\n");
+        sb.append(id).append(".setStyle(new ol.style.Style({\r\n")
+                .append("  image: new ol.style.Icon({src: '/img/marker_STOP.png', anchor: [0.5, 1]}),\r\n")
+                .append("  text: new ol.style.Text({ text: '").append(label).append("', offsetY: -75})\r\n")
+                .append("}));");
+        
+        vectors.add(sb.toString());
+        return this;
+    }
+    
     public String create() {
         StringBuilder output = new StringBuilder();
         output.append("<div id=\"map\" style=\"width: ").append(width)

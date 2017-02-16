@@ -74,14 +74,14 @@ public class ReportDS extends ReportGenerator {
         MapBuilder builder = getMapBuilder();
         for(Data data : datas) {
             if(data.idle) {
-                builder.marker(data.start, "Idle", MapBuilder.IMG_ROUTE_START);
+                builder.stopPoint(data.start, data.getDuration());
             } else {
                 List<Position> positions = new ArrayList<>();
                 positions.add(data.start);
                 positions.add(data.end);
-                builder.polyline(positions, "#000", 1);
-                builder.marker(data.start, "Non-idle", MapBuilder.IMG_ROUTE_END);
-                builder.marker(data.end, "Non-idle", MapBuilder.IMG_ROUTE_END);
+                builder.polyline(positions, "#000", 1)
+                        .movementPoint(data.start)
+                        .movementPoint(data.end);
             }
         }
         html(builder.create());
