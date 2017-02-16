@@ -141,9 +141,9 @@ public class DeviceDialog implements Editor<Device> {
     //VerticalLayoutContainer sensorsTab;
     final SensorsEditor sensorsEditor;
 
-    @UiField
-    VerticalLayoutContainer technicalReviewTab;
-    final TechnicalReviewEditor technicalReviewEditor;
+//    @UiField
+//    VerticalLayoutContainer technicalReviewTab;
+//    final TechnicalReviewEditor technicalReviewEditor;
 
     @UiField
     VerticalLayoutContainer registrationReviewTab;
@@ -206,8 +206,9 @@ public class DeviceDialog implements Editor<Device> {
         sensorsEditor = new SensorsEditor(device, deviceStore);
         //sensorsTab.add(sensorsEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
 
-        technicalReviewEditor = new TechnicalReviewEditor(device, deviceStore);
-        technicalReviewTab.add(technicalReviewEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
+//        technicalReviewEditor = new TechnicalReviewEditor(device, deviceStore);
+//        technicalReviewTab.add(technicalReviewEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
+//        technicalReviewTab.hide();
 
         registrationReviewEditor = new RegistrationReviewEditor(device, deviceStore);
         registrationReviewTab.add(registrationReviewEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1,1));
@@ -243,7 +244,7 @@ public class DeviceDialog implements Editor<Device> {
         }
 
         iconEditor.flush();
-        technicalReviewEditor.flush();
+//        technicalReviewEditor.flush();
         registrationReviewEditor.flush();
         sensorsEditor.flush();
         deviceHandler.onSave(device);

@@ -41,11 +41,11 @@
     <ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig" field="sensorsTabConfig">
         <ui:attributes text="{i18n.sensors}" />
     </ui:with>
-
+<!--
     <ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig" field="technicalReviewTabConfig">
         <ui:attributes text="{i18n.technicalReview}" />
     </ui:with>
-
+-->
     <ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig" field="insuranceValidityTabConfig">
         <ui:attributes text="{i18n.insuranceValidity}" />
     </ui:with>
@@ -240,10 +240,10 @@
               <container:VerticalLayoutContainer ui:field="iconTab" addStyleNames="{style.tabBody}">
               </container:VerticalLayoutContainer>
           </gxt:child>
-          <gxt:child config="{technicalReviewTabConfig}">
+<!--          <gxt:child config="{technicalReviewTabConfig}">
               <container:VerticalLayoutContainer ui:field="technicalReviewTab">
               </container:VerticalLayoutContainer>
-          </gxt:child>
+          </gxt:child>-->
           <gxt:child config="{insuranceValidityTabConfig}">
               <container:VerticalLayoutContainer ui:field="insuranceValidityTab">
               </container:VerticalLayoutContainer>
