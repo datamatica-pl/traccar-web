@@ -149,8 +149,8 @@ public class DeviceDialog implements Editor<Device> {
     VerticalLayoutContainer registrationReviewTab;
     final RegistrationReviewEditor registrationReviewEditor;
 
-    @UiField
-    VerticalLayoutContainer insuranceValidityTab;
+//    @UiField
+//    VerticalLayoutContainer insuranceValidityTab;
 
     @UiField(provided = true)
     ComboBox<Group> group;
