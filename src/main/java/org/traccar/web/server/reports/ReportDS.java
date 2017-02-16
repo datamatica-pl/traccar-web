@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.traccar.web.client.view.MarkerIcon;
 
 public class ReportDS extends ReportGenerator {
     @Override
@@ -59,7 +60,7 @@ public class ReportDS extends ReportGenerator {
                 List<Data> datas = calculate(positions);
                 drawTable(datas);
                 if(!datas.isEmpty() && report.isIncludeMap())
-                    map(datas);
+                    map(datas, positions);
             } else {
                 drawSummary(0d, 0, 0, 0d, 0d);
             }
@@ -70,20 +71,22 @@ public class ReportDS extends ReportGenerator {
         }
     }
 
-    private void map(List<Data> datas) {
+    private void map(List<Data> datas, List<Position> positions) {
         MapBuilder builder = getMapBuilder();
+        
+        builder.polyline(positions, "#00f", 2);
+        for(Position p : positions)
+            builder.movementPoint(p);
+        
         for(Data data : datas) {
             if(data.idle) {
                 builder.stopPoint(data.start, data.getDuration());
-            } else {
-                List<Position> positions = new ArrayList<>();
-                positions.add(data.start);
-                positions.add(data.end);
-                builder.polyline(positions, "#000", 1)
-                        .movementPoint(data.start)
-                        .movementPoint(data.end);
             }
         }
+        
+        Position latest = positions.get(positions.size()-1);
+        String iconUrl = MarkerIcon.create(latest).getURL();
+        builder.marker(latest, "", "new ol.style.Icon({src: '/"+iconUrl+"'})");
         html(builder.create());
     }
 
