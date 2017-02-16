@@ -70,7 +70,6 @@ public class MapBuilder {
                 .append(", ").append(position.getLatitude()).append("], '").append("');\r\n");
         sb.append(id).append(".setStyle(new ol.style.Style({\r\n")
                 .append("  image: new ol.style.Icon({src: '/MapMarker?color=000000', rotation: ").append(position.getCourse()).append("}),\r\n")
-                .append("  text: new ol.style.Text({ text: '").append(label).append("', offsetY: -12})\r\n")
                 .append("}));");
         
         vectors.add(sb.toString());
@@ -85,7 +84,7 @@ public class MapBuilder {
                 .append(", ").append(position.getLatitude()).append("], '").append("');\r\n");
         sb.append(id).append(".setStyle(new ol.style.Style({\r\n")
                 .append("  image: new ol.style.Icon({src: '/img/marker_STOP.png', anchor: [0.5, 1]}),\r\n")
-                .append("  text: new ol.style.Text({ text: '").append(label).append("', offsetY: -75})\r\n")
+                .append("  text: new ol.style.Text({ text: '").append(label).append("', offsetY: -66, font: 'bold 11px Arial, sans-serif'})\r\n")
                 .append("}));");
         
         vectors.add(sb.toString());
