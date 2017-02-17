@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.traccar.web.client.view.MarkerIcon;
+import org.traccar.web.server.reports.MapBuilder.MarkerStyle;
+import pl.datamatica.traccar.model.DeviceEventType;
 
 public class ReportDS extends ReportGenerator {
     @Override
@@ -60,7 +62,7 @@ public class ReportDS extends ReportGenerator {
                 List<Data> datas = calculate(positions);
                 drawTable(datas);
                 if(!datas.isEmpty() && report.isIncludeMap())
-                    map(datas, positions);
+                    drawMap(datas, positions);
             } else {
                 drawSummary(0d, 0, 0, 0d, 0d);
             }
@@ -71,22 +73,23 @@ public class ReportDS extends ReportGenerator {
         }
     }
 
-    private void map(List<Data> datas, List<Position> positions) {
+    private void drawMap(List<Data> datas, List<Position> positions) {
         MapBuilder builder = getMapBuilder();
         
         builder.polyline(positions, "#00f", 2);
         for(Position p : positions)
-            builder.movementPoint(p);
+            builder.marker(p, MarkerStyle.arrow(p.getCourse()));
         
         for(Data data : datas) {
             if(data.idle) {
-                builder.stopPoint(data.start, data.getDuration());
+                String label = String.format("T: %s D: %d m", data.start.getTime(),
+                        data.getDuration()/60000);
+                builder.marker(data.start, MarkerStyle.event(DeviceEventType.STOPPED, label));
             }
         }
         
         Position latest = positions.get(positions.size()-1);
-        String iconUrl = MarkerIcon.create(latest).getURL();
-        builder.marker(latest, "", "new ol.style.Icon({src: '/"+iconUrl+"'})");
+        builder.marker(latest, MarkerStyle.deviceMarker(latest));
         html(builder.create());
     }
 

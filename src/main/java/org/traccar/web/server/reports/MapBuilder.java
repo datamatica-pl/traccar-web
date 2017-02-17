@@ -16,18 +16,14 @@
 package org.traccar.web.server.reports;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import org.traccar.web.client.view.MarkerIcon;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.DeviceEventType;
 import pl.datamatica.traccar.model.Position;
 
-public class MapBuilder {
-    public static final String IMG_ROUTE_START = "new ol.style.Icon({ "
-            + "anchor: [0.5, 25], anchorXUnits: 'fraction', anchorYUnits: 'pixels', "
-            + "opacity: 0.75, src: 'https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/img/marker.png' })";
-    
-    public static final String IMG_ROUTE_END = "new ol.style.Icon({ "
-            + "anchor: [0.5, 25], anchorXUnits: 'fraction', anchorYUnits: 'pixels', "
-            + "opacity: 0.75, src: 'https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/img/marker-blue.png' })";
-    
+public class MapBuilder {    
     private final List<String> vectors = new ArrayList<>();
     private final String width, height;
     
@@ -46,48 +42,20 @@ public class MapBuilder {
         return this;
     }
     
-    public MapBuilder marker(Position position, String name, String icon) {
+    public MapBuilder marker(Position position, MarkerStyle style) {
         String id = "v"+vectors.size();
         StringBuilder sb = new StringBuilder();
         sb.append("var ").append(id).append(" = marker([").append(position.getLongitude())
-                .append(", ").append(position.getLatitude()).append("], '").append(name).append("');\r\n");
-        sb.append(id).append(".setStyle(new ol.style.Style({\r\n")
-                .append("image: ").append(icon).append("\r\n")
-                .append("}));");
+                .append(", ").append(position.getLatitude()).append("], '');\r\n");
+        sb.append(id).append(".setStyle(").append(style.compile()).append(");");
         
         vectors.add(sb.toString());
         return this;
     }
     
-    public MapBuilder movementPoint(Position position) {
-        String label = "T: "+position.getTime();
-        if(position.getSpeedInKmh() != null) {
-            label += "\\nV:"+position.getSpeedInKmh()+" km/h";
-        }
-        String id = "v"+vectors.size();
-        StringBuilder sb = new StringBuilder();
-        sb.append("var ").append(id).append(" = marker([").append(position.getLongitude())
-                .append(", ").append(position.getLatitude()).append("], '").append("');\r\n");
-        sb.append(id).append(".setStyle(new ol.style.Style({\r\n")
-                .append("  image: new ol.style.Icon({src: '/MapMarker?color=000000', rotation: ").append(position.getCourse()).append("}),\r\n")
-                .append("}));");
+    public MapBuilder eventMarker(Position position, DeviceEventType type) {
         
-        vectors.add(sb.toString());
-        return this;
-    }
-    
-    public MapBuilder stopPoint(Position position, long duration) {
-        String label = String.format("T: %s\\nD: %d m", position.getTime(), duration/60000);
-        String id = "v"+vectors.size();
-        StringBuilder sb = new StringBuilder();
-        sb.append("var ").append(id).append(" = marker([").append(position.getLongitude())
-                .append(", ").append(position.getLatitude()).append("], '").append("');\r\n");
-        sb.append(id).append(".setStyle(new ol.style.Style({\r\n")
-                .append("  image: new ol.style.Icon({src: '/img/marker_STOP.png', anchor: [0.5, 1]}),\r\n")
-                .append("  text: new ol.style.Text({ text: '").append(label).append("', offsetY: -66, font: 'bold 11px Arial, sans-serif'})\r\n")
-                .append("}));");
         
-        vectors.add(sb.toString());
         return this;
     }
     
@@ -142,5 +110,68 @@ public class MapBuilder {
                 + "  var geom = new ol.geom.Point(ol.proj.transform(coords, 'EPSG:4326', 'EPSG:3857'));\r\n"
                 + "  return new ol.Feature({ geometry: geom, name: name});\r\n"
                 + "}\r\n";
+    }
+    
+    
+    
+    public static class MarkerStyle {
+        private String image;
+        private String text;
+        
+        public String compile() {
+            StringBuilder sb = new StringBuilder("new ol.style.Style({\r\n");
+            if(image != null)
+                sb.append("  image: ").append(image).append(",\r\n");
+            if(text != null) 
+                sb.append("  text: ").append(text).append(",\r\n");
+            sb.append("})");
+            return sb.toString();
+        }
+        
+        public static MarkerStyle arrow(Double rotation) {
+            MarkerStyle style = new MarkerStyle();
+            String icon = "new ol.style.Icon({src: '/MapMarker?color=000000'";
+            if(rotation != null)
+                icon += ", rotation: "+rotation;
+            icon += "})";
+            style.image = icon;
+            return style;
+        }
+        
+        public static MarkerStyle routeStart() {
+            MarkerStyle style = new MarkerStyle();
+            style.image = "new ol.style.Icon({ "
+                + "anchor: [0.5, 25], anchorXUnits: 'fraction', anchorYUnits: 'pixels', "
+                + "opacity: 0.75, src: 'https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/img/marker.png' })";
+            return style;
+        }
+        
+        public static MarkerStyle routeEnd() {
+            MarkerStyle style = new MarkerStyle();
+            style.image = "new ol.style.Icon({ "
+                + "anchor: [0.5, 25], anchorXUnits: 'fraction', anchorYUnits: 'pixels', "
+                + "opacity: 0.75, src: 'https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/img/marker-blue.png' })";
+            return style;
+        }
+        
+        public static MarkerStyle deviceMarker(Position position) {
+            MarkerStyle style = new MarkerStyle();
+            String url = MarkerIcon.create(position).getURL();
+            style.image = "new ol.style.Icon({src: '/"+url+"'})";
+            return style;
+        }
+        
+        public static MarkerStyle event(DeviceEventType type, String label) {
+            MarkerStyle style = new MarkerStyle();
+            style.image = String.format("new ol.style.Icon({src: '%s', anchor: [0.5, 1]})",
+                    src(type));
+            style.text = String.format("new ol.style.Text({ text: '%s', offsetY: -66, "
+                    + "font: 'bold 11px Arial, sans-serif'})", label);
+            return style;
+        }
+        
+        private static String src(DeviceEventType type) {
+            return "/img/event_"+type.name()+".png";
+        }
     }
 }
