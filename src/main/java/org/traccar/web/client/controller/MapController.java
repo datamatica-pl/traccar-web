@@ -34,7 +34,6 @@ import org.traccar.web.client.state.DeviceVisibilityChangeHandler;
 import org.traccar.web.client.state.DeviceVisibilityHandler;
 import org.traccar.web.client.view.MapView;
 import org.traccar.web.client.view.MarkerIcon;
-import org.traccar.web.shared.model.*;
 
 import java.util.*;
 
