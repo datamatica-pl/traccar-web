@@ -157,7 +157,7 @@ public class MapBuilder {
         public static MarkerStyle deviceMarker(Position position) {
             MarkerStyle style = new MarkerStyle();
             String url = MarkerIcon.create(position).getURL();
-            style.image = "new ol.style.Icon({src: '/"+url+"'})";
+            style.image = "new ol.style.Icon({src: '/"+url+"', anchor: [0.5, 1]})";
             return style;
         }
         
