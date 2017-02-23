@@ -24,6 +24,8 @@ import org.traccar.web.client.state.UIStateProvider;
 import pl.datamatica.traccar.model.ApplicationSettings;
 
 import com.google.gwt.core.client.EntryPoint;
+import org.fusesource.restygwt.client.Defaults;
+import org.traccar.web.client.model.api.Dispatcher;
 
 public class Traccar implements EntryPoint, LoginController.LoginHandler {
     private Messages i18n = GWT.create(Messages.class);
@@ -39,6 +41,8 @@ public class Traccar implements EntryPoint, LoginController.LoginHandler {
         });
 
         StateManager.get().setProvider(new UIStateProvider());
+        
+        Defaults.setDispatcher(new Dispatcher());
     }
 
     @Override

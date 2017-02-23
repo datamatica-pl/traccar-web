@@ -39,14 +39,21 @@ import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.i18n.client.DateTimeFormat;
+import com.google.gwt.json.client.JSONObject;
+import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.storage.client.Storage;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
+import org.fusesource.restygwt.client.JsonCallback;
+import org.fusesource.restygwt.client.Method;
+import org.traccar.web.client.model.api.DevicesService;
+import org.traccar.web.client.model.api.DevicesService.AddDeviceDto;
 import pl.datamatica.traccar.model.ReportFormat;
 import pl.datamatica.traccar.model.ReportType;
 
@@ -144,34 +151,61 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
     @Override
     public void onAdd() {
         class AddHandler implements DeviceDialog.DeviceHandler {
+            Window window;
+            
+            @Override
+            public void setWindow(Window window) {
+                this.window = window;
+            }
+            
             @Override
             public void onSave(final Device device) {
-                Application.getDataService().addDevice(device, new BaseAsyncCallback<Device>(i18n) {
+                if(device.getUniqueId() == null || device.getUniqueId().isEmpty())
+                    return;
+                DevicesService devices = GWT.create(DevicesService.class);
+                AddDeviceDto dto = new AddDeviceDto(device.getUniqueId());
+                devices.addDevice(dto, new JsonCallback(){
                     @Override
-                    public void onSuccess(Device result) {
-                        deviceStore.add(result);
+                    public void onFailure(Method method, Throwable exception) {
+                        GWT.log("Failure");
+                        MessageBox msg = new AlertMessageBox(i18n.error(), i18n.errDeviceExists());
+                        msg.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
+                            @Override
+                            public void onDialogHide(DialogHideEvent event) {
+                                new DeviceDialog(device, deviceStore, groupStore, AddHandler.this).show();
+                            }
+                        });
+                        msg.show();
                     }
 
                     @Override
-                    public void onFailure(Throwable caught) {
-                        MessageBox msg = null;
-                        if (caught instanceof ValidationException) {
-                            msg = new AlertMessageBox(i18n.error(), i18n.errNoDeviceNameOrId());
-                        } else if (caught instanceof MaxDeviceNumberReachedException) {
-                            MaxDeviceNumberReachedException e = (MaxDeviceNumberReachedException) caught;
-                            msg = new AlertMessageBox(i18n.error(), i18n.errMaxNumberDevicesReached(e.getReachedLimit().getMaxNumOfDevices().toString()));
-                        } else {
-                            msg = new AlertMessageBox(i18n.error(), i18n.errDeviceExists());
+                    public void onSuccess(Method method, JSONValue response) {
+                        if(response == null) {
+                            onFailure(method, null);
+                            return;
                         }
-                        if (msg != null) {
-                            msg.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
-                                @Override
-                                public void onDialogHide(DialogHideEvent event) {
-                                    new DeviceDialog(device, deviceStore, groupStore, AddHandler.this).show();
-                                }
-                            });
-                            msg.show();
-                        }
+                        window.hide();
+                        device.setId((long)response.isObject().get("id").isNumber().doubleValue());
+                        Application.getDataService().updateDevice(device, new AsyncCallback<Device>() {
+                            @Override
+                            public void onFailure(Throwable caught) {
+                                MessageBox msg = new AlertMessageBox(i18n.error(), i18n.errDeviceExists());
+                                msg.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
+                                    @Override
+                                    public void onDialogHide(DialogHideEvent event) {
+                                        new DeviceDialog(device, deviceStore, groupStore, AddHandler.this).show();
+                                    }
+                                });
+                                msg.show();
+                            }
+
+                            @Override
+                            public void onSuccess(Device result) {
+                                //do nothing
+                            }
+                            
+                        });
+                        deviceStore.add(device);
                     }
                 });
             }
@@ -221,6 +255,10 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
                         }
                     }
                 });
+            }
+
+            @Override
+            public void setWindow(Window window) {
             }
         }
 

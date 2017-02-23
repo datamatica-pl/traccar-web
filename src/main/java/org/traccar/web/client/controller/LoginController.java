@@ -28,9 +28,12 @@ import org.traccar.web.client.view.LoginDialog;
 import pl.datamatica.traccar.model.User;
 
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import org.fusesource.restygwt.client.Defaults;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
+import org.traccar.web.client.model.api.BasicAuthFilter;
+import org.traccar.web.client.model.api.SessionService;
 import org.traccar.web.client.model.api.UsersService;
 import org.traccar.web.shared.model.UserBlockedException;
 import org.traccar.web.shared.model.UserExpiredException;
@@ -87,12 +90,23 @@ public class LoginController implements LoginDialog.LoginHandler {
     }
 
     @Override
-    public void onLogin(String login, String password) {
+    public void onLogin(final String login, final String password) {
         if (validate(login, password)) {
             Application.getDataService().login(login, password, new BaseAsyncCallback<User>(i18n) {
                 @Override
                 public void onSuccess(User result) {
                     ApplicationContext.getInstance().setUser(result);
+                    BasicAuthFilter.getInstance().pushCredentials(login, password);
+                    SessionService session = GWT.create(SessionService.class);
+                    session.getUser(new JsonCallback() {
+                        @Override
+                        public void onFailure(Method method, Throwable exception) {
+                        }
+
+                        @Override
+                        public void onSuccess(Method method, JSONValue response) {
+                        }
+                    });
                     if (loginHandler != null) {
                         dialog.hide();
                         loginHandler.onLogin();

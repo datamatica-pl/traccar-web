@@ -17,6 +17,7 @@ package org.traccar.web.client.view;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -29,10 +30,13 @@ import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
+import org.fusesource.restygwt.client.JsonCallback;
+import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
+import org.traccar.web.client.model.api.SessionService;
 import pl.datamatica.traccar.model.Report;
 
 public class NavView {
@@ -191,6 +195,16 @@ public class NavView {
         Application.getDataService().logout(new BaseAsyncCallback<Boolean>(i18n) {
             @Override
             public void onSuccess(Boolean result) {
+                SessionService session = GWT.create(SessionService.class);
+                session.logout(new JsonCallback(){
+                    @Override
+                    public void onFailure(Method method, Throwable exception) {
+                    }
+
+                    @Override
+                    public void onSuccess(Method method, JSONValue response) {
+                    }
+                });
                 Window.Location.reload();
             }
         });
