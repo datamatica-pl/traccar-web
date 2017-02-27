@@ -54,7 +54,7 @@ public class ReportsMenu extends Menu {
         this.reportHandler = reportHandler;
         this.reportSettingsHandler = reportSettingsHandler;
         syncReports();
-        for (final ReportType type : ReportType.values()) {
+        for (final ReportType type : new ReportType[]{ReportType.EVENTS, ReportType.GENERAL_INFORMATION}) {
             MenuItem reportItem = new MenuItem(i18n.reportType(type));
             reportItem.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override

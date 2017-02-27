@@ -58,7 +58,6 @@ import org.traccar.web.client.editor.ListViewEditor;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.*;
 import org.traccar.web.client.widget.PeriodComboBox;
-import org.traccar.web.shared.model.*;
 
 import java.util.*;
 
@@ -183,7 +182,10 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
 
         ListStore<ReportType> geoFenceTypeStore = new ListStore<>(
                 new EnumKeyProvider<ReportType>());
-        geoFenceTypeStore.addAll(Arrays.asList(ReportType.values()));
+        geoFenceTypeStore.addAll(Arrays.asList(new ReportType[]{
+            ReportType.EVENTS,
+            ReportType.GENERAL_INFORMATION
+        }));
         type = new ComboBox<>(
                 geoFenceTypeStore, new ReportProperties.ReportTypeLabelProvider());
         type.setForceSelection(true);
