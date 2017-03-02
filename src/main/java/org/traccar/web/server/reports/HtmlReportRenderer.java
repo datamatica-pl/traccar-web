@@ -16,15 +16,12 @@
 package org.traccar.web.server.reports;
 
 import org.apache.commons.io.IOUtils;
-import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.Report;
-import pl.datamatica.traccar.model.UserSettings;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
-import java.util.List;
 
 public class HtmlReportRenderer implements IReportRenderer {
     final HttpServletResponse response;
@@ -146,11 +143,11 @@ public class HtmlReportRenderer implements IReportRenderer {
     }
     
     @Override
-    public void tableStart(TableStyle style) {
+    public void tableStart(String id, TableStyle style) {
         if (style == null) {
-            line("<table>");
+            line("<table id=\""+id+"\">");
         } else {
-            line("<table " + style + ">");
+            line("<table id=\""+id+"\" "+style+">");
         }
     }
 

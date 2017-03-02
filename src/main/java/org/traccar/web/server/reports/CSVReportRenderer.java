@@ -258,6 +258,6 @@ public class CSVReportRenderer implements IReportRenderer {
     }
 
     @Override
-    public void tableStart(TableStyle style) {
+    public void tableStart(String id, TableStyle style) {
     }
 }

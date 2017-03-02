@@ -66,11 +66,13 @@ public class ReportGI extends ReportGenerator {
     }
 
     private void drawMap(List<Position> positions) {
-        html(getMapBuilder()
+        MapBuilder builder = getMapBuilder()
                 .polyline(positions, "#00f", 2)
                 .marker(positions.get(0), MarkerStyle.routeStart())
-                .marker(positions.get(positions.size()-1), MarkerStyle.routeEnd())
-                .create());
+                .marker(positions.get(positions.size()-1), MarkerStyle.routeEnd());
+        for(Position p:positions)
+            builder.marker(p, MarkerStyle.arrow(p.getCourse()));
+        html(builder.create());
     }
 
     static class Info {

@@ -83,7 +83,7 @@ public class ReportEV extends ReportGenerator {
                 builder.marker(ev.getPosition(), 
                         MarkerStyle.event(ev.getType(), getLabel(ev)));
         }
-        html(builder.create());
+        html(builder.bindWithTable("table", 1).create());
     }
 
     private boolean isVisible(DeviceEvent ev) {
@@ -138,7 +138,7 @@ public class ReportEV extends ReportGenerator {
     }
 
     void drawTable(List<GeoFence> geoFences, List<DeviceEvent> events) {
-        tableStart(hover().condensed());
+        tableStart("table", hover().condensed());
 
         // header
         tableHeadStart();
@@ -174,6 +174,7 @@ public class ReportEV extends ReportGenerator {
             tableCellStart();
             mapLink(event.getPosition().getLatitude(), event.getPosition().getLongitude());
             tableCellEnd();
+            extentCell(event.getPosition(), event.getPosition());
             tableRowEnd();
 
             stats.update(event);

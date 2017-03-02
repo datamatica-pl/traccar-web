@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import org.traccar.web.client.view.MarkerIcon;
 import org.traccar.web.server.reports.MapBuilder.MarkerStyle;
 import pl.datamatica.traccar.model.DeviceEventType;
 
@@ -90,7 +89,7 @@ public class ReportDS extends ReportGenerator {
         
         Position latest = positions.get(positions.size()-1);
         builder.marker(latest, MarkerStyle.deviceMarker(latest));
-        html(builder.create());
+        html(builder.bindWithTable("table", 2).create());
     }
 
     static class Data {
@@ -153,7 +152,8 @@ public class ReportDS extends ReportGenerator {
         for (Iterator<Data> it = datas.iterator(); it.hasNext(); ) {
             Data data = it.next();
             long minIdleTime = (long) device.getMinIdleTime() * 1000;
-            if (isIdle(data.start) && data.getDuration() < minIdleTime) {
+            if (isIdle(data.start) && data.getDuration() < minIdleTime
+                    && (prevData != null || it.hasNext())) {
                 Data nonIdleData = prevData == null ? it.next() : prevData;
                 if (prevData == null) {
                     nonIdleData.start = data.start;
@@ -189,7 +189,7 @@ public class ReportDS extends ReportGenerator {
     }
 
     void drawTable(List<Data> datas) {
-        tableStart(hover().condensed());
+        tableStart("table", hover().condensed());
 
         // header
         tableHeadStart();
@@ -256,6 +256,7 @@ public class ReportDS extends ReportGenerator {
                 totalSpeed += data.totalSpeed;
                 totalTopSpeed = Math.max(totalTopSpeed, data.topSpeed);
             }
+            extentCell(data.start, data.end);
             totalDistance += data.distance;
             tableRowEnd();
         }

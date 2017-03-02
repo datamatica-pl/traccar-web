@@ -42,7 +42,14 @@ public interface IReportRenderer {
     static class CellStyle {
         int colspan;
         int rowspan;
+        boolean hidden;
+        String id;
 
+        CellStyle id(String id) {
+            this.id = id;
+            return this;
+        }
+        
         CellStyle colspan(int colspan) {
             this.colspan = colspan;
             return this;
@@ -52,11 +59,18 @@ public interface IReportRenderer {
             this.rowspan = rowspan;
             return this;
         }
+        
+        CellStyle hidden(boolean hidden) {
+            this.hidden = hidden;
+            return this;
+        }
 
         @Override
         public String toString() {
             return (colspan == 0 ? "" : ("colspan=\"" + colspan + "\"")) +
-                   (rowspan == 0 ? "" : (" rowspan=\"" + rowspan + "\""));
+                   (rowspan == 0 ? "" : (" rowspan=\"" + rowspan + "\"")) +
+                   (id != null ? "id=\""+id+"\"" : "")+
+                   (hidden ? "style=\"display:none;\"" : "");
         }
     }
 
@@ -116,7 +130,7 @@ public interface IReportRenderer {
 
     void tableRowStart();
 
-    void tableStart(TableStyle style);
+    void tableStart(String id, TableStyle style);
 
     void text(String text);
     

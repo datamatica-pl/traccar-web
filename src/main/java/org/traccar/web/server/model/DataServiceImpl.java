@@ -452,7 +452,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 for(String command : commands)
                     device.addSupportedCommand(CommandType.fromString(command));
             } catch (Exception | NoClassDefFoundError ex) {
-                Logger.getLogger(Device.class.getName()).log(Level.SEVERE, null, ex);
+//                Logger.getLogger(Device.class.getName()).log(Level.SEVERE, null, ex);
                 device.clearSupportedCommands();
             }
         }

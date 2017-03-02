@@ -16,16 +16,16 @@
 package org.traccar.web.server.reports;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import org.traccar.web.client.view.MarkerIcon;
-import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.DeviceEventType;
 import pl.datamatica.traccar.model.Position;
 
 public class MapBuilder {    
     private final List<String> vectors = new ArrayList<>();
     private final String width, height;
+    private String tableId;
+    private int tableStartRow;
     
     public MapBuilder(String width, String height) {
         this.width = width;
@@ -53,9 +53,9 @@ public class MapBuilder {
         return this;
     }
     
-    public MapBuilder eventMarker(Position position, DeviceEventType type) {
-        
-        
+    public MapBuilder bindWithTable(String id, int startRow) {
+        tableId = id;
+        this.tableStartRow = startRow;
         return this;
     }
     
@@ -95,7 +95,9 @@ public class MapBuilder {
         output.append("  ],\r\n");
         output.append("  view: new ol.View()\r\n");
         output.append("});\r\n");
-        output.append("map.getView().fit(source.getExtent(), map.getSize());");
+        output.append("map.getView().fit(source.getExtent(), map.getSize());\r\n");
+        output.append("bind(map, '").append(tableId).append("', ")
+                .append(tableStartRow).append(");\r\n");
         output.append("</script>");
         return output.toString();
     }
@@ -109,6 +111,21 @@ public class MapBuilder {
                 + "function marker(coords, name) {\r\n"
                 + "  var geom = new ol.geom.Point(ol.proj.transform(coords, 'EPSG:4326', 'EPSG:3857'));\r\n"
                 + "  return new ol.Feature({ geometry: geom, name: name});\r\n"
+                + "}\r\n"
+                + "function bind(map, tableId, startRow) {\r\n"
+                + "  var table = document.getElementById(tableId);\r\n"
+                + "  var rows = table.getElementsByTagName('tr');\r\n"
+                + "  for(i=startRow;i<rows.length;++i) {\r\n"
+                + "    var row = rows[i];\r\n"
+                + "    var cells = row.getElementsByTagName('td');\r\n"
+                + "    var extCell = cells[cells.length-1];\r\n"
+                + "    row.onclick = function(c) {\r\n"
+                + "      return function() {\r\n"
+                + "        var extent = ol.proj.transformExtent(JSON.parse(c.innerHTML), 'EPSG:4326', 'EPSG:3857');"
+                + "        map.getView().fit(extent, map.getSize());\r\n"
+                + "      };\r\n"
+                + "    }(extCell);\r\n"
+                + "  }\r\n"
                 + "}\r\n";
     }
     
@@ -165,7 +182,7 @@ public class MapBuilder {
             MarkerStyle style = new MarkerStyle();
             style.image = String.format("new ol.style.Icon({src: '%s', anchor: [0.5, 1]})",
                     src(type));
-            style.text = String.format("new ol.style.Text({ text: '%s', offsetY: -66, "
+            style.text = String.format("new ol.style.Text({ text: '%s', offsetY: -60, "
                     + "font: 'bold 11px Arial, sans-serif'})", label);
             return style;
         }
