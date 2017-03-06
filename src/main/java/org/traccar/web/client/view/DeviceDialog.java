@@ -62,6 +62,7 @@ public class DeviceDialog implements Editor<Device> {
     }
 
     public interface DeviceHandler {
+        void setWindow(Window window);
         void onSave(Device device);
     }
 
@@ -224,6 +225,8 @@ public class DeviceDialog implements Editor<Device> {
                 }
             }
         });
+        
+        deviceHandler.setWindow(window);
     }
 
     public void show() {
@@ -236,7 +239,6 @@ public class DeviceDialog implements Editor<Device> {
 
     @UiHandler("saveButton")
     public void onSaveClicked(SelectEvent event) {
-        window.hide();
         Device device = driver.flush();
         device.setIdleSpeedThreshold(ApplicationContext.getInstance().getUserSettings().getSpeedUnit().toKnots(device.getIdleSpeedThreshold()));
         if (device.getSpeedLimit() != null) {

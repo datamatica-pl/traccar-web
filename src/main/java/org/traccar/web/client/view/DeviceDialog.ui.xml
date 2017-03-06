@@ -96,7 +96,7 @@
                       </form:FieldLabel>
                   </container:child>
                   <container:child layoutData="{verticalLayoutData}">
-                      <form:FieldLabel text="{i18n.phoneNumber}" labelWidth="180">
+                      <form:FieldLabel text="{i18n.trackerPhoneNumber}" labelWidth="180">
                           <form:widget>
                               <form:TextField ui:field="phoneNumber" allowBlank="true" />
                           </form:widget>
