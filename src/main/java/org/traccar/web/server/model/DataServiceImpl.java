@@ -432,6 +432,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 }
                 
                 String protocolName = device.getProtocol();
+                if(protocolName == null)
+                    continue;
                 protocolName = protocolName.substring(0, 1).toUpperCase() + protocolName.substring(1);
                 
                 final Class<?> protocolClass;
