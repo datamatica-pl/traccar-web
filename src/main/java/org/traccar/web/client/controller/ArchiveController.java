@@ -35,7 +35,6 @@ import org.traccar.web.client.view.ArchiveView;
 import org.traccar.web.client.view.FilterDialog;
 import org.traccar.web.client.view.ReportsMenu;
 import org.traccar.web.client.view.UserSettingsDialog;
-import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
 import com.sencha.gxt.data.shared.ListStore;
@@ -181,69 +180,136 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
         public final native Matching[] getMatchings() /*-{
             return this.matchings;
         }-*/;
+        
+        public final native Tracepoint[] getTracepoints() /*-{
+            return this.tracepoints;    
+        }-*/;
+    }
+    
+    public static class Tracepoint extends JavaScriptObject {
+        protected Tracepoint() {
+        }
+        
+        public final native double[] getLocation() /*-{
+            return this.location;   
+        }-*/;
+        
+        public final native int getWaypointIndex() /*-{
+            return this.waypoint_index;
+        }-*/;
+        
+        public final native int getMatchingIndex() /*-{
+                return this.matchings_index;
+        }-*/;
     }
 
-    public static class Matching extends JavaScriptObject {
+    public static class Matching extends JavaScriptObject {        
         protected Matching() {
         }
-
-        public final native double[][] getMatchedPoints() /*-{
-            return this.matched_points;
-        }-*/;
-
-        public final native int[] getIndices() /*-{
-            return this.indices;
-        }-*/;
 
         public final native String getGeometry() /*-{
             return this.geometry;
         }-*/;
+    }
+    
+    public static class MatchingWrapper {
+        private final List<Integer> indices = new ArrayList<>();
+        private final List<List<Double>> matchedPoints = new ArrayList<>();
+        private final Matching matching;
+        
+        public MatchingWrapper(Matching matching) {
+            this.matching = matching;
+        }
+        
+        public String getGeometry() {
+            return matching.getGeometry();
+        }
+        
+        public final double[] getMatchedPoint(int i) {
+            List<Double> list = matchedPoints.get(i);
+            double[] array = new double[2];
+            array[0] = list.get(0);
+            array[1] = list.get(1);
+            return array;
+        }
+        
+        public final void addMatchedPoint(double[] lonLat) {
+            List<Double> list = new ArrayList<>();
+            list.add(lonLat[0]);
+            list.add(lonLat[1]);
+            matchedPoints.add(list);
+        }
+
+        public final int getIndex(int i) {
+            return indices.get(i);
+        }
+        
+        public int getIndicesCount() {
+            return indices.size();
+        }
+        
+        public final void addIndex(int index) {
+            indices.add(index);
+        }
     }
 
     private void loadSnappedPointsAndShowTrack(final Device device) {
         final Track track = originalTracks.get(device.getId());
 
         final List<Position> originalPositions = track.getPositions();
-        StringBuilder body = new StringBuilder("");
+        if(originalPositions.size() < 2)
+            return;
+        
+        StringBuilder positions = new StringBuilder();
+        StringBuilder timestamps = new StringBuilder();
         for (Position position : originalPositions) {
-            if (body.length() > 0) {
-                body.append('&');
-            }
-            body.append("loc=").append(formatLonLat(position.getLatitude()))
-                    .append(',').append(formatLonLat(position.getLongitude()))
-                    .append("&t=").append(position.getTime().getTime() / 1000);
+            positions.append(formatLonLat(position.getLongitude())).append(",")
+                    .append(formatLonLat(position.getLatitude())).append(";");
+            timestamps.append(position.getTime().getTime()/1000).append(";");
         }
+        positions.deleteCharAt(positions.length()-1);
+        timestamps.deleteCharAt(timestamps.length()-1);
 
-        RequestBuilder builder = new RequestBuilder(RequestBuilder.POST, ApplicationContext.getInstance().getApplicationSettings().getMatchServiceURL());
-        builder.setHeader("Content-type", "application/x-www-form-urlencoded");
+        RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, 
+                ApplicationContext.getInstance().getApplicationSettings().getMatchServiceURL()
+                +"/"+positions+"?timestamps="+timestamps);
         try {
-            builder.sendRequest(body.toString(), new RequestCallback() {
+            builder.sendRequest(null, new RequestCallback() {
                 @Override
                 public void onResponseReceived(Request request, Response response) {
                     if (200 == response.getStatusCode()) {
-                        Matchings matchings = JsonUtils.safeEval(response.getText());
+                        Matchings jsMatchings = JsonUtils.safeEval(response.getText());
+                        List<MatchingWrapper> matchings = new ArrayList<>(jsMatchings.getMatchings().length);
+                        for(Matching m : jsMatchings.getMatchings())
+                            matchings.add(new MatchingWrapper(m));
+                        for(Tracepoint tp : jsMatchings.getTracepoints()) {
+                            MatchingWrapper matching = matchings.get(tp.getMatchingIndex());
+                            matching.addIndex(tp.getWaypointIndex());
+                            matching.addMatchedPoint(tp.getLocation());
+                        }
+                        
                         Track snappedTrack = new Track();
                         int lastIndex = 0;
-                        for (Matching matching : matchings.getMatchings()) {
+                        for (MatchingWrapper matching : matchings) {
                             // add original track segment
-                            List<Position> originalTrack = lastIndex < matching.getIndices()[0]
+                            List<Position> originalTrack = lastIndex < matching.getIndex(0)
                                     ? Collections.<Position>emptyList()
-                                    : originalPositions.subList(lastIndex, matching.getIndices()[0]);
+                                    : originalPositions.subList(lastIndex, matching.getIndex(0));
                             // add snapped track segment
-                            List<Position> snappedPositions = new ArrayList<>(matching.getIndices().length);
-                            for (int i = 0; i < matching.getIndices().length; i++) {
-                                int snappedPositionIndex = matching.getIndices()[i];
-                                double[] latLon = matching.getMatchedPoints()[i];
+                            List<Position> snappedPositions = new ArrayList<>(matching.getIndicesCount());
+                            for (int i = 0; i < matching.getIndicesCount(); i++) {
+                                int snappedPositionIndex = matching.getIndex(i);
+                                double[] lonLat = matching.getMatchedPoint(i);
                                 Position snapped = new Position(originalPositions.get(snappedPositionIndex));
-                                snapped.setLatitude(latLon[0]);
-                                snapped.setLongitude(latLon[1]);
+                                snapped.setLongitude(lonLat[0]);
+                                snapped.setLatitude(lonLat[1]);
                                 snappedPositions.add(snapped);
                             }
                             EncodedPolyline encodedPolyline = new EncodedPolyline();
                             VectorFeature[] geometry = encodedPolyline.read(matching.getGeometry());
                             snappedTrack.addSegment(originalTrack, null, track.getStyle());
                             snappedTrack.addSegment(snappedPositions, geometry, track.getStyle());
-                            lastIndex = matching.getIndices()[matching.getIndices().length - 1] + 1;
+                            lastIndex = matching.getIndex(matching.getIndicesCount()-1) + 1;
                         }
                         if (lastIndex < originalPositions.size()) {
                             snappedTrack.addSegment(originalPositions.subList(lastIndex, originalPositions.size()), null, track.getStyle());
