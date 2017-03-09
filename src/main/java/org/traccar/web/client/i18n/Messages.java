@@ -384,7 +384,7 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
 
     String interval();
 
-    String phoneNumber();
+    String trackerPhoneNumber();
 
     String plateNumber();
 
@@ -413,6 +413,8 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String maxNumOfDevices();
 
     String blocked();
+    
+    String phoneNumber();
 
     String overlays();
 
@@ -633,4 +635,6 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String ok();
     
     String selectAll();
+
+    public String reportsForPremium();
 }
