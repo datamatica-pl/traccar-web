@@ -58,7 +58,6 @@ import org.traccar.web.client.editor.ListViewEditor;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.*;
 import org.traccar.web.client.widget.PeriodComboBox;
-import org.traccar.web.shared.model.*;
 
 import java.util.*;
 
