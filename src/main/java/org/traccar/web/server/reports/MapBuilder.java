@@ -147,9 +147,11 @@ public class MapBuilder {
         
         public static MarkerStyle arrow(Double rotation) {
             MarkerStyle style = new MarkerStyle();
-            String icon = "new ol.style.Icon({src: '/MapMarker?color=000000'";
+            String icon = "new ol.style.Icon({"
+                    + "src: '/MapMarker?color=000000', anchor: [0.5, 0.5],"
+                    + "anchorXUnits: 'fraction', anchorYUnits: 'fraction'";
             if(rotation != null)
-                icon += ", rotation: "+rotation;
+                icon += ", rotation: "+ rotation/180*Math.PI;
             icon += "})";
             style.image = icon;
             return style;

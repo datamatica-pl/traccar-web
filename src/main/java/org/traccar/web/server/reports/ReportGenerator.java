@@ -260,7 +260,7 @@ public abstract class ReportGenerator {
     }
     
     protected MapBuilder getMapBuilder() {
-        return new MapBuilder("100%", "400px");
+        return new MapBuilder("100%", "500px");
     }
     
     void html(String html) {
