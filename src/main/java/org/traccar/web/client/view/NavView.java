@@ -232,10 +232,10 @@ public class NavView {
     
     @UiHandler("userGuideButton")
     public void onUserGuideClicked(SelectEvent event) {
-        redirectToUserGuide();
+        redirectToUserGuide(i18n.userGuideUrl());
     }
     
-    public static native void redirectToUserGuide() /*-{
-        $wnd.location = "http://dm.trackman.pl/pl/trackman-help";
+    public static native void redirectToUserGuide(String guideUrl) /*-{
+        $wnd.location = guideUrl;
     }-*/;
 }
