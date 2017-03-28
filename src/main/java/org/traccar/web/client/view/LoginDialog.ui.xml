@@ -52,11 +52,8 @@
       </container:child>
       <container:child layoutData="{verticalLayoutData}">
           <g:HTMLPanel>
-            <a href="https://drive.google.com/file/d/0B-HkhXkN6gkta2t0eWhvNVRKWnM/view">
+            <a href="http://dm.trackman.pl/pl/rejestracja/">
                 <g:Label text="{i18n.termsLabel}" />
-            </a>
-            <a href="http://datamatica.pl/privacy-policy/">
-                <g:Label text="{i18n.privacyLabel}" />
             </a>
           </g:HTMLPanel>
       </container:child>
