@@ -25,7 +25,6 @@ import pl.datamatica.traccar.model.ApplicationSettings;
 import pl.datamatica.traccar.model.Device;
 import org.traccar.web.client.model.DataService;
 import org.traccar.web.server.model.ServerMessages;
-import org.traccar.web.shared.model.*;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -119,11 +118,15 @@ public abstract class ReportGenerator {
     }
 
     public void tableStart() {
-        renderer.tableStart(null);
+        renderer.tableStart("", null);
     }
 
     public void tableStart(IReportRenderer.TableStyle style) {
-        renderer.tableStart(style);
+        renderer.tableStart("", style);
+    }
+    
+    public void tableStart(String id, IReportRenderer.TableStyle style) {
+        renderer.tableStart(id, style);
     }
 
     IReportRenderer.TableStyle hover() {
@@ -211,6 +214,27 @@ public abstract class ReportGenerator {
         text(text);
         tableCellEnd();
     }
+    
+    void extentCell(Position p1, Position p2) {
+        double minx = Math.min(p1.getLongitude(), p2.getLongitude());
+        double maxx = Math.max(p1.getLongitude(), p2.getLongitude());
+        if(maxx-minx < 1e-2) {
+            double dx = 1e-2-maxx+minx;
+            minx -= dx/2;
+            maxx += dx/2;
+        }
+        double miny = Math.min(p1.getLatitude(), p2.getLatitude());
+        double maxy = Math.max(p1.getLatitude(), p2.getLatitude());
+        if(maxy - miny < 1e-2) {
+            double dy = 1e-2 -maxy + miny;
+            miny -= dy/2;
+            maxy += dy/2;
+        }
+        String extent = String.format(Locale.US, "[%f,%f,%f,%f]", minx, miny, maxx, maxy);
+        tableCellStart(new HtmlReportRenderer.CellStyle().hidden(true).id("ext"));
+        text(extent);
+        tableCellEnd();
+    }
 
     public void tableCellStart(IReportRenderer.CellStyle style) {
         renderer.tableCellStart(style);
@@ -234,11 +258,15 @@ public abstract class ReportGenerator {
                 lonLatFormat.format(latitude) + "/" + lonLatFormat.format(longitude),
                 "_blank", text);
     }
-
-    void mapWithRoute(List<Position> positions, String width, String height) {
-        renderer.mapWithRoute(positions, currentUser.getUserSettings().getMapType(), currentUser.getUserSettings().getZoomLevel(), width, height);
+    
+    protected MapBuilder getMapBuilder() {
+        return new MapBuilder("100%", "500px");
     }
-
+    
+    void html(String html) {
+        renderer.html(html);
+    }
+    
     void dataRow(String title, String text) {
         tableRowStart();
         tableCellStart();

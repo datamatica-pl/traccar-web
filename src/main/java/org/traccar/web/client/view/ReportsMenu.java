@@ -19,6 +19,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
@@ -60,9 +61,13 @@ public class ReportsMenu extends Menu {
                 @Override
                 public void onSelection(SelectionEvent<Item> event) {
                     ReportsDialog dialog = reportHandler.createDialog();
-                    dialog.selectReportType(type);
-                    reportSettingsHandler.setSettings(dialog);
-                    dialog.show();
+                    if(dialog != null) {
+                        dialog.selectReportType(type);
+                        reportSettingsHandler.setSettings(dialog);
+                        dialog.show();
+                    } else {
+                        new AlertMessageBox(i18n.error(), i18n.reportsForPremium()).show();
+                    }
                 }
             });
             add(reportItem);
@@ -98,9 +103,13 @@ public class ReportsMenu extends Menu {
                     @Override
                     public void onSelection(SelectionEvent<Item> event) {
                         ReportsDialog dialog = reportHandler.createDialog();
-                        dialog.selectReport(report);
-                        reportSettingsHandler.setSettings(dialog);
-                        dialog.show();
+                        if(dialog != null) {
+                            dialog.selectReport(report);
+                            reportSettingsHandler.setSettings(dialog);
+                            dialog.show();
+                        } else {
+                            new AlertMessageBox(i18n.error(), i18n.reportsForPremium()).show();
+                        }
                     }
                 });
 

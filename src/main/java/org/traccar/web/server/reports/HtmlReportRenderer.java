@@ -16,15 +16,12 @@
 package org.traccar.web.server.reports;
 
 import org.apache.commons.io.IOUtils;
-import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.Report;
-import pl.datamatica.traccar.model.UserSettings;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
-import java.util.List;
 
 public class HtmlReportRenderer implements IReportRenderer {
     final HttpServletResponse response;
@@ -146,11 +143,11 @@ public class HtmlReportRenderer implements IReportRenderer {
     }
     
     @Override
-    public void tableStart(TableStyle style) {
+    public void tableStart(String id, TableStyle style) {
         if (style == null) {
-            line("<table>");
+            line("<table id=\""+id+"\">");
         } else {
-            line("<table " + style + ">");
+            line("<table id=\""+id+"\" "+style+">");
         }
     }
 
@@ -235,45 +232,10 @@ public class HtmlReportRenderer implements IReportRenderer {
     int mapCount;
 
     @Override
-    public void mapWithRoute(List<Position> positions, UserSettings.MapType mapType, int zoomLevel, String width, String height) {
-        String mapId = "map-" + mapCount++;
-        line("<div id=\"" + mapId + "\" style=\"width: " + width + "; height: " + height + ";\"></div>");
-        line("<script type=\"text/javascript\">");
-        // prepare points
-        line("      var polyline = '" + PolylineEncoder.encode(positions) + "';");
-        line("      var routeGeom = new ol.format.Polyline().readGeometry(polyline, {dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857'});");
-        line("      var route = new ol.Feature({ geometry: routeGeom, name: 'Route'});");
-        line("      route.setStyle(new ol.style.Style({ stroke: new ol.style.Stroke({color: '#00f', width: 2}) }));");
-        line("      var routeStart = new ol.Feature({ geometry: new ol.geom.Point(routeGeom.getFirstCoordinate()), name: 'Route Start'});");
-        line("      routeStart.setStyle(new ol.style.Style({");
-        line("          image: new ol.style.Icon({ anchor: [0.5, 25], anchorXUnits: 'fraction', anchorYUnits: 'pixels', opacity: 0.75, src: 'https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/img/marker.png' })");
-        line("      }));");
-        line("      var routeEnd = new ol.Feature({ geometry: new ol.geom.Point(routeGeom.getLastCoordinate()), name: 'Route End'});");
-        line("      routeEnd.setStyle(new ol.style.Style({");
-        line("          image: new ol.style.Icon({ anchor: [0.5, 25], anchorXUnits: 'fraction', anchorYUnits: 'pixels', opacity: 0.75, src: 'https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/img/marker-blue.png' })");
-        line("      }));");
-
-        // draw map
-        line("     var map = new ol.Map({")
-        .line("     target: '" + mapId + "',")
-        .line("     layers: [")
-        .line("          new ol.layer.Tile({")
-        .line("               source: new ol.source.OSM()")
-        .line("          }),")
-        .line("          new ol.layer.Vector({")
-        .line("               source: new ol.source.Vector({")
-        .line("                   features: [route, routeStart, routeEnd]")
-        .line("               })")
-        .line("          }),")
-        .line("     ],")
-        .line("     view: new ol.View()")
-        .line("     });");
-        // zoom to route
-        line("     map.getView().fit(routeGeom, map.getSize());");
-
-        line("</script>");
+    public void html(String html) {
+        writer.println(html);
     }
-
+    
     private HtmlReportRenderer line(String html) {
         writer.println(html);
         return this;

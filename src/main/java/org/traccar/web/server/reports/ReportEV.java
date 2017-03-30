@@ -20,13 +20,14 @@ import pl.datamatica.traccar.model.Maintenance;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.DeviceEvent;
 import pl.datamatica.traccar.model.Device;
-import org.traccar.web.shared.model.*;
 
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.traccar.web.server.reports.MapBuilder.MarkerStyle;
+import pl.datamatica.traccar.model.DeviceEventType;
 import static pl.datamatica.traccar.model.DeviceEventType.*;
 
 public class ReportEV extends ReportGenerator {
@@ -64,6 +65,8 @@ public class ReportEV extends ReportGenerator {
             // data table
             if (!events.isEmpty()) {
                 drawTable(getGeoFences(report, device), events);
+                if(report.isIncludeMap())
+                    drawMap(events);
             }
 
             panelBodyEnd();
@@ -71,6 +74,36 @@ public class ReportEV extends ReportGenerator {
             panelEnd();
 
         }
+    }
+    
+    private void drawMap(List<DeviceEvent> events) {
+        MapBuilder builder = getMapBuilder();
+        for(DeviceEvent ev : events) {
+            if(isVisible(ev))
+                builder.marker(ev.getPosition(), 
+                        MarkerStyle.event(ev.getType(), getLabel(ev)));
+        }
+        html(builder.bindWithTable("table", 1).create());
+    }
+
+    private boolean isVisible(DeviceEvent ev) {
+        return ev.getType() == DeviceEventType.GEO_FENCE_ENTER 
+                || ev.getType() == DeviceEventType.GEO_FENCE_EXIT
+                || ev.getType() == DeviceEventType.OVERSPEED;
+                
+    }
+    
+    private String getLabel(DeviceEvent ev) {
+        switch(ev.getType()) {
+            case OVERSPEED:
+                return String.format("V: %.0f km/h T: %s", 
+                        ev.getPosition().getSpeedInKmh(), ev.getTime());
+            case GEO_FENCE_ENTER:
+            case GEO_FENCE_EXIT:
+                return String.format("%s T: %s", 
+                        ev.getGeoFence().getName(), ev.getTime());
+        }
+        return "";
     }
 
     static class Stats {
@@ -105,7 +138,7 @@ public class ReportEV extends ReportGenerator {
     }
 
     void drawTable(List<GeoFence> geoFences, List<DeviceEvent> events) {
-        tableStart(hover().condensed());
+        tableStart("table", hover().condensed());
 
         // header
         tableHeadStart();
@@ -141,6 +174,7 @@ public class ReportEV extends ReportGenerator {
             tableCellStart();
             mapLink(event.getPosition().getLatitude(), event.getPosition().getLongitude());
             tableCellEnd();
+            extentCell(event.getPosition(), event.getPosition());
             tableRowEnd();
 
             stats.update(event);
