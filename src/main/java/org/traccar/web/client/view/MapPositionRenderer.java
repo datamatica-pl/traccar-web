@@ -593,8 +593,9 @@ public class MapPositionRenderer {
                         LineString lineString = LineString.narrowToLineString(feature.getJSObject().getProperty("geometry"));
                         for (int i = 0; i < lineString.getNumberOfComponents(); i++) {
                             Point point = Point.narrowToPoint(lineString.getComponent(i));
-                            currentLine.add(mapView.createPoint(point.getX() / 10, point.getY() / 10));
+                            currentLine.add(mapView.createPoint(point.getX(), point.getY()));
                         }
+                        polylines.add(currentLine);
                     }
                 }
             }
