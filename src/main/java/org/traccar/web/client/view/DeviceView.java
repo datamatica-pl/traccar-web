@@ -461,7 +461,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         private static final Templates templates = GWT.create(Templates.class);
         private static final Messages i18n = GWT.create(Messages.class);
         
-        private ImageResource ignition;
+        private ImageResource battery;
         private ImageResource alarms;
         private String name;
         
@@ -476,8 +476,24 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         private void init(Device device, Resources resources) {
             this.device = device;
-            ignition = device.isIgnitionEnabled() ? resources.ignitionEnabled() : resources.ignitionDisabled();
+            battery = batteryLevelImage(device, resources);
             alarms = device.hasUnreadAlarms()? resources.speedAlarmActive() : resources.speedAlarmInactive();
+        }
+        
+        private ImageResource batteryLevelImage(Device d, Resources r) {
+            if(d.getBatteryTime() == null || d.getBatteryLevel() == null 
+                    || new Date().getTime() - d.getBatteryTime().getTime() > d.getBatteryTimeout())
+                return r.batteryNoInfo();
+            int batt = d.getBatteryLevel();
+            if(batt >= 0 && batt <= 25)
+                return r.battery25();
+            else if(batt > 25 && batt <= 50)
+                return r.battery50();
+            else if(batt > 50 && batt <= 75)
+                return r.battery75();
+            else if(batt > 75 && batt <= 100)
+                return r.battery100();
+            return r.batteryNoInfo();
         }
         
         @Override
@@ -488,7 +504,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         @Override
         public void bindIcons(SafeHtmlBuilder sb) {
             appendIfExists(sb, alarms, i18n.alarmIconHint(), "alarms");
-            appendIfExists(sb, ignition, i18n.ignition(), "ignition");
+            appendIfExists(sb, battery, i18n.batteryLevel(), "ignition");
         }
         
         private Device getDevice() {
@@ -682,7 +698,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                 return "status";
             }
             
-        }, 60, i18n.status());
+        }, 75, i18n.status());
         //webcentersuite.blogspot.com/2011/11/custom-gwt-clickable-cell-with-multiple.html
         colStatus.setCell(new AbstractCell<GroupedDeviceBinding>("click"){    
             @Override
@@ -1091,26 +1107,20 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     }
 
     interface Resources extends ClientBundle {
-        @Source("org/traccar/web/client/theme/icon/eye.png")
-        ImageResource eye();
-
-        @Source("org/traccar/web/client/theme/icon/follow.png")
-        ImageResource follow();
-
-        @Source("org/traccar/web/client/theme/icon/footprints.png")
-        ImageResource footprints();
+        @Source("org/traccar/web/client/theme/icon/battery_no_info.png")
+        ImageResource batteryNoInfo();
         
-        @Source("org/traccar/web/client/theme/icon/ignition_enabled.png")
-        ImageResource ignitionEnabled();
-
-        @Source("org/traccar/web/client/theme/icon/ignition_disabled.png")
-        ImageResource ignitionDisabled();
+        @Source("org/traccar/web/client/theme/icon/battery25.png")
+        ImageResource battery25();
         
-        @Source("org/traccar/web/client/theme/icon/alarm_enabled.png")
-        ImageResource alarmEnabled();
+        @Source("org/traccar/web/client/theme/icon/battery50.png")
+        ImageResource battery50();
         
-        @Source("org/traccar/web/client/theme/icon/alarm_disabled.png")
-        ImageResource alarmDisabled();
+        @Source("org/traccar/web/client/theme/icon/battery75.png")
+        ImageResource battery75();
+        
+        @Source("org/traccar/web/client/theme/icon/battery100.png")
+        ImageResource battery100();
         
         @Source("org/traccar/web/client/theme/icon/speed_alarm_inactive.png")
         ImageResource speedAlarmInactive();

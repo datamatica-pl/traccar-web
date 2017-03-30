@@ -23,6 +23,7 @@ import pl.datamatica.traccar.model.Report;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import org.traccar.web.server.reports.MapBuilder.MarkerStyle;
 
 public class ReportGI extends ReportGenerator {
     @Override
@@ -56,12 +57,22 @@ public class ReportGI extends ReportGenerator {
             // data table
             dataTable(new Info(positions).calculate());
             if (!positions.isEmpty() && report.isIncludeMap()) {
-                mapWithRoute(positions, "100%", "400px");
+                drawMap(positions);
             }
             panelBodyEnd();
 
             panelEnd();
         }
+    }
+
+    private void drawMap(List<Position> positions) {
+        MapBuilder builder = getMapBuilder()
+                .polyline(positions, "#00f", 2)
+                .marker(positions.get(0), MarkerStyle.routeStart())
+                .marker(positions.get(positions.size()-1), MarkerStyle.routeEnd());
+        for(Position p:positions)
+            builder.marker(p, MarkerStyle.arrow(p.getCourse()));
+        html(builder.create());
     }
 
     static class Info {
