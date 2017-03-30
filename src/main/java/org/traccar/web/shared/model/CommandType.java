@@ -44,7 +44,12 @@ public enum CommandType implements IsSerializable {
     voiceCallMode,
     sleepMode,
     exitSleepMode,
+    setAgpsOn,
+    setAgpsOff,
     custom;
+    
+    public static final String TYPE_SET_AGPS_ON = "setAgpsOn";
+    public static final String TYPE_SET_AGPS_OFF = "setAgpsOff";
 
     public static final String KEY_FREQUENCY = "frequency";
     public static final String KEY_TIMEZONE = "timezone";
