@@ -482,7 +482,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         private ImageResource batteryLevelImage(Device d, Resources r) {
             if(d.getBatteryTime() == null || d.getBatteryLevel() == null 
-                    || new Date().getTime() - d.getBatteryTime().getTime() > d.getBatteryTimeout())
+                    || (new Date().getTime() - d.getBatteryTime().getTime())/1000 > d.getBatteryTimeout())
                 return r.batteryNoInfo();
             int batt = d.getBatteryLevel();
             if(batt >= 0 && batt <= 25)
