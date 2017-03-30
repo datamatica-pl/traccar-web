@@ -635,4 +635,6 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String selectAll();
 
     String userGuideUrl();
+
+    public String batteryLevel();
 }
