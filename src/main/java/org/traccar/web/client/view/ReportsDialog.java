@@ -60,6 +60,7 @@ import org.traccar.web.client.model.*;
 import org.traccar.web.client.widget.PeriodComboBox;
 
 import java.util.*;
+import org.traccar.web.client.ApplicationContext;
 
 public class ReportsDialog implements Editor<Report>, ReportsController.ReportHandler {
     private static ReportsDialogDialogUiBinder uiBinder = GWT.create(ReportsDialogDialogUiBinder.class);
@@ -180,11 +181,16 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
         this.geoFenceStore = geoFenceStore;
         this.geoFencesList = new ListView<>(geoFenceStore, geoFenceProperties.name());
 
-        ListStore<ReportType> geoFenceTypeStore = new ListStore<>(
+        ListStore<ReportType> reportTypeStore = new ListStore<>(
                 new EnumKeyProvider<ReportType>());
-        geoFenceTypeStore.addAll(Arrays.asList(ReportType.values()));
+        if(ApplicationContext.getInstance().getUser().isPremium())
+            reportTypeStore.addAll(Arrays.asList(ReportType.values()));
+        else
+            reportTypeStore.addAll(Arrays.asList(new ReportType[]{
+                ReportType.EVENTS, ReportType.GENERAL_INFORMATION
+            }));
         type = new ComboBox<>(
-                geoFenceTypeStore, new ReportProperties.ReportTypeLabelProvider());
+                reportTypeStore, new ReportProperties.ReportTypeLabelProvider());
         type.setForceSelection(true);
         type.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
 
