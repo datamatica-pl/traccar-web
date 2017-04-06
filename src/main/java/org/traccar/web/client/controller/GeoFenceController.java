@@ -100,9 +100,7 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
                                 mapController.removeGeoFence(geoFence);
                                 geoFenceStore.add(addedGeoFence);
                                 geoFenceStore.applySort(false);
-                                if (!addedGeoFence.isAllDevices()) {
-                                    geoFenceListView.getSelectionModel().select(addedGeoFence, false);
-                                }
+                                geoFenceListView.getSelectionModel().select(addedGeoFence, false);
                                 geoFenceManagementStopped();
                             }
 
@@ -139,7 +137,7 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
                             @Override
                             public void onSuccess(GeoFence geoFence) {
                                 mapController.removeGeoFence(geoFence);
-                                if (geoFence.isAllDevices() || geoFence.equals(selectedGeoFence)) {
+                                if (geoFence.equals(selectedGeoFence)) {
                                     mapController.drawGeoFence(geoFence, true);
                                     selectedGeoFence = geoFence;
                                 }
@@ -163,7 +161,7 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
             @Override
             public void onCancel() {
                 mapController.removeGeoFence(geoFence);
-                if (geoFence.isAllDevices() || geoFence.equals(selectedGeoFence)) {
+                if (geoFence.equals(selectedGeoFence)) {
                     mapController.drawGeoFence(geoFence, true);
                 }
                 geoFenceManagementStopped();
@@ -214,13 +212,11 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
 
     @Override
     public void onSelected(GeoFence geoFence) {
-        if (selectedGeoFence != null && !selectedGeoFence.isAllDevices()) {
+        if (selectedGeoFence != null) {
             mapController.removeGeoFence(selectedGeoFence);
         }
         if (geoFence != null) {
-            if (!geoFence.isAllDevices()) {
-                mapController.drawGeoFence(geoFence, true);
-            }
+            mapController.drawGeoFence(geoFence, true);
             mapController.selectGeoFence(geoFence);
         }
         selectedGeoFence = geoFence;
@@ -274,17 +270,13 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
     }
 
     public void geoFenceAdded(GeoFence geoFence) {
-        if (geoFence.isAllDevices()) {
-            mapController.drawGeoFence(geoFence, true);
-        } else {
-            for (Device device : geoFence.getTransferDevices()) {
-                Set<GeoFence> geoFences = deviceGeoFences.get(device.getId());
-                if (geoFences == null) {
-                    geoFences = new HashSet<>();
-                    deviceGeoFences.put(device.getId(), geoFences);
-                }
-                geoFences.add(geoFence);
+        for (Device device : geoFence.getTransferDevices()) {
+            Set<GeoFence> geoFences = deviceGeoFences.get(device.getId());
+            if (geoFences == null) {
+                geoFences = new HashSet<>();
+                deviceGeoFences.put(device.getId(), geoFences);
             }
+            geoFences.add(geoFence);
         }
     }
 

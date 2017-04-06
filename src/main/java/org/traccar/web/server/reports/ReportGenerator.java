@@ -354,7 +354,7 @@ public abstract class ReportGenerator {
         // filter device-specific geo-fences that are not assigned to device from method arguments
         for (Iterator<GeoFence> it = geoFences.iterator(); it.hasNext(); ) {
             GeoFence geoFence = it.next();
-            if (!geoFence.isAllDevices() && !geoFence.getDevices().contains(device)) {
+            if (!geoFence.getDevices().contains(device)) {
                 it.remove();
             }
         }
