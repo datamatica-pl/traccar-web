@@ -138,7 +138,7 @@ public class ReportEV extends ReportGenerator {
     }
 
     void drawTable(List<GeoFence> geoFences, List<DeviceEvent> events) {
-        tableStart("table", hover().condensed());
+        tableStart("table", hover().condensed().height(DEFAULT_TABLE_HEIGHT));
 
         // header
         tableHeadStart();

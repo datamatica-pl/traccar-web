@@ -189,7 +189,7 @@ public class ReportDS extends ReportGenerator {
     }
 
     void drawTable(List<Data> datas) {
-        tableStart("table", hover().condensed());
+        tableStart("table", hover().condensed().height(DEFAULT_TABLE_HEIGHT));
 
         // header
         tableHeadStart();

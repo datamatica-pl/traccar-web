@@ -38,6 +38,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public abstract class ReportGenerator {
+    public static final int DEFAULT_TABLE_HEIGHT = 150;
+    
     @Inject
     EntityManager entityManager;
 
@@ -196,7 +198,7 @@ public abstract class ReportGenerator {
     public void tableBodyStart() {
         renderer.tableBodyStart();
     }
-
+    
     public void paragraphStart() {
         renderer.paragraphStart();
     }
