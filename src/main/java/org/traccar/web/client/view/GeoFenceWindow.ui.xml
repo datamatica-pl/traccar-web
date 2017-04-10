@@ -11,6 +11,10 @@
   <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" field="verticalLayoutData">
     <ui:attributes width="1" height="-1" />
   </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" field="match_parent">
+      <ui:attributes width="1" height="1" />
+  </ui:with>
 
   <ui:with type="com.sencha.gxt.widget.core.client.form.NumberPropertyEditor" field="floatPropertyEditor" />
 
@@ -88,7 +92,7 @@
                   <container:child layoutData="{verticalLayoutData}">
                       <button:TextButton ui:field="selectAllButton" text="{i18n.selectAll}" />
                   </container:child>
-                  <container:child layoutData="{verticalLayoutData}">
+                  <container:child layoutData="{match_parent}">
                       <grid:Grid ui:field="grid" store="{deviceSelectionStore}" cm="{columnModel}" view="{view}" />
                   </container:child>
               </container:VerticalLayoutContainer>
