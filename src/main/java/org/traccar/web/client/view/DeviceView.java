@@ -840,7 +840,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                     }
                     return false;
                 } else {
-                    return item.getName().toLowerCase().contains(filter.toLowerCase());
+                    Device d = (Device) item;
+                    return item.getName().toLowerCase().contains(filter.toLowerCase())
+                            || d.getUniqueId().contains(filter);
                 }
             }
         };
