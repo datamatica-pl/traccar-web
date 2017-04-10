@@ -144,7 +144,7 @@ public class ReportEV extends ReportGenerator {
         tableHeadStart();
         tableRowStart();
 
-        for (String header : new String[] {"time", "event", "eventPosition"}) {
+        for (String header : new String[] {"time", "event"}) {
             tableHeadCellStart();
             text(message(header));
             tableHeadCellEnd();
@@ -171,9 +171,6 @@ public class ReportEV extends ReportGenerator {
                 eventText += " (" + event.getMaintenance().getName() + ")";
             }
             tableCell(eventText);
-            tableCellStart();
-            mapLink(event.getPosition().getLatitude(), event.getPosition().getLongitude());
-            tableCellEnd();
             extentCell(event.getPosition(), event.getPosition());
             tableRowEnd();
 
