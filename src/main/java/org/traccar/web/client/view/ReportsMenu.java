@@ -32,6 +32,7 @@ import pl.datamatica.traccar.model.ReportType;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import org.traccar.web.client.ApplicationContext;
 
 public class ReportsMenu extends Menu {
     public interface ReportHandler {

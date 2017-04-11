@@ -102,9 +102,6 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
 
     @UiField(provided = true)
     TabPanel devicesTabs;
-    
-    @UiField
-    CheckBox snapToRoads;
 
     @UiField
     TextButton reportButton;
@@ -310,9 +307,4 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
             }
         }
     }
-    
-    @UiHandler("snapToRoads")
-    public void onSnapToRoadsClicked(ValueChangeEvent<Boolean> event) {
-        archiveHandler.onSnapToRoads(snapToRoads.getValue());
-}
 }

@@ -56,6 +56,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.persist.Transactional;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hibernate.Session;
@@ -422,12 +423,12 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 if(other.get(IGNITION_KEY) != null)
                     device.setIgnitionEnabled((boolean)other.get(IGNITION_KEY));
                 
-                // Set ignition to disabled if device hasn't been seen for more than one hour
-                Long lastPositionTime = device.getLatestPosition().getServerTime().getTime();
-                Long currentTime = new Date().getTime();
-                Long lastPositionSecondsAgo = (currentTime - lastPositionTime) / 1000;
-                int oneHourSeconds = 3600;
-                if (lastPositionSecondsAgo > oneHourSeconds) {
+                // Set ignition to disabled if device hasn't been seen for more than fifteen minutes
+                long lastPositionTime = device.getLatestPosition().getServerTime().getTime();
+                long currentTime = new Date().getTime();
+                long lastPositionSecondsAgo = TimeUnit.SECONDS.convert(
+                        currentTime - lastPositionTime, TimeUnit.MILLISECONDS);
+                if (lastPositionSecondsAgo > IGNITION_EXPIRATION_SECONDS) {
                     device.setIgnitionEnabled(false);
                 }
                 
@@ -503,6 +504,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
         return devices;
     }
+    private static final int IGNITION_EXPIRATION_SECONDS = 900;
     private static final String IGNITION_KEY = "ignition";
     private static final String ALARM_KEY = "alarm";
 

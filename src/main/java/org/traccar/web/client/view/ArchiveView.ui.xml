@@ -42,7 +42,6 @@
                     <toolbar:LabelToolItem width="5" />
                     <button:TextButton ui:field="filterButton" text="{i18n.filter}..." />
                     <toolbar:LabelToolItem width="2" />
-                    <form:CheckBox ui:field="snapToRoads" boxLabel="{i18n.snapToRoads}" stateful="true" stateId="snapToRoads" />
 
 
                     <toolbar:SeparatorToolItem />

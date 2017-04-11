@@ -189,7 +189,7 @@ public class ReportDS extends ReportGenerator {
     }
 
     void drawTable(List<Data> datas) {
-        tableStart("table", hover().condensed());
+        tableStart("table", hover().condensed().height(DEFAULT_TABLE_HEIGHT));
 
         // header
         tableHeadStart();
@@ -200,14 +200,7 @@ public class ReportDS extends ReportGenerator {
             text(message(header));
             tableHeadCellEnd();
         }
-
-        tableHeadCellStart(colspan(3));
-        text(message("stopPosition"));
-        tableHeadCellEnd();
-
-        tableRowEnd();
-
-        tableRowStart();
+        
         for (String header : new String[] {"distance", "topSpeed", "averageSpeed"}) {
             tableHeadCellStart();
             text(message(header));
@@ -240,14 +233,7 @@ public class ReportDS extends ReportGenerator {
             }
             tableCell(formatDuration(data.getDuration()));
 
-            if (data.idle) {
-                tableCellStart(colspan(3));
-                mapLink(data.start.getLatitude(), data.start.getLongitude());
-                if (data.start.getAddress() != null && !data.start.getAddress().isEmpty()) {
-                    text(" - " + data.start.getAddress());
-                }
-                tableCellEnd();
-            } else {
+            if(!data.idle) {
                 tableCell(formatDistance(data.distance));
                 tableCell(formatSpeed(data.topSpeed));
                 tableCell(formatSpeed(data.getAverageSpeed()));
