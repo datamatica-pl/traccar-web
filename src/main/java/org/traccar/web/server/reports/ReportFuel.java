@@ -46,36 +46,39 @@ public class ReportFuel extends ReportGenerator {
             panelBodyStart();
             
             printData(positions);
-            drawPlot();
+            declareFunctions();
+            drawPlot(new DataAccessor().id("io83").conversion("Math.round(y*0.1, 1)"));
+            drawPlot(new DataAccessor().id("io84").conversion("Math.round(y*0.1, 1)"));
+            drawPlot(new DataAccessor().id("io89"));
 
             panelBodyEnd();
 
             panelEnd();
-
         }
-    
     }
     
-    private void drawPlot() {
-        html("<svg width=\"100%\" height=\"260\" style=\"border: 1px solid black;\">");
-        html("</svg>");
+    private void declareFunctions() {
         html("<script type=\"text/javascript\">");
-        html("var pts = data.filter(function(d) { return d.other.io89 !== undefined; })"
-                + ".map(function (d) {return {x: d.time, y: d.other.io89}};);");
-        html("var plotWidth = d3.select(\"svg\").node().getBoundingClientRect().width;");
-        html("var minDate = d3.min(pts, function(d) { return d.x; });\n" +
-             "var maxDate = d3.max(pts, function(d) { return d.x; });\n" +
-             "var x = d3.scaleTime()\n" +
-             "               .domain([minDate, maxDate])\n" +
+        html("function range(arr, f) {\n"
+           + "    return [d3.min(arr, f), d3.max(arr, f)];\n"
+           + "}");
+        html("function drawPlot(id, yf, yfc) {");
+        html("var pts = data.filter(function(d) { return yf(d) !== undefined; })\n"
+                + ".map(function (d) {return {x: d.time, y: yfc(yf(d))};});");
+        html("var plotWidth = d3.select(\"#\"+id).node().getBoundingClientRect().width;");
+        html("var x = d3.scaleTime()\n" +
+             "               .domain(range(pts, function(d) {return d.x;}))\n" +
              "               .range([30, plotWidth-30]);\n" +
              "var bisector = d3.bisector(function(d) { return d.x; }).left;\n" +
+             "var yRange = range(pts, function(d) { return d.y;});\n"+
+             "yRange[1] = Math.max(yRange[1], yRange[0]+1);\n"+
              "var y = d3.scaleLinear()\n" +
-             "          .domain([0, 100])\n" +
+             "          .domain(yRange)\n" +
              "          .range([200, 30]);\n" +
              "var line = d3.line()\n" +
              "             .x(function(d) { return x(d.x);})\n" +
              "             .y(function(d) { return y(d.y);});\n" +
-             "var svg = d3.select(\"svg\");");
+             "var svg = d3.select('#'+id);");
         
         html("svg.append(\"g\")\n" +
              "   .append(\"path\")\n" +
@@ -85,10 +88,10 @@ public class ReportFuel extends ReportGenerator {
              "   .attr(\"fill\", \"none\");\n" +
              "svg.append(\"g\")\n" +
              "   .attr(\"transform\", \"translate(30, 0)\")\n" +
-             "   .call(d3.axisLeft().scale(scaleY));\n" +
+             "   .call(d3.axisLeft().scale(y));\n" +
              "svg.append(\"g\")\n" +
              "   .attr(\"transform\", \"translate(0, 200)\")\n" +
-             "   .call(d3.axisBottom().scale(scaleX));");
+             "   .call(d3.axisBottom().scale(x));");
         
         html("var focus = svg.append(\"g\")\n" +
              "               .style(\"display\", \"none\");\n" +
@@ -106,9 +109,9 @@ public class ReportFuel extends ReportGenerator {
              "svg.on(\"mousemove\", function() {\n" +
              "    var date = x.invert(d3.mouse(this)[0]);\n" +
              "    var index = bisector(pts, date, 1);\n" +
-             "    d0 = ev[index-1];\n" +
-             "    d1 = index == ev.length ? d0 : ev[index];\n" +
-             "    var d = date - new Date(d0.x) > new Date(d1.x) - date ? d1 : d0;\n" +
+             "    d0 = pts[index-1];\n" +
+             "    d1 = index == pts.length ? d0 : pts[index];\n" +
+             "    var d = date - d0.x > d1.x - date ? d1 : d0;\n" +
              "    focus.attr(\"transform\", \"translate(\"+x(d.x)+\",\"+y(d.y)+\")\");\n" +
              "    focus.select(\"text\").text(d.y);\n" +
              "    var bbox = focus.select(\"text\").node().getBBox();\n" +
@@ -118,6 +121,16 @@ public class ReportFuel extends ReportGenerator {
              "         .attr(\"width\", bbox.width+6)\n" +
              "         .attr(\"height\", bbox.height+2);\n" +
              "});");
+        html("}");
+        html("</script>");
+    }
+    
+    private void drawPlot(DataAccessor accessor) {
+        html("<svg id=\""+accessor.id()+"\" width=\"100%\" height=\"260\" style=\"border: 1px solid black;\">");
+        html("</svg>");
+        html("<script type=\"text/javascript\">");
+        html("drawPlot('"+accessor.id()+"', "+accessor.access()+", "
+                + accessor.convert()+");");
         html("</script>");
     }
 
@@ -131,4 +144,32 @@ public class ReportFuel extends ReportGenerator {
         html("</script>");
     }
     
+    
+    private static class DataAccessor {
+        String id;
+        String name;
+        String conversion = "y";
+        
+        public DataAccessor id(String id) {
+            this.id = id;
+            return this;
+        }
+        
+        public DataAccessor conversion(String conversion) {
+            this.conversion = conversion;
+            return this;
+        }
+        
+        public String id() {
+            return id;
+        }
+        
+        public String access() {
+            return "function(d) { return d.other."+id+";}";
+        }
+        
+        public String convert() {
+            return "function(y) { return "+conversion+";}";
+        }
+    }
 }

@@ -68,7 +68,7 @@ public class HtmlReportRenderer implements IReportRenderer {
             line("<script src=\"https://cdnjs.cloudflare.com/ajax/libs/ol3/3.11.1/ol.min.js\" type=\"text/javascript\"></script>");
         }
         if(report.getType() == ReportType.FUEL_CONSUMPTION) {
-            line("<script src=\"\"https://d3js.org/d3.v4.min.js\" type=\"text/javascript\"></script>");
+            line("<script src=\"https://d3js.org/d3.v4.min.js\" type=\"text/javascript\"></script>");
         }
         
         line("</head>").line("<body>").line("<div class=\"container\">");
