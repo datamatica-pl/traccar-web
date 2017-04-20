@@ -77,9 +77,8 @@ public class GeoFenceCalculator {
     }
 
     public boolean contains(GeoFence geoFence, Position position) {
-        // if geo-fence is device specific then check whether position's device matches
-        if (!geoFence.isAllDevices() &&
-            (position.getDevice() == null || !geoFence.getDevices().contains(position.getDevice()))) {
+        if (position.getDevice() == null 
+                || !geoFence.getDevices().contains(position.getDevice())) {
             return false;
         }
 

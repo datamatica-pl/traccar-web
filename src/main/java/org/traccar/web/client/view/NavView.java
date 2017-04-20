@@ -236,6 +236,6 @@ public class NavView {
     }
     
     public static native void redirectToUserGuide() /*-{
-        $wnd.location = "http://dm.trackman.pl/pl/trackman-help";
+        $wnd.location = "http://dm.trackman.pl/?page_id=2560";
     }-*/;
 }

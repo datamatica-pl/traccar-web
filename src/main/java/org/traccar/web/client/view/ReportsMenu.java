@@ -32,6 +32,7 @@ import pl.datamatica.traccar.model.ReportType;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import org.traccar.web.client.ApplicationContext;
 
 public class ReportsMenu extends Menu {
     public interface ReportHandler {
@@ -55,7 +56,11 @@ public class ReportsMenu extends Menu {
         this.reportHandler = reportHandler;
         this.reportSettingsHandler = reportSettingsHandler;
         syncReports();
-        for (final ReportType type : ReportType.values()) {
+        ReportType[] available = ApplicationContext.getInstance().getUser()
+                .isPremium() ? ReportType.values() : new ReportType[] {
+                    ReportType.GENERAL_INFORMATION, ReportType.EVENTS
+                };
+        for (final ReportType type : available) {
             MenuItem reportItem = new MenuItem(i18n.reportType(type));
             reportItem.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override

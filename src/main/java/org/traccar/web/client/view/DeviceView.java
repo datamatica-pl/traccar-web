@@ -41,7 +41,6 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
@@ -841,7 +840,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                     }
                     return false;
                 } else {
-                    return item.getName().toLowerCase().contains(filter.toLowerCase());
+                    Device d = (Device) item;
+                    return item.getName().toLowerCase().contains(filter.toLowerCase())
+                            || d.getUniqueId().contains(filter);
                 }
             }
         };

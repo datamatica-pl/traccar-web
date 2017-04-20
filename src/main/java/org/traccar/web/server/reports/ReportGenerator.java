@@ -38,6 +38,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public abstract class ReportGenerator {
+    public static final int DEFAULT_TABLE_HEIGHT = 150;
+    
     @Inject
     EntityManager entityManager;
 
@@ -196,7 +198,7 @@ public abstract class ReportGenerator {
     public void tableBodyStart() {
         renderer.tableBodyStart();
     }
-
+    
     public void paragraphStart() {
         renderer.paragraphStart();
     }
@@ -354,7 +356,7 @@ public abstract class ReportGenerator {
         // filter device-specific geo-fences that are not assigned to device from method arguments
         for (Iterator<GeoFence> it = geoFences.iterator(); it.hasNext(); ) {
             GeoFence geoFence = it.next();
-            if (!geoFence.isAllDevices() && !geoFence.getDevices().contains(device)) {
+            if (!geoFence.getDevices().contains(device)) {
                 it.remove();
             }
         }

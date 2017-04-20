@@ -6,20 +6,14 @@
 package org.traccar.web.server.reports;
 
 import java.io.IOException;
-import java.util.List;
-import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.Report;
-import pl.datamatica.traccar.model.UserSettings;
 
-/**
- *
- * @author admin
- */
 public interface IReportRenderer {
     
     static class TableStyle {
         private boolean hover;
         private boolean condensed;
+        private Integer height;
 
         TableStyle hover() {
             this.hover = true;
@@ -30,12 +24,20 @@ public interface IReportRenderer {
             this.condensed = true;
             return this;
         }
+        
+        TableStyle height(int h) {
+            this.height = h;
+            return this;
+        }
 
         @Override
         public String toString() {
             return "class=\"table" +
                     (hover ? " table-hover" : "") +
-                    (condensed ? " table-condensed" : "") + "\"";
+                    (condensed ? " table-condensed" : "") + "\" "
+                    + "style=\"overflow:auto;"+
+                    (height != null ? "display:block;height:"+height+"px;" : "")
+                    +"\"";
         }
     }
     

@@ -72,7 +72,6 @@ public class DBMigrations {
                 new SetGlobalHashSalt(),
                 new SetDefaultUserSettings(),
                 new SetArchiveDefaultColumns(),
-                new SetGeoFenceAllDevicesFlag(),
                 new SetReportsFilterAndPreview(),
                 new SetDefaultNotificationExpirationPeriod(),
                 new SetDefaultExpiredFlagForEvents(),
@@ -349,15 +348,6 @@ public class DBMigrations {
         @Override
         public void migrate(EntityManager em) throws Exception {
             em.createQuery("UPDATE " + User.class.getSimpleName() + " U SET U.archive = :b WHERE U.archive IS NULL")
-                    .setParameter("b", Boolean.TRUE)
-                    .executeUpdate();
-        }
-    }
-
-    static class SetGeoFenceAllDevicesFlag implements Migration {
-        @Override
-        public void migrate(EntityManager em) throws Exception {
-            em.createQuery("UPDATE " + GeoFence.class.getName() + " G SET G.allDevices = :b WHERE G.allDevices IS NULL")
                     .setParameter("b", Boolean.TRUE)
                     .executeUpdate();
         }

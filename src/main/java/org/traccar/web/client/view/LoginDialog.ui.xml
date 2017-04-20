@@ -52,7 +52,7 @@
       </container:child>
       <container:child layoutData="{verticalLayoutData}">
           <g:HTMLPanel>
-            <a href="http://dm.trackman.pl/pl/rejestracja/">
+            <a href="http://dm.trackman.pl/?page_id=2560">
                 <g:Label text="{i18n.termsLabel}" />
             </a>
           </g:HTMLPanel>
