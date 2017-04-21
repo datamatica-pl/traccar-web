@@ -47,9 +47,12 @@ public class ReportFuel extends ReportGenerator {
             
             printData(positions);
             declareFunctions();
-            drawPlot(new DataAccessor().id("io83").conversion("Math.round(y*0.1, 1)"));
-            drawPlot(new DataAccessor().id("io84").conversion("Math.round(y*0.1, 1)"));
-            drawPlot(new DataAccessor().id("io89"));
+            drawPlot(new DataAccessor().id("io83").conversion("y*0.1")
+                    .normalize(true),
+                    "Fuel consumed [l]");
+            drawPlot(new DataAccessor().id("io84").conversion("y*0.1"),
+                    "Fuel level [l]");
+            drawPlot(new DataAccessor().id("io89"), "Fuel level [%]");
 
             panelBodyEnd();
 
@@ -62,9 +65,7 @@ public class ReportFuel extends ReportGenerator {
         html("function range(arr, f) {\n"
            + "    return [d3.min(arr, f), d3.max(arr, f)];\n"
            + "}");
-        html("function drawPlot(id, yf, yfc) {");
-        html("var pts = data.filter(function(d) { return yf(d) !== undefined; })\n"
-                + ".map(function (d) {return {x: d.time, y: yfc(yf(d))};});");
+        html("function drawPlot(id, pts, title) {");
         html("var plotWidth = d3.select(\"#\"+id).node().getBoundingClientRect().width;");
         html("var x = d3.scaleTime()\n" +
              "               .domain(range(pts, function(d) {return d.x;}))\n" +
@@ -79,6 +80,12 @@ public class ReportFuel extends ReportGenerator {
              "             .x(function(d) { return x(d.x);})\n" +
              "             .y(function(d) { return y(d.y);});\n" +
              "var svg = d3.select('#'+id);");
+        
+        html("svg.append('text')\n"+
+             "   .attr(\"text-anchor\", \"middle\")\n" +
+             "   .attr(\"x\", plotWidth/2)\n" + 
+             "   .attr('y', 20)\n" +
+             "   .text(title);");
         
         html("svg.append(\"g\")\n" +
              "   .append(\"path\")\n" +
@@ -101,7 +108,6 @@ public class ReportFuel extends ReportGenerator {
              "     .attr(\"stroke\", \"black\")\n" +
              "     .attr(\"stroke-width\", 1);\n" +
              "focus.append(\"text\")\n" +
-             "     .attr(\"style\", \"border: 1px solid black;\")\n" +
              "     .attr(\"text-anchor\", \"middle\")\n" +
              "     .attr(\"dy\", \".35em\");\n" +
              "svg.on(\"mouseover\", function() { focus.style(\"display\", null); })\n" +
@@ -113,7 +119,7 @@ public class ReportFuel extends ReportGenerator {
              "    d1 = index == pts.length ? d0 : pts[index];\n" +
              "    var d = date - d0.x > d1.x - date ? d1 : d0;\n" +
              "    focus.attr(\"transform\", \"translate(\"+x(d.x)+\",\"+y(d.y)+\")\");\n" +
-             "    focus.select(\"text\").text(d.y);\n" +
+             "    focus.select(\"text\").text(+d.y.toFixed(1));\n" +
              "    var bbox = focus.select(\"text\").node().getBBox();\n" +
              "    focus.select(\"rect\")\n" +
              "         .attr(\"x\", bbox.x-3)\n" +
@@ -125,12 +131,12 @@ public class ReportFuel extends ReportGenerator {
         html("</script>");
     }
     
-    private void drawPlot(DataAccessor accessor) {
+    private void drawPlot(DataAccessor accessor, String title) {
         html("<svg id=\""+accessor.id()+"\" width=\"100%\" height=\"260\" style=\"border: 1px solid black;\">");
         html("</svg>");
         html("<script type=\"text/javascript\">");
-        html("drawPlot('"+accessor.id()+"', "+accessor.access()+", "
-                + accessor.convert()+");");
+        html(accessor.build());
+        html("drawPlot('"+accessor.id()+"', pts, '"+title+"');");
         html("</script>");
     }
 
@@ -147,8 +153,8 @@ public class ReportFuel extends ReportGenerator {
     
     private static class DataAccessor {
         String id;
-        String name;
         String conversion = "y";
+        boolean normalize = false;
         
         public DataAccessor id(String id) {
             this.id = id;
@@ -160,16 +166,29 @@ public class ReportFuel extends ReportGenerator {
             return this;
         }
         
+        public DataAccessor normalize(boolean normalize) {
+            this.normalize = normalize;
+            return this;
+        }
+        
         public String id() {
             return id;
         }
         
-        public String access() {
-            return "function(d) { return d.other."+id+";}";
-        }
-        
-        public String convert() {
-            return "function(y) { return "+conversion+";}";
+        public String build() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("yfc = function(y) { return ").append(conversion).append("; };\n");
+            sb.append("var pts = data.filter(function(d) { return d.other.").append(id)
+                    .append(" !== undefined; })\n")
+                    .append(".map(function(d) { return {x: d.time, ")
+                    .append("y: yfc(d.other.").append(id).append(")}; });\n");
+            if(normalize) {
+                sb.append("var yRange = range(pts, function(d) { return d.y; });\n");
+                sb.append("var scale = d3.scaleLinear().domain(yRange).range([0, yRange[1]-yRange[0]]);\n");
+                sb.append("pts = pts.map(function(d) { return {x: d.x, ")
+                        .append("y: scale(d.y)}; });\n");
+            }
+            return sb.toString();
         }
     }
 }
