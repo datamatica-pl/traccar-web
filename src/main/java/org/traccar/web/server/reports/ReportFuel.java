@@ -17,7 +17,13 @@ package org.traccar.web.server.reports;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import static org.traccar.web.server.reports.ReportGenerator.DEFAULT_TABLE_HEIGHT;
+import org.traccar.web.server.utils.JsonXmlParser;
 import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.DeviceEvent;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Maintenance;
 import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.Report;
 
@@ -47,12 +53,13 @@ public class ReportFuel extends ReportGenerator {
             
             printData(positions);
             declareFunctions();
+            drawTable(positions);
             drawPlot(new DataAccessor().id("io83").conversion("y*0.1")
                     .normalize(true),
-                    "Fuel consumed [l]");
+                    "fuelConsumed");
             drawPlot(new DataAccessor().id("io84").conversion("y*0.1"),
-                    "Fuel level [l]");
-            drawPlot(new DataAccessor().id("io89"), "Fuel level [%]");
+                    "fuelLevel");
+            drawPlot(new DataAccessor().id("io89"), "fuelLevelPercentage");
 
             panelBodyEnd();
 
@@ -136,7 +143,7 @@ public class ReportFuel extends ReportGenerator {
         html("</svg>");
         html("<script type=\"text/javascript\">");
         html(accessor.build());
-        html("drawPlot('"+accessor.id()+"', pts, '"+title+"');");
+        html("drawPlot('"+accessor.id()+"', pts, '"+message(title)+"');");
         html("</script>");
     }
 
@@ -148,6 +155,58 @@ public class ReportFuel extends ReportGenerator {
                 html("{time:new Date(\""+p.getTime()+"\"),other:"+p.getOther()+"},");
         html("]");
         html("</script>");
+    }
+
+    private void drawTable(List<Position> positions) {
+        tableStart("table", hover().condensed().height(DEFAULT_TABLE_HEIGHT));
+
+        // header
+        tableHeadStart();
+        tableRowStart();
+
+        for (String header : new String[] {"time", "fuelConsumed", "fuelLevel"}) {
+            tableHeadCellStart();
+            text(message(header));
+            tableHeadCellEnd();
+        }
+
+        tableHeadEnd();
+        
+        // body
+        tableBodyStart();
+
+        Double startFuelConsumed = null;
+        for (Position p : positions) {
+            if (p.getOther() == null || p.getOther().isEmpty()) {
+                continue;
+            }
+            Map<String, Object> other = JsonXmlParser.parse(p.getOther());
+            if(!other.containsKey("io83") && !other.containsKey("io84"))
+                continue;
+            
+            tableRowStart();
+            tableCell(formatDate(p.getTime()));
+            if(other.containsKey("io83")) {
+                double val = Double.parseDouble(other.get("io83").toString()) / 10;
+                if(startFuelConsumed == null)
+                    startFuelConsumed = val;
+                tableCell(String.format("%.1f", val - startFuelConsumed));
+            } else {
+                tableCell("");
+            }
+            
+            if(other.containsKey("io84")) {
+                double val = Double.parseDouble(other.get("io84").toString()) / 10;
+                tableCell(String.format("%.1f", val));
+            } else {
+                tableCell("");
+            }
+            
+            tableRowEnd();
+        }
+
+        tableBodyEnd();
+        tableEnd();
     }
     
     
