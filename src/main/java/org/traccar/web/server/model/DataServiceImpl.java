@@ -334,6 +334,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     public User removeUser(User user) throws AccessDeniedException {
         User currentUser = getSessionUser();
         EntityManager entityManager = getSessionEntityManager();
+        entityManager.unwrap(Session.class).disableFilter("softDelete");
         user = entityManager.find(User.class, user.getId());
         // Don't allow user to delete himself
         if (user.equals(currentUser)) {
@@ -353,7 +354,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                     .executeUpdate();
         }
         entityManager.createQuery("DELETE FROM NotificationSettings s WHERE s.user=:user").setParameter("user", user).executeUpdate();
-        entityManager.createQuery("UPDATE Device d SET d.owner=null WHERE d.owner=:user").setParameter("user", user).executeUpdate();
+        entityManager.createQuery("UPDATE Device d SET d.owner=null, d.deleted=true WHERE d.owner=:user")
+                .setParameter("user", user).executeUpdate();
         for (Device device : user.getDevices()) {
             device.getUsers().remove(user);
         }

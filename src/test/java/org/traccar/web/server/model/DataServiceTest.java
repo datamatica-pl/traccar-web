@@ -273,9 +273,7 @@ public class DataServiceTest {
         runInTransaction(new Callable<Object>() {
             @Override
             public Object call() throws Exception {
-                Device device = dataService.getDevices().get(0);
-                assertTrue(device.getUsers().isEmpty());
-                assertNull(device.getOwner());
+                assertTrue(dataService.getDevices().isEmpty());
                 return null;
             }
         });
