@@ -370,7 +370,8 @@ public class EventServiceImpl extends RemoteServiceServlet implements EventServi
         @Override
         void positionScanned(Position prevPosition, Position position) {
             Device device = position.getDevice();
-            if (position.getSpeed() == null || device.getSpeedLimit() == null) {
+            if (position.getSpeed() == null || device.getSpeedLimit() == null
+                    || device.getSpeedLimit() < 0.99) {
                 return;
             }
 
