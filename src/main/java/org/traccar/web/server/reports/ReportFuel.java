@@ -21,9 +21,6 @@ import java.util.Map;
 import static org.traccar.web.server.reports.ReportGenerator.DEFAULT_TABLE_HEIGHT;
 import org.traccar.web.server.utils.JsonXmlParser;
 import pl.datamatica.traccar.model.Device;
-import pl.datamatica.traccar.model.DeviceEvent;
-import pl.datamatica.traccar.model.GeoFence;
-import pl.datamatica.traccar.model.Maintenance;
 import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.Report;
 
@@ -57,9 +54,8 @@ public class ReportFuel extends ReportGenerator {
             drawPlot(new DataAccessor().id("io83").conversion("y*0.1")
                     .normalize(true),
                     "fuelConsumed");
-            drawPlot(new DataAccessor().id("io84").conversion("y*0.1"),
+            drawPlot(new DataAccessor().id("io84"),
                     "fuelLevel");
-            drawPlot(new DataAccessor().id("io89"), "fuelLevelPercentage");
 
             panelBodyEnd();
 

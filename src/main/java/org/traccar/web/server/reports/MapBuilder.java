@@ -17,6 +17,7 @@ package org.traccar.web.server.reports;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import org.traccar.web.client.view.MarkerIcon;
 import pl.datamatica.traccar.model.DeviceEventType;
 import pl.datamatica.traccar.model.Position;
@@ -191,6 +192,34 @@ public class MapBuilder {
         
         private static String src(DeviceEventType type) {
             return "/img/event_"+type.name()+".png";
+        }
+    }
+    
+    public static class MapBoundsBuilder {
+        private double minLon, minLat, maxLon, maxLat;
+        
+        public MapBoundsBuilder addPosition(Position p) {
+            minLat = Math.min(minLat, p.getLatitude());
+            minLon = Math.min(minLon, p.getLongitude());
+            maxLat = Math.max(maxLat, p.getLatitude());
+            maxLon = Math.max(maxLon, p.getLongitude());
+            return this;
+        }
+        
+        public String create(double minSize) { 
+            if(maxLat - minLat < minSize) {
+                double dLat = minSize-maxLat+minLat;
+                minLat -= dLat/2;
+                maxLat += dLat/2;
+            }
+            if(maxLon - minLon < minSize) {
+                double dLon = minSize-maxLon+minLon;
+                minLon -= dLon;
+                maxLon += dLon;
+            }
+            
+            return String.format(Locale.US, "[%f,%f,%f,%f]", 
+                    minLon, minLat, maxLon, maxLat);
         }
     }
 }
