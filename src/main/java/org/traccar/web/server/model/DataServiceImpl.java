@@ -426,7 +426,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                     device.setIgnitionEnabled((boolean)other.get(IGNITION_KEY));
                 
                 // Set ignition to disabled if device hasn't been seen for more than fifteen minutes
-                long lastPositionTime = device.getLatestPosition().getServerTime().getTime();
+                long lastPositionTime = device.getLatestPosition().getTime().getTime();
                 long currentTime = new Date().getTime();
                 long lastPositionSecondsAgo = TimeUnit.SECONDS.convert(
                         currentTime - lastPositionTime, TimeUnit.MILLISECONDS);
