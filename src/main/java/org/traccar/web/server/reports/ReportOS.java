@@ -61,6 +61,7 @@ public class ReportOS extends ReportGenerator {
             // data table
             if (!positions.isEmpty()) {
                 drawTable(positions);
+                drawMap(positions);
             }
 
             panelBodyEnd();
@@ -70,7 +71,7 @@ public class ReportOS extends ReportGenerator {
     }
 
     void drawTable(List<Position> positions) {
-        tableStart(hover().condensed());
+        tableStart("table", hover().condensed().height(DEFAULT_TABLE_HEIGHT));
 
         // header
         tableHeadStart();
@@ -108,9 +109,8 @@ public class ReportOS extends ReportGenerator {
                 tableCell(formatDuration(duration));
                 tableCell(formatSpeed(topSpeed));
                 tableCell(formatSpeed(speedSUM / overspeedPositionCount));
-                tableCellStart();
-                mapLink(start.getLatitude(), start.getLongitude());
-                tableCellEnd();
+                tableCell(formatSpeed(start.getSpeed()));
+                extentCell(start, start);
                 tableRowEnd();
 
                 // reset counters
@@ -137,5 +137,14 @@ public class ReportOS extends ReportGenerator {
 
     private boolean isOverspeed(Position position) {
         return position.getSpeed() > position.getDevice().getSpeedLimit();
+    }
+
+    private void drawMap(List<Position> positions) {
+        MapBuilder builder = getMapBuilder();
+        for(Position p : positions) {
+            if(isOverspeed(p))
+                builder.marker(p, MapBuilder.MarkerStyle.arrow(p.getCourse()));
+        }
+        html(builder.bindWithTable("table", 1).create());
     }
 }

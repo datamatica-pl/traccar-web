@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import pl.datamatica.traccar.model.ReportType;
 
 public class HtmlReportRenderer implements IReportRenderer {
     final HttpServletResponse response;
@@ -66,7 +67,10 @@ public class HtmlReportRenderer implements IReportRenderer {
             line("<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/ol3/3.11.1/ol.min.js\" type=\"text/css\">");
             line("<script src=\"https://cdnjs.cloudflare.com/ajax/libs/ol3/3.11.1/ol.min.js\" type=\"text/javascript\"></script>");
         }
-
+        if(report.getType() == ReportType.FUEL_CONSUMPTION) {
+            line("<script src=\"https://d3js.org/d3.v4.min.js\" type=\"text/javascript\"></script>");
+        }
+        
         line("</head>").line("<body>").line("<div class=\"container\">");
     }
 
