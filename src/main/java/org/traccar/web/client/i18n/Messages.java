@@ -39,6 +39,8 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
 
     String password();
 
+    String resetPassword();
+    
     String login();
 
     String register();
@@ -635,4 +637,6 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String selectAll();
 
     public String reportsForPremium();
+    
+    String resetMailSent();
 }

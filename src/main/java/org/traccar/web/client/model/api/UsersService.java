@@ -23,7 +23,7 @@ import org.fusesource.restygwt.client.JsonCallback;
 
 @Path("../api/v1/users")
 public interface UsersService extends RestService{
-    public class AddUserDto {
+    public static class AddUserDto {
         public String email;
         public String imei;
         public String password;
@@ -40,4 +40,18 @@ public interface UsersService extends RestService{
     
     @POST
     void register(AddUserDto dto, JsonCallback callback);
+    
+    
+    public static class ResetPasswordDto {
+        public String login;
+        
+        public ResetPasswordDto() {}
+        public ResetPasswordDto(String login) {
+            this.login = login;
+        }
+    }
+    
+    @POST
+    @Path("resetreq")
+    void resetPassword(ResetPasswordDto dto, JsonCallback callback);
 }

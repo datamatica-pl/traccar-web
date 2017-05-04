@@ -25,11 +25,13 @@ import org.traccar.web.client.ApplicationContext;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BodyElement;
+import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.Window;
+import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.PasswordField;
@@ -38,6 +40,11 @@ import org.traccar.web.client.widget.LanguageComboBox;
 
 import java.util.List;
 import java.util.Map;
+import org.fusesource.restygwt.client.JsonCallback;
+import org.fusesource.restygwt.client.Method;
+import org.traccar.web.client.i18n.Messages;
+import org.traccar.web.client.model.api.UsersService;
+import org.traccar.web.client.model.api.UsersService.ResetPasswordDto;
 
 public class LoginDialog {
 
@@ -67,6 +74,8 @@ public class LoginDialog {
 
     @UiField
     TextButton registerButton;
+    
+    private Messages i18n = GWT.create(Messages.class);
 
     public LoginDialog(LoginHandler loginHandler) {
         this.loginHandler = loginHandler;
@@ -127,6 +136,22 @@ public class LoginDialog {
                 }
             });
         dialog.show();
+    }
+    
+    @UiHandler("resetButton")
+    public void onResetClicked(SelectEvent event) {
+        UsersService us = GWT.create(UsersService.class);
+        us.resetPassword(new ResetPasswordDto(login.getText()), new JsonCallback() {
+            @Override
+            public void onFailure(Method method, Throwable exception) {
+                new AlertMessageBox(i18n.success(), i18n.resetMailSent()).show();
+            }
+
+            @Override
+            public void onSuccess(Method method, JSONValue response) {
+                new AlertMessageBox(i18n.success(), i18n.resetMailSent()).show();
+            }
+        });
     }
 
     @UiHandler({ "login", "password" })
