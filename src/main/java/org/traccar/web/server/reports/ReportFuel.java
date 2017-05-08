@@ -192,7 +192,7 @@ public class ReportFuel extends ReportGenerator {
             }
             
             if(other.containsKey("io84")) {
-                double val = Double.parseDouble(other.get("io84").toString()) / 10;
+                double val = Double.parseDouble(other.get("io84").toString());
                 tableCell(String.format("%.1f", val));
             } else {
                 tableCell("");
