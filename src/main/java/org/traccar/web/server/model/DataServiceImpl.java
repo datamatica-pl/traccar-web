@@ -400,6 +400,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 }
             });
         }
+        if(devices.isEmpty())
+            return devices;
         TypedQuery<UserDeviceStatus> alarmQuery = getSessionEntityManager().createQuery(
                 "FROM UserDeviceStatus x "
               + "WHERE x.id.user = :user AND x.id.device in (:devices)", UserDeviceStatus.class);
