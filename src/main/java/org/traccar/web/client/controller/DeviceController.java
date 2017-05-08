@@ -167,8 +167,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
                 devices.addDevice(dto, new JsonCallback(){
                     @Override
                     public void onFailure(Method method, Throwable exception) {
-                        GWT.log("Failure");
-                        MessageBox msg = new AlertMessageBox(i18n.error(), i18n.errDeviceExists());
+                        MessageBox msg = new AlertMessageBox(i18n.error(), i18n.errInvalidImeiNoContact());
                         msg.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
                             @Override
                             public void onDialogHide(DialogHideEvent event) {
@@ -189,7 +188,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
                         Application.getDataService().updateDevice(device, new AsyncCallback<Device>() {
                             @Override
                             public void onFailure(Throwable caught) {
-                                MessageBox msg = new AlertMessageBox(i18n.error(), i18n.errDeviceExists());
+                                MessageBox msg = new AlertMessageBox(i18n.error(), i18n.errUpdateFailed());
                                 msg.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
                                     @Override
                                     public void onDialogHide(DialogHideEvent event) {
@@ -242,7 +241,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
                         if (caught instanceof ValidationException) {
                             msg = new AlertMessageBox(i18n.error(), i18n.errNoDeviceNameOrId());
                         } else {
-                            msg = new AlertMessageBox(i18n.error(), i18n.errDeviceExists());
+                            msg = new AlertMessageBox(i18n.error(), i18n.errUpdateFailed());
                         }
                         if (msg != null) {
                             msg.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
