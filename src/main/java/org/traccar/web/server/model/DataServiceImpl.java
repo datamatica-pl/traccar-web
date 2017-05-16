@@ -424,17 +424,6 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 Map<String, Object> other = JsonXmlParser.parse(device.getLatestPosition().getOther());
                 if(other.get(ALARM_KEY) != null)
                     device.setAlarmEnabled((boolean)other.get(ALARM_KEY));
-                if(other.get(IGNITION_KEY) != null)
-                    device.setIgnitionEnabled((boolean)other.get(IGNITION_KEY));
-                
-                // Set ignition to disabled if device hasn't been seen for more than fifteen minutes
-                long lastPositionTime = device.getLatestPosition().getTime().getTime();
-                long currentTime = new Date().getTime();
-                long lastPositionSecondsAgo = TimeUnit.SECONDS.convert(
-                        currentTime - lastPositionTime, TimeUnit.MILLISECONDS);
-                if (lastPositionSecondsAgo > IGNITION_EXPIRATION_SECONDS) {
-                    device.setIgnitionEnabled(false);
-                }
                 
                 String protocolName = device.getProtocol();
                 if(protocolName == null)
@@ -508,8 +497,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
         return devices;
     }
-    private static final int IGNITION_EXPIRATION_SECONDS = 900;
-    private static final String IGNITION_KEY = "ignition";
+    
     private static final String ALARM_KEY = "alarm";
 
     @Transactional

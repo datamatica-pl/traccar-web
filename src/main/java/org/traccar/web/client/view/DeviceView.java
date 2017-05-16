@@ -88,10 +88,12 @@ import org.traccar.web.client.state.DeviceVisibilityChangeHandler;
 import org.traccar.web.client.state.DeviceVisibilityHandler;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDoubleClickEvent.CellDoubleClickHandler {
 
     private static DeviceViewUiBinder uiBinder = GWT.create(DeviceViewUiBinder.class);
+    private static final int IGNITION_EXPIRATION_SECONDS = 900;
 
     interface DeviceViewUiBinder extends UiBinder<Widget, DeviceView> {
     }
@@ -475,7 +477,17 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         private void init(Device device, Resources resources) {
             this.device = device;
-            ignition = device.isIgnitionEnabled() ? resources.ignitionEnabled() : resources.ignitionDisabled();
+            ignition = resources.ignitionDisabled();
+            if(device.getIgnition() != null && device.getIgnitionTime() != null
+                && device.getIgnition()) {
+                // Set ignition to enabled if device has been seen lesss than 15 seconds ago
+                long lastPositionTime = device.getLatestPosition().getTime().getTime();
+                long currentTime = new Date().getTime();
+                long lastPositionSecondsAgo = (currentTime - lastPositionTime)/1000;
+                if (lastPositionSecondsAgo <= IGNITION_EXPIRATION_SECONDS) {
+                    ignition = resources.ignitionEnabled();
+                }
+            }
             alarms = device.hasUnreadAlarms()? resources.speedAlarmActive() : resources.speedAlarmInactive();
         }
         
