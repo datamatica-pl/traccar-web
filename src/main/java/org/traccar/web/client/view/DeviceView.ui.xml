@@ -22,6 +22,7 @@
   </ui:with>
 
   <ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig" field="geoFencesTabConfig" />
+  <ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig" field="tracksTabConfig" />
 
   <ui:with type="com.sencha.gxt.data.shared.ListStore" field="geoFenceStore" />
 
@@ -55,6 +56,10 @@
 
           <gxt:child config="{geoFencesTabConfig}">
             <gxt:ListView ui:field="geoFenceList" store="{geoFenceStore}" />
+          </gxt:child>
+          
+          <gxt:child config="{tracksTabConfig}">
+              <button:TextButton ui:field="trackList" text="{i18n.add}" />
           </gxt:child>
         </gxt:TabPanel>
       </container:child>

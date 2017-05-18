@@ -643,4 +643,9 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String errUpdateFailed();
     
     String errInvalidImeiNoContact();
+    
+    //tracks
+    String tracks();
+    String trackName();
+    String connectPoints();
 }

@@ -39,6 +39,7 @@ import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.User;
 
 import java.util.*;
+import org.traccar.web.client.view.TrackDialog;
 
 public class GeoFenceController implements ContentController, DeviceView.GeoFenceHandler {
     private final MapController mapController;
@@ -117,6 +118,24 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
                 onClear();
                 geoFenceManagementStopped();
             }
+        }).show();
+    }
+    
+    @Override
+    public void onAddMany() {
+        new TrackDialog(new TrackDialog.GeoFenceHandler() {
+            @Override
+            public void onSave(GeoFence gf) {
+                Application.getDataService().addGeoFence(gf,
+                        new BaseAsyncCallback<GeoFence>(i18n) {
+                            @Override
+                            public void onSuccess(GeoFence addedGeoFence) {
+                                geoFenceStore.add(addedGeoFence);
+                                geoFenceStore.applySort(false);
+                            }
+                        });
+            }
+            
         }).show();
     }
 

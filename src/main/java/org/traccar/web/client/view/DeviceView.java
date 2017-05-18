@@ -114,6 +114,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
     public interface GeoFenceHandler {
         void onAdd();
+        void onAddMany();
         void onEdit(GeoFence geoFence);
         void onRemove(GeoFence geoFence);
         void onSelected(GeoFence geoFence);
@@ -567,6 +568,12 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
     @UiField(provided = true)
     ListView<GeoFence, String> geoFenceList;
+    
+    @UiField(provided=true)
+    TabItemConfig tracksTabConfig;
+    
+    @UiField
+    TextButton trackList;
 
     @UiField(provided = true)
     Messages i18n = GWT.create(Messages.class);
@@ -879,6 +886,8 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         geoFenceList.getSelectionModel().addSelectionChangedHandler(geoFenceSelectionHandler);
 
         geoFenceHandler.setGeoFenceListView(geoFenceList);
+        
+        tracksTabConfig = new TabItemConfig("tracks");
 
         // tab panel
         objectsTabs = new TabPanel();
@@ -972,7 +981,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
     @UiHandler("addButton")
     public void onAddClicked(SelectEvent event) {
-        if (editingGeoFences()) {
+        if(objectsTabs.getActiveWidget() == trackList) {
+            geoFenceHandler.onAddMany();
+        } else if (editingGeoFences()) {
             geoFenceHandler.onAdd();
         } else {
             deviceHandler.onAdd();
