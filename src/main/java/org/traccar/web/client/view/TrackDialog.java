@@ -28,10 +28,12 @@ import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.widget.core.client.Window;
+import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent.BeforeStartEditHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
+import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.NumberField;
 import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor;
 import com.sencha.gxt.widget.core.client.form.StringComboBox;
@@ -66,6 +68,10 @@ public class TrackDialog {
     TextField name;
     @UiField(provided = true)
     Grid<TrackPoint> grid;
+    @UiField
+    TextButton selectDevice;
+    @UiField
+    FieldLabel trackNameLabel;
     
     Messages i18n = GWT.create(Messages.class);
     
@@ -85,6 +91,18 @@ public class TrackDialog {
         
         prepareGrid(gfs);
         uiBinder.createAndBindUi(this);
+        
+        connect.setValue(true);
+        connect.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+            @Override
+            public void onValueChange(ValueChangeEvent<Boolean> event) {
+                if(event.getValue() == null) 
+                    return;
+                trackNameLabel.setVisible(event.getValue());
+                selectDevice.setVisible(event.getValue());
+            }
+            
+        });
     }
 
     private void prepareGrid(ListStore<GeoFence> gfs) {
@@ -138,7 +156,7 @@ public class TrackDialog {
                     @Override
                     public String getPath() {
                         return "radius";
-                    }}, 70, "radius");
+                    }}, 50, i18n.radius());
         ccList.add(cRadius);
         ColumnModel<TrackPoint> cm = new ColumnModel<>(ccList);
         grid = new Grid<>(store, cm);

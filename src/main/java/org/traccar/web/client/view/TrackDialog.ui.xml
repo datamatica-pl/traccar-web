@@ -8,7 +8,8 @@
   	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
         xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid">
 
-  <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" field="verticalLayoutData">
+  <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" 
+           field="verticalLayoutData">
     <ui:attributes width="1" height="-1" />
   </ui:with>
 
@@ -16,16 +17,14 @@
     <ui:attributes top="4" right="0" bottom="4" left="0" />
   </ui:with>
 
-  <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" field="verticalLayoutDataWithButtons">
+  <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" 
+           field="verticalLayoutDataWithButtons">
       <ui:attributes width="1" height="-1" margins="{buttonDataMargins}"/>
   </ui:with>
-
-  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="rightMargins">
-    <ui:attributes top="0" right="4" bottom="0" left="0" />
-  </ui:with>
-
-  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData" field="horizontalLayoutData">
-      <ui:attributes width="-1" height="-1" margins="{rightMargins}" />
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+           field="gridLayoutData">
+      <ui:attributes width="1" height="1" />
   </ui:with>
 
   <ui:style>
@@ -36,7 +35,8 @@
 
   <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
 
-  <gxt:Window ui:field="window" pixelSize="690, 570" modal="true" headingText="Tworzenie trasy" focusWidget="{saveButton}">
+  <gxt:Window ui:field="window" pixelSize="590, 550" modal="true" 
+              headingText="{i18n.trackCreation}" focusWidget="{saveButton}">
     <container:VerticalLayoutContainer addStyleNames="{style.tabBody}">
         
         <container:child layoutData="{verticalLayoutData}">
@@ -48,19 +48,28 @@
         </container:child>
         
         <container:child layoutData="{verticalLayoutData}">
-            <form:FieldLabel text="{i18n.trackName}" labelWidth="180" visible="false">
+            <form:FieldLabel text="{i18n.trackName}" labelWidth="180" 
+                ui:field="trackNameLabel">
                 <form:widget>
                     <form:TextField ui:field="name" allowBlank="false" />
                 </form:widget>
             </form:FieldLabel>
         </container:child>
         
-        <container:child layoutData="{verticalLayoutData}">
+        <container:child layoutData="{verticalLayoutDataWithButtons}">
             <button:TextButton ui:field="addButton" ui:text="{i18n.add}" />
         </container:child>
         
-        <container:child layoutData="{verticalLayoutData}">
+        <container:child layoutData="{gridLayoutData}">
             <grid:Grid ui:field="grid" />
+        </container:child>
+        
+        <container:child layoutData="{verticalLayoutDataWithButtons}">
+            <button:TextButton ui:field="addFromMap" ui:text="{i18n.addFromMap}" />
+        </container:child>
+        
+        <container:child layoutData="{verticalLayoutDataWithButtons}">
+            <button:TextButton ui:field="selectDevice" ui:text="{i18n.selectDevice}" />
         </container:child>
         
     </container:VerticalLayoutContainer>

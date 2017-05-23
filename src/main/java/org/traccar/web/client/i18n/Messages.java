@@ -648,4 +648,7 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String tracks();
     String trackName();
     String connectPoints();
+    String trackCreation();
+    String selectDevice();
+    String addFromMap();
 }

@@ -887,7 +887,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
         geoFenceHandler.setGeoFenceListView(geoFenceList);
         
-        tracksTabConfig = new TabItemConfig("tracks");
+        tracksTabConfig = new TabItemConfig(i18n.tracks());
 
         // tab panel
         objectsTabs = new TabPanel();
