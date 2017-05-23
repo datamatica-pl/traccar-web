@@ -50,13 +50,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.gwtopenmaps.openlayers.client.LonLat;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.utils.Geocoder;
 import org.traccar.web.client.utils.Geocoder.SearchCallback;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.GeoFenceType;
 
-public class TrackDialog {
+public class TrackDialog implements MapPointSelectionDialog.PointSelectedListener {
     interface _UiBinder extends UiBinder<Widget, TrackDialog> {}
     private static _UiBinder uiBinder = GWT.create(_UiBinder.class);
     
@@ -204,10 +205,7 @@ public class TrackDialog {
                     lon *= -1;
                 store.commitChanges();
                 TrackPoint p = grid.getSelectionModel().getSelectedItem();
-                p.gf.setPoints(lon+" "+lat);
-                if(p.gf.getName() == null || p.gf.getName().isEmpty()) {
-                    p.gf.setName("pkt_"+(int)(lon*10)+"_"+(int)(lat*10));
-                }
+                p.setLonLat(lon, lat);
                 store.update(p);
             }
         });
@@ -234,6 +232,18 @@ public class TrackDialog {
     @UiHandler("addButton")
     public void add(SelectEvent selectEvent) {
         store.add(new TrackPoint());
+    }
+    
+    @UiHandler("addFromMap")
+    public void addFromMap(SelectEvent se) {
+        new MapPointSelectionDialog(this).show();
+    }
+    
+    @Override
+    public void onPointSelected(LonLat lonLat) {
+        TrackPoint tp = new TrackPoint();
+        tp.setLonLat(lonLat.lon(), lonLat.lat());
+        store.add(tp);
     }
     
     @UiHandler("saveButton")
@@ -285,6 +295,17 @@ public class TrackDialog {
             gf.setType(GeoFenceType.CIRCLE);
             gf.setRadius(300);
             gf.setAddress("");
+        }
+        
+        public void setLonLat(double lon, double lat) {
+            gf.setPoints(lon+" "+lat);
+            if(gf.getAddress() == null || gf.getAddress().isEmpty()) {
+                String latDir = lat < 0 ? "S" : "N";
+                String lonDir = lon < 0 ? "W" : "E";
+                gf.setAddress(Math.abs(lat)+latDir+" "+Math.abs(lon)+lonDir);
+            }
+            if(gf.getName() == null || gf.getName().isEmpty())
+                gf.setName("pkt_"+(int)(lon*10)+"_"+(int)(lat*10));
         }
     }
 }
