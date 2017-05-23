@@ -18,6 +18,8 @@ package org.traccar.web.client.view;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.regexp.shared.MatchResult;
+import com.google.gwt.regexp.shared.RegExp;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -69,6 +71,8 @@ public class TrackDialog {
     
     ListStore<TrackPoint> store;
     final GeoFenceHandler gfHandler;
+    
+    RegExp latLonPatt = RegExp.compile("(\\d+(\\.\\d+)?)([NS])\\s*(\\d+(\\.\\d+)?)([WE])"); 
     
     public TrackDialog(final GeoFenceHandler gfHandler, ListStore<GeoFence> gfs) {
         this.gfHandler = gfHandler;
@@ -167,6 +171,28 @@ public class TrackDialog {
             }
         });
         cbName.setForceSelection(false);
+        
+        addr.addValueChangeHandler(new ValueChangeHandler<String>() {
+            @Override
+            public void onValueChange(ValueChangeEvent<String> e) {
+                MatchResult m = latLonPatt.exec(e.getValue());
+                if(m == null)
+                    return;
+                double lat = Double.parseDouble(m.getGroup(1));
+                if(m.getGroup(3).equals("S"))
+                    lat *= -1;
+                double lon = Double.parseDouble(m.getGroup(4));
+                if(m.getGroup(6).equals("W"))
+                    lon *= -1;
+                store.commitChanges();
+                TrackPoint p = grid.getSelectionModel().getSelectedItem();
+                p.gf.setPoints(lon+" "+lat);
+                if(p.gf.getName() == null || p.gf.getName().isEmpty()) {
+                    p.gf.setName("pkt_"+(int)(lon*10)+"_"+(int)(lat*10));
+                }
+                store.update(p);
+            }
+        });
 
         edit.addEditor(cName, cbName);
         edit.addEditor(cAddress, addr);
@@ -198,14 +224,18 @@ public class TrackDialog {
         for(TrackPoint pt : store.getAll()) {
             final GeoFence gf = pt.gf;
             if(gf.getId() == 0) {
-                Geocoder.search(pt.gf.getAddress(), new SearchCallback() {
-                    @Override
-                    public void onResult(float lon, float lat) {
-                        gf.setPoints(lon+" "+lat);
-                        gfHandler.onSave(gf);
-                    }
+                if(gf.getPoints() != null && !gf.getPoints().isEmpty()) {
+                    gfHandler.onSave(gf);
+                } else {
+                    Geocoder.search(pt.gf.getAddress(), new SearchCallback() {
+                        @Override
+                        public void onResult(float lon, float lat) {
+                            gf.setPoints(lon+" "+lat);
+                            gfHandler.onSave(gf);
+                        }
 
-                });
+                    });
+                }
             }
         }
     }
