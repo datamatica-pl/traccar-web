@@ -136,7 +136,7 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
                         });
             }
             
-        }).show();
+        }, geoFenceStore).show();
     }
 
     @Override
