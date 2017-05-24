@@ -114,12 +114,15 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
     public interface GeoFenceHandler {
         void onAdd();
-        void onAddMany();
         void onEdit(GeoFence geoFence);
         void onRemove(GeoFence geoFence);
         void onSelected(GeoFence geoFence);
         void onShare(GeoFence geoFence);
         void setGeoFenceListView(ListView<GeoFence, String> geoFenceListView);
+    }
+    
+    public interface RouteHandler {
+        void onAdd();
     }
 
     public interface CommandHandler {
@@ -519,6 +522,8 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     private final GeoFenceHandler geoFenceHandler;
 
     private final CommandHandler commandHandler;
+    
+    private final RouteHandler rHandler;
 
     @UiField
     ContentPanel contentPanel;
@@ -581,6 +586,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     public DeviceView(final DeviceHandler deviceHandler,
                       final GeoFenceHandler geoFenceHandler,
                       final CommandHandler commandHandler,
+                      final RouteHandler routeHandler,
                       final DeviceVisibilityHandler deviceVisibilityHandler,
                       final ListStore<Device> globalDeviceStore,
                       final ListStore<GeoFence> geoFenceStore,
@@ -591,6 +597,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         this.geoFenceHandler = geoFenceHandler;
         this.commandHandler = commandHandler;
         this.geoFenceStore = geoFenceStore;
+        this.rHandler = routeHandler;
 
         // create a new devices store so the filtering will not affect global store
         this.deviceStore = new DeviceStore(groupStore, globalDeviceStore);
@@ -982,7 +989,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     @UiHandler("addButton")
     public void onAddClicked(SelectEvent event) {
         if(objectsTabs.getActiveWidget() == trackList) {
-            geoFenceHandler.onAddMany();
+            rHandler.onAdd();
         } else if (editingGeoFences()) {
             geoFenceHandler.onAdd();
         } else {

@@ -29,6 +29,7 @@ import org.traccar.web.shared.model.*;
 
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
+import pl.datamatica.traccar.model.Route;
 
 @RemoteServiceRelativePath("dataService")
 public interface DataService extends RemoteService {
@@ -88,4 +89,6 @@ public interface DataService extends RemoteService {
     String sendCommand(Command command) throws AccessDeniedException;
     
     void updateAlarmsViewTime(Device device);
+    
+    Route addRoute(Route route, boolean connect) throws TraccarException;
 }

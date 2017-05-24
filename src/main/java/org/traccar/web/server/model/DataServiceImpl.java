@@ -56,7 +56,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.persist.Transactional;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hibernate.Session;
@@ -68,6 +67,8 @@ import org.traccar.web.client.model.EventService;
 import org.traccar.web.server.utils.JsonXmlParser;
 import org.traccar.web.server.utils.StopsDetector;
 import org.traccar.web.shared.model.*;
+import pl.datamatica.traccar.model.Route;
+import pl.datamatica.traccar.model.RoutePoint;
 import pl.datamatica.traccar.model.UserDeviceStatus;
 
 @Singleton
@@ -1295,6 +1296,22 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         status.setLastCheck(new Date());
         status.setUnreadAlarms(false);
         em.merge(status);
+    }
+    
+    @Transactional
+    @RequireUser
+    @Override
+    public Route addRoute(Route route, boolean connect) throws TraccarException {
+        EntityManager em = getSessionEntityManager();
+        for(RoutePoint pt : route.getRoutePoints()) {
+            GeoFence gf = pt.getGeofence();
+            if(gf.getId() == 0)
+                addGeoFence(gf);
+        }
+        route.setCreated(new Date());
+        if(connect)
+            em.persist(route);
+        return new Route(route);
     }
     
     public static class CommandHandler implements ICommandHandler{

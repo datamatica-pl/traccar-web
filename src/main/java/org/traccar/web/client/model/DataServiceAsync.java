@@ -28,6 +28,7 @@ import java.util.Map;
 import org.traccar.web.shared.model.*;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import pl.datamatica.traccar.model.Route;
 
 public interface DataServiceAsync {
 
@@ -86,4 +87,6 @@ public interface DataServiceAsync {
     void sendCommand(Command command, AsyncCallback<String> async);
     
     void updateAlarmsViewTime(Device device, AsyncCallback<Void> async);
+    
+    void addRoute(Route route, boolean connect, AsyncCallback<Route> async);
 }

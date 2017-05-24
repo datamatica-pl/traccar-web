@@ -68,8 +68,8 @@
             <button:TextButton ui:field="addFromMap" ui:text="{i18n.addFromMap}" />
         </container:child>
         
-        <container:child layoutData="{verticalLayoutDataWithButtons}">
-            <button:TextButton ui:field="selectDevice" ui:text="{i18n.selectDevice}" />
+        <container:child layoutData="{verticalLayoutData}">
+            <form:ComboBox ui:field="selectDevice" ui:text="{i18n.selectDevice}" />
         </container:child>
         
     </container:VerticalLayoutContainer>

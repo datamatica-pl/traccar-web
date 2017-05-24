@@ -25,6 +25,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.ValueProvider;
+import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.widget.core.client.Window;
@@ -33,6 +34,7 @@ import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent.BeforeStartEditHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
+import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.NumberField;
 import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor;
@@ -54,8 +56,11 @@ import org.gwtopenmaps.openlayers.client.LonLat;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.utils.Geocoder;
 import org.traccar.web.client.utils.Geocoder.SearchCallback;
+import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.GeoFenceType;
+import pl.datamatica.traccar.model.Route;
+import pl.datamatica.traccar.model.RoutePoint;
 
 public class TrackDialog implements MapPointSelectionDialog.PointSelectedListener {
     interface _UiBinder extends UiBinder<Widget, TrackDialog> {}
@@ -69,20 +74,21 @@ public class TrackDialog implements MapPointSelectionDialog.PointSelectedListene
     TextField name;
     @UiField(provided = true)
     Grid<TrackPoint> grid;
-    @UiField
-    TextButton selectDevice;
+    @UiField(provided = true)
+    ComboBox<Device> selectDevice;
     @UiField
     FieldLabel trackNameLabel;
     
     Messages i18n = GWT.create(Messages.class);
     
     ListStore<TrackPoint> store;
-    final GeoFenceHandler gfHandler;
+    final RouteHandler routeHandler;
     
     RegExp latLonPatt = RegExp.compile("(\\d+(\\.\\d+)?)([NS])\\s*(\\d+(\\.\\d+)?)([WE])"); 
     
-    public TrackDialog(final GeoFenceHandler gfHandler, ListStore<GeoFence> gfs) {
-        this.gfHandler = gfHandler;
+    public TrackDialog(final RouteHandler routeHandler, ListStore<Device> devs,
+            ListStore<GeoFence> gfs) {
+        this.routeHandler = routeHandler;
         store = new ListStore<>(new ModelKeyProvider<TrackPoint>() {
             @Override
             public String getKey(TrackPoint item) {
@@ -91,6 +97,12 @@ public class TrackDialog implements MapPointSelectionDialog.PointSelectedListene
         });
         
         prepareGrid(gfs);
+        selectDevice = new ComboBox(devs, new LabelProvider<Device>() {
+            @Override
+            public String getLabel(Device item) {
+                return item.getName();
+            }
+        });
         uiBinder.createAndBindUi(this);
         
         connect.setValue(true);
@@ -249,23 +261,19 @@ public class TrackDialog implements MapPointSelectionDialog.PointSelectedListene
     @UiHandler("saveButton")
     public void save(SelectEvent selectEvent) {
         store.commitChanges();
-        for(TrackPoint pt : store.getAll()) {
-            final GeoFence gf = pt.gf;
-            if(gf.getId() == 0) {
-                if(gf.getPoints() != null && !gf.getPoints().isEmpty()) {
-                    gfHandler.onSave(gf);
-                } else {
-                    Geocoder.search(pt.gf.getAddress(), new SearchCallback() {
-                        @Override
-                        public void onResult(float lon, float lat) {
-                            gf.setPoints(lon+" "+lat);
-                            gfHandler.onSave(gf);
-                        }
-
-                    });
-                }
-            }
+        Route r = new Route();
+        for(TrackPoint tp : store.getAll()) {
+            RoutePoint rp = new RoutePoint();
+            rp.setGeofence(tp.gf);
+            r.getRoutePoints().add(rp);
         }
+        if(connect.getValue()) {
+            r.setName(name.getValue());
+            r.setDevice(selectDevice.getCurrentValue());
+        }
+        
+        RouteGenerator g = new RouteGenerator(r, routeHandler, connect.getValue());
+        g.start();
     }
     
     @UiHandler("cancelButton")
@@ -274,8 +282,60 @@ public class TrackDialog implements MapPointSelectionDialog.PointSelectedListene
     }
     
     
-    public static interface GeoFenceHandler {
-        void onSave(GeoFence gf);
+    public static interface RouteHandler {
+        void onSave(Route route, boolean connect);
+    }
+    
+    static class RouteGenerator {
+        List<GeoFence> waiting;
+        int geocodedCount;
+        List<GeoFence> ready;
+        
+        RouteHandler routeHandler;
+        Route route;
+        boolean connect;
+        
+        public RouteGenerator(Route route, RouteHandler rHandler, 
+                boolean connect) {
+            waiting = new ArrayList<>();
+            ready = new ArrayList<>();
+            this.route = route;
+            this.routeHandler = rHandler;
+            this.connect = connect;
+            
+            for(RoutePoint rp : route.getRoutePoints()) {
+                GeoFence gf = rp.getGeofence();
+                if(gf.getId() != 0)
+                    ready.add(gf);
+                else if(gf.getPoints() != null && !gf.getPoints().isEmpty()) {
+                    ready.add(gf);
+                } else {
+                    waiting.add(gf);
+                }
+            }
+        }
+        
+        public void start() {
+            geocodedCount = 0;
+            if(waiting.isEmpty())
+                save();
+            for(final GeoFence gf : waiting) {
+                Geocoder.search(gf.getAddress(), new SearchCallback() {
+                        @Override
+                        public void onResult(float lon, float lat) {
+                            ++geocodedCount;
+                            gf.setPoints(lon+" "+lat);
+                            ready.add(gf);
+                            if(geocodedCount == waiting.size())
+                                save();
+                        }
+                    });
+            }
+        }
+        
+        public void save() {
+            routeHandler.onSave(route, connect);
+        }
     }
     
     static class TrackPoint {

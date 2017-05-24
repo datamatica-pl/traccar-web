@@ -55,6 +55,7 @@ public class Application {
     private final NavController navController;
     private final ImportController importController;
     private final DeviceController deviceController;
+    private final RouteController routeController;
     private final CommandController commandController;
     private final GeoFenceController geoFenceController;
     private final MapController mapController;
@@ -82,9 +83,11 @@ public class Application {
         geoFenceController.getGeoFenceStore().addStoreHandlers(geoFenceStoreHandler);
         commandController = new CommandController();
         reportsController = new ReportsController(reportStore, deviceStore, geoFenceController.getGeoFenceStore());
+        routeController = new RouteController(deviceStore, geoFenceController.getGeoFenceStore());
         deviceController = new DeviceController(mapController,
                 geoFenceController,
                 commandController,
+                routeController,
                 visibilityController,
                 deviceStore,
                 deviceStoreHandler,
