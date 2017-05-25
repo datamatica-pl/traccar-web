@@ -89,6 +89,7 @@ import org.traccar.web.client.state.DeviceVisibilityHandler;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import pl.datamatica.traccar.model.Route;
 
 public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDoubleClickEvent.CellDoubleClickHandler {
 
@@ -123,6 +124,10 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     
     public interface RouteHandler {
         void onAdd();
+
+        public void onEdit(Route selectedItem);
+
+        public void onRemove(Route selectedItem);
     }
 
     public interface CommandHandler {
@@ -523,7 +528,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
     private final CommandHandler commandHandler;
     
-    private final RouteHandler rHandler;
+    private final RouteHandler routeHandler;
 
     @UiField
     ContentPanel contentPanel;
@@ -577,8 +582,8 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     @UiField(provided=true)
     TabItemConfig tracksTabConfig;
     
-    @UiField
-    TextButton trackList;
+    @UiField(provided = true)
+    ListView<Route, String> routeList;
 
     @UiField(provided = true)
     Messages i18n = GWT.create(Messages.class);
@@ -592,13 +597,14 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                       final ListStore<GeoFence> geoFenceStore,
                       GroupStore groupStore,
                       final ListStore<Report> reportStore,
+                      ListStore<Route> routeStore,
                       final ReportsMenu.ReportHandler reportHandler) {
         this.deviceHandler = deviceHandler;
         this.geoFenceHandler = geoFenceHandler;
         this.commandHandler = commandHandler;
         this.geoFenceStore = geoFenceStore;
-        this.rHandler = routeHandler;
-
+        this.routeHandler = routeHandler;
+        
         // create a new devices store so the filtering will not affect global store
         this.deviceStore = new DeviceStore(groupStore, globalDeviceStore);
         this.deviceStore.setAutoCommit(true);
@@ -895,6 +901,28 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         geoFenceHandler.setGeoFenceListView(geoFenceList);
         
         tracksTabConfig = new TabItemConfig(i18n.tracks());
+        routeList = new ListView<>(routeStore, new ValueProvider<Route, String>(){
+            @Override
+            public String getValue(Route object) {
+                return object.getName();
+            }
+
+            @Override
+            public void setValue(Route object, String value) {
+                object.setName(value);
+            }
+
+            @Override
+            public String getPath() {
+                return "name";
+            }
+        });
+        routeList.getSelectionModel().addSelectionChangedHandler(new SelectionChangedEvent.SelectionChangedHandler<Route>() {
+            @Override
+            public void onSelectionChanged(SelectionChangedEvent<Route> event) {
+                toggleManagementButtons(event.getSelection().isEmpty() ? null : event.getSelection().get(0));
+            }
+        });
 
         // tab panel
         objectsTabs = new TabPanel();
@@ -988,8 +1016,8 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
     @UiHandler("addButton")
     public void onAddClicked(SelectEvent event) {
-        if(objectsTabs.getActiveWidget() == trackList) {
-            rHandler.onAdd();
+        if(editingRoutes()) {
+            routeHandler.onAdd();
         } else if (editingGeoFences()) {
             geoFenceHandler.onAdd();
         } else {
@@ -999,7 +1027,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
     @UiHandler("editButton")
     public void onEditClicked(SelectEvent event) {
-        if (editingGeoFences()) {
+        if(editingRoutes()) {
+            routeHandler.onEdit(routeList.getSelectionModel().getSelectedItem());
+        } else if (editingGeoFences()) {
             geoFenceHandler.onEdit(geoFenceList.getSelectionModel().getSelectedItem());
         } else {
             editDevice();
@@ -1031,7 +1061,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
     @UiHandler("removeButton")
     public void onRemoveClicked(SelectEvent event) {
-        if (editingGeoFences()) {
+        if(editingRoutes()) {
+            routeHandler.onRemove(routeList.getSelectionModel().getSelectedItem());
+        } else if (editingGeoFences()) {
             geoFenceHandler.onRemove(geoFenceList.getSelectionModel().getSelectedItem());
         } else {
            removeDevice();
@@ -1075,17 +1107,25 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     private boolean editingGeoFences() {
         return objectsTabs.getActiveWidget() == geoFenceList;
     }
+    
+    private boolean editingRoutes() {
+        return objectsTabs.getActiveWidget() == routeList;
+    }
 
     private void toggleManagementButtons(Object selection) {
         if (selection instanceof Group) {
             selection = null;
         }
 
-        addButton.setEnabled(allowDeviceManagement() || editingGeoFences());
-        editButton.setEnabled(selection != null && (allowDeviceManagement() || editingGeoFences()));
-        removeButton.setEnabled(selection != null && (allowDeviceManagement() || editingGeoFences()));
-        commandButton.setEnabled(selection != null && !editingGeoFences() && allowCommandsSending() && allowDeviceManagement());
-        shareButton.setEnabled(selection != null);
+        addButton.setEnabled(allowDeviceManagement() || editingGeoFences()
+                || editingRoutes());
+        editButton.setEnabled(selection != null && (allowDeviceManagement() || editingGeoFences()
+                || editingRoutes()));
+        removeButton.setEnabled(selection != null && (allowDeviceManagement() || editingGeoFences()
+                || editingRoutes()));
+        commandButton.setEnabled(selection != null && !editingGeoFences() && !editingRoutes()
+                && allowCommandsSending() && allowDeviceManagement());
+        shareButton.setEnabled(selection != null && !editingRoutes());
     }
 
     private boolean allowDeviceManagement() {

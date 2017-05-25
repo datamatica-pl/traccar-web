@@ -90,5 +90,8 @@ public interface DataService extends RemoteService {
     
     void updateAlarmsViewTime(Device device);
     
+    List<Route> getRoutes();
     Route addRoute(Route route, boolean connect) throws TraccarException;
+    Route updateRoute(Route updated) throws TraccarException;
+    Route removeRoute(Route route);
 }

@@ -95,6 +95,7 @@ public class Application {
                 geoFenceController.getDeviceGeoFences(),
                 groupStore,
                 reportStore,
+                routeController.getStore(),
                 reportsController,
                 this);
         groupsController = new GroupsController(groupStore, deviceController);
@@ -119,6 +120,7 @@ public class Application {
         mapController.run();
         archiveController.run();
         geoFenceController.run();
+        routeController.run();
         commandController.run();
         groupsController.run();
         visibilityController.run();

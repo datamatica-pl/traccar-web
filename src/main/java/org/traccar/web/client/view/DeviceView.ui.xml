@@ -59,7 +59,7 @@
           </gxt:child>
           
           <gxt:child config="{tracksTabConfig}">
-              <button:TextButton ui:field="trackList" text="{i18n.add}" />
+            <gxt:ListView ui:field="routeList" />
           </gxt:child>
         </gxt:TabPanel>
       </container:child>

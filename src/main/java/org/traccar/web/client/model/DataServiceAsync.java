@@ -89,4 +89,10 @@ public interface DataServiceAsync {
     void updateAlarmsViewTime(Device device, AsyncCallback<Void> async);
     
     void addRoute(Route route, boolean connect, AsyncCallback<Route> async);
+
+    public void getRoutes(AsyncCallback<List<Route>> asyncCallback);
+
+    public void updateRoute(Route updated, AsyncCallback<Route> asyncCallback);
+
+    public void removeRoute(Route route, AsyncCallback<Route> asyncCallback);
 }

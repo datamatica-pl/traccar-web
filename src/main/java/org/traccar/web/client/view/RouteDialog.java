@@ -15,11 +15,20 @@
  */
 package org.traccar.web.client.view;
 
+import com.google.gwt.cell.client.Cell;
+import com.google.gwt.cell.client.ImageCell;
+import com.google.gwt.cell.client.ImageResourceCell;
+import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.EventTarget;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.regexp.shared.MatchResult;
 import com.google.gwt.regexp.shared.RegExp;
+import com.google.gwt.resources.client.ClientBundle;
+import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -52,6 +61,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.gwtopenmaps.openlayers.client.LonLat;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.utils.Geocoder;
@@ -62,9 +72,10 @@ import pl.datamatica.traccar.model.GeoFenceType;
 import pl.datamatica.traccar.model.Route;
 import pl.datamatica.traccar.model.RoutePoint;
 
-public class TrackDialog implements MapPointSelectionDialog.PointSelectedListener {
-    interface _UiBinder extends UiBinder<Widget, TrackDialog> {}
+public class RouteDialog implements MapPointSelectionDialog.PointSelectedListener {
+    interface _UiBinder extends UiBinder<Widget, RouteDialog> {}
     private static _UiBinder uiBinder = GWT.create(_UiBinder.class);
+    private static Resources R = GWT.create(Resources.class);
     
     @UiField
     Window window;
@@ -74,6 +85,8 @@ public class TrackDialog implements MapPointSelectionDialog.PointSelectedListene
     TextField name;
     @UiField(provided = true)
     Grid<TrackPoint> grid;
+    @UiField
+    FieldLabel selectDeviceLabel;
     @UiField(provided = true)
     ComboBox<Device> selectDevice;
     @UiField
@@ -81,13 +94,15 @@ public class TrackDialog implements MapPointSelectionDialog.PointSelectedListene
     
     Messages i18n = GWT.create(Messages.class);
     
+    private final Route route;
     ListStore<TrackPoint> store;
     final RouteHandler routeHandler;
     
     RegExp latLonPatt = RegExp.compile("(\\d+(\\.\\d+)?)([NS])\\s*(\\d+(\\.\\d+)?)([WE])"); 
     
-    public TrackDialog(final RouteHandler routeHandler, ListStore<Device> devs,
-            ListStore<GeoFence> gfs) {
+    public RouteDialog(Route route, final RouteHandler routeHandler, 
+            ListStore<Device> devs, ListStore<GeoFence> gfs) {
+        this.route = route;
         this.routeHandler = routeHandler;
         store = new ListStore<>(new ModelKeyProvider<TrackPoint>() {
             @Override
@@ -106,16 +121,29 @@ public class TrackDialog implements MapPointSelectionDialog.PointSelectedListene
         uiBinder.createAndBindUi(this);
         
         connect.setValue(true);
+        //editing!
+        if(route.getId() != 0)
+            connect.setEnabled(false);
         connect.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
             @Override
             public void onValueChange(ValueChangeEvent<Boolean> event) {
                 if(event.getValue() == null) 
                     return;
                 trackNameLabel.setVisible(event.getValue());
-                selectDevice.setVisible(event.getValue());
+                selectDeviceLabel.setVisible(event.getValue());
             }
             
         });
+        
+        name.setValue(route.getName());
+        
+        for(RoutePoint p : route.getRoutePoints()) {
+            TrackPoint tp = new TrackPoint();
+            tp.gf = p.getGeofence();
+            store.add(tp);
+        }
+        if(route.getDevice() != null)
+            selectDevice.setValue(route.getDevice());
     }
 
     private void prepareGrid(ListStore<GeoFence> gfs) {
@@ -135,7 +163,7 @@ public class TrackDialog implements MapPointSelectionDialog.PointSelectedListene
                     @Override
                     public String getPath() {
                         return "name";
-                    }}, 150, i18n.name());
+                    }}, 140, i18n.name());
         ccList.add(cName);
         ColumnConfig<TrackPoint, String> cAddress = new ColumnConfig<>(
                 new ValueProvider<TrackPoint, String>() {
@@ -152,7 +180,7 @@ public class TrackDialog implements MapPointSelectionDialog.PointSelectedListene
                     @Override
                     public String getPath() {
                         return "address";
-                    }}, 350, i18n.address());
+                    }}, 330, i18n.address());
         ccList.add(cAddress);
         ColumnConfig<TrackPoint, Integer> cRadius = new ColumnConfig<>(
                 new ValueProvider<TrackPoint, Integer>() {
@@ -171,6 +199,38 @@ public class TrackDialog implements MapPointSelectionDialog.PointSelectedListene
                         return "radius";
                     }}, 50, i18n.radius());
         ccList.add(cRadius);
+        ColumnConfig<TrackPoint, ImageResource> cDelete = new ColumnConfig<>(
+                new ValueProvider<TrackPoint, ImageResource>() {
+                    @Override
+                    public ImageResource getValue(TrackPoint object) {
+                        return R.remove();
+                    }
+
+                    @Override
+                    public void setValue(TrackPoint object, ImageResource value) {
+                    }
+
+                    @Override
+                    public String getPath() {
+                        return "delete";
+                    }
+                }, 30, "");
+        cDelete.setCell(new ImageResourceCell() {
+            @Override
+            public Set<String> getConsumedEvents() {
+                return Collections.singleton("click");
+            }
+            
+            
+            @Override
+            public void onBrowserEvent(Cell.Context context, Element parent, ImageResource value,
+                    NativeEvent event, ValueUpdater<ImageResource> valueUpdater) {
+                super.onBrowserEvent(context, parent, value, event, valueUpdater);
+                store.remove(context.getIndex());
+            }
+            
+        });
+        ccList.add(cDelete);
         ColumnModel<TrackPoint> cm = new ColumnModel<>(ccList);
         grid = new Grid<>(store, cm);
         
@@ -261,18 +321,17 @@ public class TrackDialog implements MapPointSelectionDialog.PointSelectedListene
     @UiHandler("saveButton")
     public void save(SelectEvent selectEvent) {
         store.commitChanges();
-        Route r = new Route();
         for(TrackPoint tp : store.getAll()) {
             RoutePoint rp = new RoutePoint();
             rp.setGeofence(tp.gf);
-            r.getRoutePoints().add(rp);
+            route.getRoutePoints().add(rp);
         }
         if(connect.getValue()) {
-            r.setName(name.getValue());
-            r.setDevice(selectDevice.getCurrentValue());
+            route.setName(name.getValue());
+            route.setDevice(selectDevice.getCurrentValue());
         }
         
-        RouteGenerator g = new RouteGenerator(r, routeHandler, connect.getValue());
+        RouteGenerator g = new RouteGenerator(route, routeHandler, connect.getValue());
         g.start();
     }
     
@@ -367,5 +426,10 @@ public class TrackDialog implements MapPointSelectionDialog.PointSelectedListene
             if(gf.getName() == null || gf.getName().isEmpty())
                 gf.setName("pkt_"+(int)(lon*10)+"_"+(int)(lat*10));
         }
+    }
+    
+    static interface Resources extends ClientBundle {
+        @ClientBundle.Source("org/traccar/web/client/theme/icon/remove.png")
+        ImageResource remove();
     }
 }

@@ -1298,19 +1298,58 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         em.merge(status);
     }
     
+    @Override
+    public List<Route> getRoutes() {
+        EntityManager em = getSessionEntityManager();
+        TypedQuery<Route> tq = em.createQuery("from Route r where owner = :user", 
+                Route.class).setParameter("user", getSessionUser());
+        List<Route> copy = new ArrayList<>();
+        for(Route r : tq.getResultList())
+            copy.add(new Route(r));
+        return copy;
+    }
+    
     @Transactional
     @RequireUser
     @Override
     public Route addRoute(Route route, boolean connect) throws TraccarException {
         EntityManager em = getSessionEntityManager();
+        addRouteGeofences(route);
+        route.setCreated(new Date());
+        route.setOwner(getSessionUser());
+        if(connect)
+            em.persist(route);
+        return new Route(route);
+    }
+    
+    @Transactional
+    @RequireUser
+    @Override
+    public Route updateRoute(Route updated) throws TraccarException {
+        EntityManager em = getSessionEntityManager();
+        Route existing = em.find(Route.class, updated.getId());
+        existing.update(updated);
+        addRouteGeofences(existing);
+        //attach routepoints
+        em.merge(existing);
+        return new Route(existing);
+    }
+    
+    private void addRouteGeofences(Route route) throws TraccarException {
         for(RoutePoint pt : route.getRoutePoints()) {
             GeoFence gf = pt.getGeofence();
             if(gf.getId() == 0)
                 addGeoFence(gf);
         }
-        route.setCreated(new Date());
-        if(connect)
-            em.persist(route);
+    }
+
+    @Transactional
+    @RequireUser
+    @Override
+    public Route removeRoute(Route route) {
+        EntityManager em = getSessionEntityManager();
+        route = em.find(Route.class, route.getId());
+        em.remove(route);
         return new Route(route);
     }
     

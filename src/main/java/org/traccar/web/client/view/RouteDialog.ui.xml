@@ -69,7 +69,11 @@
         </container:child>
         
         <container:child layoutData="{verticalLayoutData}">
-            <form:ComboBox ui:field="selectDevice" ui:text="{i18n.selectDevice}" />
+            <form:FieldLabel ui:field="selectDeviceLabel" ui:text="{i18n.selectDevice}">
+                <form:widget>
+                    <form:ComboBox ui:field="selectDevice" />
+                </form:widget>
+            </form:FieldLabel>
         </container:child>
         
     </container:VerticalLayoutContainer>
