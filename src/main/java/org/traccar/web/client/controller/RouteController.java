@@ -51,13 +51,14 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     public void onAdd() {
         new RouteDialog(new Route(), new RouteDialog.RouteHandler() {
             @Override
-            public void onSave(final Route route, boolean connect) {
+            public void onSave(final Route route, final boolean connect) {
                 Application.getDataService().addRoute(route, connect,
                         new BaseAsyncCallback<Route>(i18n) {
                             @Override
                             public void onSuccess(final Route addedRoute) {
                                 updateGeofences(addedRoute);
-                                routeStore.add(addedRoute);
+                                if(connect)
+                                    routeStore.add(addedRoute);
                             }
                         });
             }

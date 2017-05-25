@@ -30,7 +30,7 @@ public class Geocoder {
     public static void search(final String address, final SearchCallback callback) {
         try {
             RequestBuilder builder = new RequestBuilder(RequestBuilder.GET,
-                    "http://nominatim.openstreetmap.org/search?format=json&q="
+                    "https://nominatim.openstreetmap.org/search?format=json&q="
                             +address);
             builder.sendRequest(null, new RequestCallback() {
                 @Override

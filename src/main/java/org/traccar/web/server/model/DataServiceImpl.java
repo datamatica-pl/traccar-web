@@ -1315,6 +1315,9 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     public Route addRoute(Route route, boolean connect) throws TraccarException {
         EntityManager em = getSessionEntityManager();
         addRouteGeofences(route);
+        if(route.getDevice() != null)
+            for(RoutePoint p : route.getRoutePoints())
+                p.getGeofence().getDevices().add(route.getDevice());
         route.setCreated(new Date());
         route.setOwner(getSessionUser());
         if(connect)
@@ -1328,7 +1331,13 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     public Route updateRoute(Route updated) throws TraccarException {
         EntityManager em = getSessionEntityManager();
         Route existing = em.find(Route.class, updated.getId());
+        if(existing.getDevice() != null)
+            for(RoutePoint p : existing.getRoutePoints())
+                p.getGeofence().getDevices().remove(existing.getDevice());
         existing.update(updated);
+        if(existing.getDevice() != null)
+            for(RoutePoint p : existing.getRoutePoints())
+                p.getGeofence().getDevices().add(existing.getDevice());
         addRouteGeofences(existing);
         //attach routepoints
         em.merge(existing);
