@@ -481,9 +481,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             if(device.getIgnition() != null && device.getIgnitionTime() != null
                 && device.getIgnition()) {
                 // Set ignition to enabled if device has been seen lesss than 15 seconds ago
-                long lastPositionTime = device.getLatestPosition().getTime().getTime();
+                long ignitionTime = device.getIgnitionTime().getTime();
                 long currentTime = new Date().getTime();
-                long lastPositionSecondsAgo = (currentTime - lastPositionTime)/1000;
+                long lastPositionSecondsAgo = (currentTime - ignitionTime)/1000;
                 if (lastPositionSecondsAgo <= IGNITION_EXPIRATION_SECONDS) {
                     ignition = resources.ignitionEnabled();
                 }
