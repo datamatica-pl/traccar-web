@@ -171,6 +171,8 @@ public class NotificationServiceImpl extends RemoteServiceServlet implements Not
                 }
 
                 for (DeviceEvent deviceEvent : entry.getValue()) {
+                    if(settings.getFailCount() > 3)
+                        break;
                     NotificationTemplate template = settings.findTemplate(deviceEvent.getType());
                     if (template == null) {
                         template = new NotificationTemplate();
@@ -186,7 +188,9 @@ public class NotificationServiceImpl extends RemoteServiceServlet implements Not
                     boolean sentPushbullet = sendPushbullet(settings, user, subject, body);
                     if (sentPushbullet || sentEmail) {
                         deviceEvent.setNotificationSent(true);
-                    }
+                        settings.clearFailures();
+                    } else
+                        settings.increaseFailures();
                 }
             }
         }
@@ -270,7 +274,7 @@ public class NotificationServiceImpl extends RemoteServiceServlet implements Not
                 transport = session.getTransport("smtp");
                 transport.connect();
                 transport.sendMessage(msg, msg.getAllRecipients());
-
+                
                 return true;
             } catch (MessagingException me) {
                 logger.log(Level.SEVERE, "Unable to send Email message", me);

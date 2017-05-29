@@ -218,21 +218,10 @@ public abstract class ReportGenerator {
     }
     
     void extentCell(Position p1, Position p2) {
-        double minx = Math.min(p1.getLongitude(), p2.getLongitude());
-        double maxx = Math.max(p1.getLongitude(), p2.getLongitude());
-        if(maxx-minx < 1e-2) {
-            double dx = 1e-2-maxx+minx;
-            minx -= dx/2;
-            maxx += dx/2;
-        }
-        double miny = Math.min(p1.getLatitude(), p2.getLatitude());
-        double maxy = Math.max(p1.getLatitude(), p2.getLatitude());
-        if(maxy - miny < 1e-2) {
-            double dy = 1e-2 -maxy + miny;
-            miny -= dy/2;
-            maxy += dy/2;
-        }
-        String extent = String.format(Locale.US, "[%f,%f,%f,%f]", minx, miny, maxx, maxy);
+        String extent = new MapBuilder.MapBoundsBuilder()
+                .addPosition(p1)
+                .addPosition(p2)
+                .create(1e-2);
         tableCellStart(new HtmlReportRenderer.CellStyle().hidden(true).id("ext"));
         text(extent);
         tableCellEnd();

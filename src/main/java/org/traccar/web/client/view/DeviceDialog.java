@@ -35,7 +35,6 @@ import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.GroupProperties;
 import org.traccar.web.client.model.GroupStore;
-import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor;

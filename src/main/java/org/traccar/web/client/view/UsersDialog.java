@@ -112,7 +112,9 @@ public class UsersDialog implements SelectionChangedEvent.SelectionChangedHandle
         userFilter.bind(this.userStore);
 
         uiBinder.createAndBindUi(this);
-
+        
+        if(!ApplicationContext.getInstance().getUser().getAdmin())
+            removeButton.setVisible(false);
         grid.getSelectionModel().addSelectionChangedHandler(this);
         grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
     }

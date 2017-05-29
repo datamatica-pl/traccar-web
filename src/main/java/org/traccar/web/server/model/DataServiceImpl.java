@@ -334,6 +334,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     public User removeUser(User user) throws AccessDeniedException {
         User currentUser = getSessionUser();
         EntityManager entityManager = getSessionEntityManager();
+        entityManager.unwrap(Session.class).disableFilter("softDelete");
         user = entityManager.find(User.class, user.getId());
         // Don't allow user to delete himself
         if (user.equals(currentUser)) {
@@ -353,7 +354,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                     .executeUpdate();
         }
         entityManager.createQuery("DELETE FROM NotificationSettings s WHERE s.user=:user").setParameter("user", user).executeUpdate();
-        entityManager.createQuery("UPDATE Device d SET d.owner=null WHERE d.owner=:user").setParameter("user", user).executeUpdate();
+        entityManager.createQuery("UPDATE Device d SET d.owner=null, d.deleted=true WHERE d.owner=:user")
+                .setParameter("user", user).executeUpdate();
         for (Device device : user.getDevices()) {
             device.getUsers().remove(user);
         }
@@ -398,6 +400,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 }
             });
         }
+        if(devices.isEmpty())
+            return devices;
         TypedQuery<UserDeviceStatus> alarmQuery = getSessionEntityManager().createQuery(
                 "FROM UserDeviceStatus x "
               + "WHERE x.id.user = :user AND x.id.device in (:devices)", UserDeviceStatus.class);
@@ -420,17 +424,6 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 Map<String, Object> other = JsonXmlParser.parse(device.getLatestPosition().getOther());
                 if(other.get(ALARM_KEY) != null)
                     device.setAlarmEnabled((boolean)other.get(ALARM_KEY));
-                if(other.get(IGNITION_KEY) != null)
-                    device.setIgnitionEnabled((boolean)other.get(IGNITION_KEY));
-                
-                // Set ignition to disabled if device hasn't been seen for more than fifteen minutes
-                long lastPositionTime = device.getLatestPosition().getServerTime().getTime();
-                long currentTime = new Date().getTime();
-                long lastPositionSecondsAgo = TimeUnit.SECONDS.convert(
-                        currentTime - lastPositionTime, TimeUnit.MILLISECONDS);
-                if (lastPositionSecondsAgo > IGNITION_EXPIRATION_SECONDS) {
-                    device.setIgnitionEnabled(false);
-                }
                 
                 String protocolName = device.getProtocol();
                 if(protocolName == null)
@@ -504,8 +497,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
         return devices;
     }
-    private static final int IGNITION_EXPIRATION_SECONDS = 900;
-    private static final String IGNITION_KEY = "ignition";
+    
     private static final String ALARM_KEY = "alarm";
 
     @Transactional
