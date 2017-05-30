@@ -31,14 +31,17 @@ public class Geocoder {
         try {
             RequestBuilder builder = new RequestBuilder(RequestBuilder.GET,
                     "https://nominatim.openstreetmap.org/search?format=json&q="
-                            +address);
+                            +address+"&addressdetails=1");
             builder.sendRequest(null, new RequestCallback() {
                 @Override
                 public void onResponseReceived(Request request, Response response) {
                     JsResult pos = JsonUtils.safeEval(response.getText());
-                    LonLat result = pos.getResults()[0];
-                    GWT.log(address+"->("+result.lon()+","+result.lat()+")");
-                    callback.onResult(result.lon(), result.lat());
+                    LonLatAddr result = pos.getResults()[0];
+                    String name = result.getAddress().getCity().substring(0, 3)
+                            + "-" + result.getAddress().getRoad().substring(0, 12);
+                    GWT.log(address+"->("+result.lon()+","+result.lat()+","
+                            + name+")");
+                    callback.onResult(result.lon(), result.lat(), name);
                 }
                 
                 @Override
@@ -53,19 +56,19 @@ public class Geocoder {
     }
     
     public interface SearchCallback {
-        void onResult(float lon, float lat);
+        void onResult(float lon, float lat, String name);
     }
     
     public static class JsResult extends JavaScriptObject {
         protected JsResult() {}
         
-        public final native LonLat[] getResults() /*-{
+        public final native LonLatAddr[] getResults() /*-{
             return this;
         }-*/;
     }
     
-    public static class LonLat extends JavaScriptObject{
-        protected LonLat() {}
+    public static class LonLatAddr extends JavaScriptObject{
+        protected LonLatAddr() {}
         
         public final native float lon() /*-{
             return this.lon;
@@ -73,6 +76,22 @@ public class Geocoder {
         
         public final native float lat() /*-{
             return this.lat;
+        }-*/;
+        
+        public final native Address getAddress() /*-{
+            return this.address;
+        }-*/;
+    }
+    
+    public static class Address extends JavaScriptObject {
+        protected Address() {}
+        
+        public final native String getCity() /*-{
+            return this.city;
+        }-*/;
+        
+        public final native String getRoad() /*-{
+            return this.road;
         }-*/;
     }
 }

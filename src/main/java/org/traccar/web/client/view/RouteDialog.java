@@ -38,10 +38,8 @@ import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
-import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent.BeforeStartEditHandler;
-import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
@@ -67,7 +65,6 @@ import org.gwtopenmaps.openlayers.client.LonLat;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.utils.Geocoder;
 import org.traccar.web.client.utils.Geocoder.SearchCallback;
-import org.traccar.web.shared.model.ValidationException;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.GeoFenceType;
@@ -331,7 +328,7 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
                     (m.getGroup(3).equals("S") ? -1 : 1);
             double lon = Double.parseDouble(m.getGroup(4)) *
                     (m.getGroup(6).equals("W") ? -1 : 1);
-            pt.setLonLat(lon, lat);
+            setLonLat(lon, lat);
         }
         
         public int getRadius() {
@@ -424,9 +421,11 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
             for(final GeoFence gf : waiting) {
                 Geocoder.search(gf.getAddress(), new SearchCallback() {
                         @Override
-                        public void onResult(float lon, float lat) {
+                        public void onResult(float lon, float lat, String name) {
                             ++geocodedCount;
                             gf.setPoints(lon+" "+lat);
+                            if(gf.getName() == null || gf.getName().isEmpty())
+                                gf.setName(name);
                             ready.add(gf);
                             if(geocodedCount == waiting.size())
                                 save();
