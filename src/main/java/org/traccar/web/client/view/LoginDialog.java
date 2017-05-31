@@ -100,7 +100,7 @@ public class LoginDialog {
     }
     
     public void setTrackmanBodyBackground() {
-        String bgStyle = "background-color: #262626;" +
+        String bgStyle = "background-color: #222222;" +
                             "background-image: url(img/petio_tlo.png);" +
                             "background-size: contain;" +
                             "background-repeat: no-repeat;" +
