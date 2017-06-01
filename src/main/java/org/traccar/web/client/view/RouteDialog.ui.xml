@@ -26,6 +26,11 @@
            field="gridLayoutData">
       <ui:attributes width="1" height="1" />
   </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="halfWindow">
+      <ui:attributes width="0.5" height="1" />
+  </ui:with>
 
   <ui:style>
     .tabBody {
@@ -37,7 +42,11 @@
 
   <gxt:Window ui:field="window" pixelSize="590, 550" modal="true" 
               headingText="{i18n.trackCreation}" focusWidget="{saveButton}">
-    <container:VerticalLayoutContainer addStyleNames="{style.tabBody}">
+      
+    <container:HorizontalLayoutContainer>
+       <!-- LEFT -->
+      <container:VerticalLayoutContainer addStyleNames="{style.tabBody}"
+            layoutData="{halfWindow}">
         
         <container:child layoutData="{verticalLayoutData}">
             <form:FieldLabel text="{i18n.connectPoints}" labelWidth="180">
@@ -76,7 +85,12 @@
             </form:FieldLabel>
         </container:child>
         
-    </container:VerticalLayoutContainer>
+      </container:VerticalLayoutContainer>
+      
+      <!-- RIGHT -->
+      <container:VerticalLayoutContainer layoutData="{halfWindow}" 
+                                         ui:field="theMap" />
+    </container:HorizontalLayoutContainer>
     <gxt:button>
       <button:TextButton ui:field="saveButton" text="{i18n.save}" />
     </gxt:button>

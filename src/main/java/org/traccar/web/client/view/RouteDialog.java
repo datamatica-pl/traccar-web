@@ -38,6 +38,7 @@ import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent.BeforeStartEditHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
@@ -61,7 +62,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.gwtopenmaps.openlayers.client.Bounds;
 import org.gwtopenmaps.openlayers.client.LonLat;
+import org.gwtopenmaps.openlayers.client.MapOptions;
+import org.gwtopenmaps.openlayers.client.MapWidget;
+import org.gwtopenmaps.openlayers.client.layer.OSM;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.utils.Geocoder;
 import org.traccar.web.client.utils.Geocoder.SearchCallback;
@@ -80,6 +85,8 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
     @UiField
     Window window;
     @UiField
+    VerticalLayoutContainer theMap;
+    @UiField
     CheckBox connect;
     @UiField
     TextField name;
@@ -97,6 +104,8 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
     private final Route route;
     ListStore<RoutePointWrapper> store;
     final RouteHandler routeHandler;
+    
+    private org.gwtopenmaps.openlayers.client.Map map;
     
     public RouteDialog(Route route, final RouteHandler routeHandler, 
             ListStore<Device> devs, ListStore<GeoFence> gfs) {
@@ -133,6 +142,8 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
             store.add(new RoutePointWrapper(rp));
         if(route.getDevice() != null)
             selectDevice.setValue(route.getDevice());
+        
+        prepareMap();
     }
 
     private void prepareGrid(ListStore<GeoFence> gfs) {
@@ -182,6 +193,35 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
         grid = new Grid<>(store, cm);
         
         final TextField addr = new TextField();
+        final RegExp latLonPatt = RegExp.compile(
+                "(\\d+(\\.\\d+)?)([NS])\\s*(\\d+(\\.\\d+)?)([WE])");
+        addr.addValueChangeHandler(new ValueChangeHandler<String>(){
+            @Override
+            public void onValueChange(ValueChangeEvent<String> event) {
+                final RoutePointWrapper p = grid.getSelectionModel().getSelectedItem();
+                
+                MatchResult m = latLonPatt.exec(event.getValue());
+                if(m == null) {
+                    Geocoder.search(event.getValue(), new SearchCallback() {
+                        @Override
+                        public void onResult(float lon, float lat, String name) {
+                            GeoFence gf = p.getRoutePoint().getGeofence();
+                            p.setLoading(false);
+                            gf.setPoints(lon+" "+lat);
+                            if(gf.getName() == null || gf.getName().isEmpty())
+                                gf.setName(name);
+                            store.update(p);
+                        }
+                    });
+                } else {
+                    double lat = Double.parseDouble(m.getGroup(1)) * 
+                            (m.getGroup(3).equals("S") ? -1 : 1);
+                    double lon = Double.parseDouble(m.getGroup(4)) *
+                            (m.getGroup(6).equals("W") ? -1 : 1);
+                    p.setLonLat(lon, lat);
+                }
+            }
+        });
         final NumberField rad = new NumberField(new NumberPropertyEditor.IntegerPropertyEditor());
         rad.addValidator(new MaxNumberValidator<>(1500));
         rad.addValidator(new MinNumberValidator<>(300));
@@ -215,10 +255,24 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
             @Override
             public void onBeforeStartEdit(BeforeStartEditEvent<RoutePointWrapper> event) {
                 RoutePointWrapper pt = store.get(event.getEditCell().getRow());
+                if(pt.isLoading())
+                    event.setCancelled(true);
                 if(event.getEditCell().getCol() != 0 && !pt.isEditable())
                     event.setCancelled(true);
             }
         });
+    }
+    
+    private void prepareMap() {
+        MapOptions mapOptions = new MapOptions();
+        mapOptions.setMaxExtent(new Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34));
+        MapWidget mapWidget = new MapWidget("100%", "100%", mapOptions);
+        map = mapWidget.getMap();
+        map.addLayer(OSM.Mapnik("OpenStreetMap"));
+        LonLat center = new LonLat(19, 52);
+        center.transform("EPSG:4326", map.getProjection());
+        map.setCenter(center, 7);
+        theMap.add(mapWidget);
     }
     
     public void show() {
@@ -282,12 +336,10 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
         void onSave(Route route, boolean connect);
     }
     
-    static class RoutePointWrapper {
-        private static final RegExp latLonPatt = RegExp.compile(
-                "(\\d+(\\.\\d+)?)([NS])\\s*(\\d+(\\.\\d+)?)([WE])");
-        
+    static class RoutePointWrapper {        
         private int id;
         private RoutePoint pt;
+        private boolean loading;
         private static int ID_GEN = 0;
         
         public RoutePointWrapper() {
@@ -299,6 +351,7 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
         public RoutePointWrapper(RoutePoint pt) {
             id = ID_GEN++;
             this.pt = pt;
+            loading = false;
         }
         
         
@@ -320,15 +373,6 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
         
         public void setAddress(String address) {
             pt.getGeofence().setAddress(address);
-            MatchResult m = latLonPatt.exec(address);
-            if(m == null) {
-                return;
-            }
-            double lat = Double.parseDouble(m.getGroup(1)) * 
-                    (m.getGroup(3).equals("S") ? -1 : 1);
-            double lon = Double.parseDouble(m.getGroup(4)) *
-                    (m.getGroup(6).equals("W") ? -1 : 1);
-            setLonLat(lon, lat);
         }
         
         public int getRadius() {
@@ -367,6 +411,13 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
             return pt.getGeofence().getId() == 0;
         }
         
+        public boolean isLoading() {
+            return loading;
+        }
+        
+        public void setLoading(boolean loading) {
+            this.loading = loading;
+        }
         
         private GeoFence createGF(String name, float radius) {
             GeoFence gf = new GeoFence();
