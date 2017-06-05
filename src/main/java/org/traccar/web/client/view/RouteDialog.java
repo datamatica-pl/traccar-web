@@ -38,7 +38,7 @@ import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
-import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent.BeforeStartEditHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
@@ -66,6 +66,7 @@ import org.gwtopenmaps.openlayers.client.Bounds;
 import org.gwtopenmaps.openlayers.client.LonLat;
 import org.gwtopenmaps.openlayers.client.MapOptions;
 import org.gwtopenmaps.openlayers.client.MapWidget;
+import org.gwtopenmaps.openlayers.client.event.MapClickListener;
 import org.gwtopenmaps.openlayers.client.layer.OSM;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.utils.Geocoder;
@@ -85,7 +86,7 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
     @UiField
     Window window;
     @UiField
-    VerticalLayoutContainer theMap;
+    SimpleContainer theMap;
     @UiField
     CheckBox connect;
     @UiField
@@ -103,6 +104,7 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
     
     private final Route route;
     ListStore<RoutePointWrapper> store;
+    GridEditing<RoutePointWrapper> edit;
     final RouteHandler routeHandler;
     
     private org.gwtopenmaps.openlayers.client.Map map;
@@ -148,14 +150,52 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
 
     private void prepareGrid(ListStore<GeoFence> gfs) {
         List<ColumnConfig<RoutePointWrapper, ?>> ccList = new ArrayList<>();
+        ColumnConfig<RoutePointWrapper, ImageResource> cUp = new ColumnConfig<>(
+                new ValueProvider<RoutePointWrapper, ImageResource>() {
+                    @Override
+                    public ImageResource getValue(RoutePointWrapper object) {
+                        return R.arrowUp();
+                    }
+
+                    @Override
+                    public void setValue(RoutePointWrapper object, ImageResource value) {
+                    }
+
+                    @Override
+                    public String getPath() {
+                        return "up";
+                    }
+                    
+                }, 24, "");
+        cUp.setCell(new ImageResourceCell());
+        ccList.add(cUp);
+        ColumnConfig<RoutePointWrapper, ImageResource> cDown = new ColumnConfig<>(
+                new ValueProvider<RoutePointWrapper, ImageResource>() {
+                    @Override
+                    public ImageResource getValue(RoutePointWrapper object) {
+                        return R.arrowDown();
+                    }
+
+                    @Override
+                    public void setValue(RoutePointWrapper object, ImageResource value) {
+                    }
+
+                    @Override
+                    public String getPath() {
+                        return "down";
+                    }
+                    
+                }, 24, "");
+        cDown.setCell(new ImageResourceCell());
+        ccList.add(cDown);
         ColumnConfig<RoutePointWrapper, String> cName = new ColumnConfig<>(
-                pointsAccessor.name(), 140, i18n.name());
+                pointsAccessor.name(), 85, i18n.name());
         ccList.add(cName);
         ColumnConfig<RoutePointWrapper, String> cAddress = new ColumnConfig<>(
-                pointsAccessor.address(), 330, i18n.address());
+                pointsAccessor.address(), 148, i18n.address());
         ccList.add(cAddress);
         ColumnConfig<RoutePointWrapper, Integer> cRadius = new ColumnConfig<>(
-                pointsAccessor.radius(), 50, i18n.radius());
+                pointsAccessor.radius(), 35, i18n.radius());
         ccList.add(cRadius);
         ColumnConfig<RoutePointWrapper, ImageResource> cDelete = new ColumnConfig<>(
                 new ValueProvider<RoutePointWrapper, ImageResource>() {
@@ -172,7 +212,7 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
                     public String getPath() {
                         return "delete";
                     }
-                }, 30, "");
+                }, 24, "");
         cDelete.setCell(new ImageResourceCell() {
             @Override
             public Set<String> getConsumedEvents() {
@@ -189,6 +229,23 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
             
         });
         ccList.add(cDelete);
+        ColumnConfig<RoutePointWrapper, String> cStatus = new ColumnConfig<>(
+                new ValueProvider<RoutePointWrapper, String>() {
+                    @Override
+                    public String getValue(RoutePointWrapper object) {
+                        return object.isLoading() ? "L" : "";
+                    }
+
+                    @Override
+                    public void setValue(RoutePointWrapper object, String value) {
+                    }
+
+                    @Override
+                    public String getPath() {
+                        return "status";
+                    } 
+                }, 24, "");
+        ccList.add(cStatus);
         ColumnModel<RoutePointWrapper> cm = new ColumnModel<>(ccList);
         grid = new Grid<>(store, cm);
         
@@ -197,7 +254,7 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
                 "(\\d+(\\.\\d+)?)([NS])\\s*(\\d+(\\.\\d+)?)([WE])");
         addr.addValueChangeHandler(new ValueChangeHandler<String>(){
             @Override
-            public void onValueChange(ValueChangeEvent<String> event) {
+            public void onValueChange(final ValueChangeEvent<String> event) {
                 final RoutePointWrapper p = grid.getSelectionModel().getSelectedItem();
                 
                 MatchResult m = latLonPatt.exec(event.getValue());
@@ -208,6 +265,7 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
                             GeoFence gf = p.getRoutePoint().getGeofence();
                             p.setLoading(false);
                             gf.setPoints(lon+" "+lat);
+                            gf.setAddress(event.getValue());
                             if(gf.getName() == null || gf.getName().isEmpty())
                                 gf.setName(name);
                             store.update(p);
@@ -226,7 +284,7 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
         rad.addValidator(new MaxNumberValidator<>(1500));
         rad.addValidator(new MinNumberValidator<>(300));
         
-        final GridEditing<RoutePointWrapper> edit = new GridInlineEditing<>(grid);
+        edit = new GridInlineEditing<>(grid);
         
         List<String> gfNames = new ArrayList<>();
         final Map<String, GeoFence> gfMap= new HashMap<>();
@@ -272,6 +330,14 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
         LonLat center = new LonLat(19, 52);
         center.transform("EPSG:4326", map.getProjection());
         map.setCenter(center, 7);
+        map.addMapClickListener(new MapClickListener() {
+            @Override
+            public void onClick(MapClickListener.MapClickEvent ev) {
+                LonLat ll = ev.getLonLat();
+                ll.transform(map.getProjection(), "EPSG:4326");
+                onPointSelected(ll);
+            } 
+        });
         theMap.add(mapWidget);
     }
     
@@ -282,11 +348,7 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
     @UiHandler("addButton")
     public void add(SelectEvent selectEvent) {
         store.add(new RoutePointWrapper());
-    }
-    
-    @UiHandler("addFromMap")
-    public void addFromMap(SelectEvent se) {
-        new MapPointSelectionDialog(this).show();
+        edit.startEditing(new Grid.GridCell(store.size()-1, 2));
     }
     
     @Override
@@ -341,6 +403,7 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
         private RoutePoint pt;
         private boolean loading;
         private static int ID_GEN = 0;
+        private static final Messages i18n = GWT.create(Messages.class);
         
         public RoutePointWrapper() {
             id = ID_GEN++;
@@ -401,10 +464,12 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
             if(geofence.getAddress() == null || geofence.getAddress().isEmpty()) {
                 String latDir = lat < 0 ? "S" : "N";
                 String lonDir = lon < 0 ? "W" : "E";
-                geofence.setAddress(Math.abs(lat)+latDir+" "+Math.abs(lon)+lonDir);
+                geofence.setAddress(i18n.latLonFormat(
+                        Math.round(Math.abs(lat)*1e3)/1e3, latDir, 
+                        Math.round(Math.abs(lon)*1e3)/1e3, lonDir));
             }
             if(geofence.getName() == null || geofence.getName().isEmpty())
-                geofence.setName("pkt_"+(int)(lon*10)+"_"+(int)(lat*10));
+                geofence.setName("pkt_"+(int)Math.abs(lon*10)+"_"+(int)Math.abs(lat*10));
         }
         
         public boolean isEditable() {
@@ -493,5 +558,9 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
     static interface Resources extends ClientBundle {
         @ClientBundle.Source("org/traccar/web/client/theme/icon/remove.png")
         ImageResource remove();
+        @ClientBundle.Source("org/traccar/web/client/theme/icon/arrow_up.png")
+        ImageResource arrowUp();
+        @ClientBundle.Source("org/traccar/web/client/theme/icon/arrow_down.png")
+        ImageResource arrowDown();
     }
 }

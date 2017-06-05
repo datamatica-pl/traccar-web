@@ -22,14 +22,22 @@
       <ui:attributes width="1" height="-1" margins="{buttonDataMargins}"/>
   </ui:with>
   
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="gridMargins">
+    <ui:attributes top="4" right="0" bottom="8" left="0" />
+  </ui:with>
+  
   <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
            field="gridLayoutData">
-      <ui:attributes width="1" height="1" />
+      <ui:attributes width="1" height="1" margins="{gridMargins}"/>
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="halfWindowMargins">
+      <ui:attributes top="0" right="4" bottom="0" left="4" />
   </ui:with>
   
   <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
            field="halfWindow">
-      <ui:attributes width="0.5" height="1" />
+      <ui:attributes width="0.5" height="1" margins="{halfWindowMargins}" />
   </ui:with>
 
   <ui:style>
@@ -40,13 +48,9 @@
 
   <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
 
-  <gxt:Window ui:field="window" pixelSize="590, 550" modal="true" 
+  <gxt:Window ui:field="window" pixelSize="800, 540" modal="true" 
               headingText="{i18n.trackCreation}" focusWidget="{saveButton}">
-      
-    <container:HorizontalLayoutContainer>
-       <!-- LEFT -->
-      <container:VerticalLayoutContainer addStyleNames="{style.tabBody}"
-            layoutData="{halfWindow}">
+      <container:VerticalLayoutContainer addStyleNames="{style.tabBody}">
         
         <container:child layoutData="{verticalLayoutData}">
             <form:FieldLabel text="{i18n.connectPoints}" labelWidth="180">
@@ -70,11 +74,17 @@
         </container:child>
         
         <container:child layoutData="{gridLayoutData}">
-            <grid:Grid ui:field="grid" />
-        </container:child>
-        
-        <container:child layoutData="{verticalLayoutDataWithButtons}">
-            <button:TextButton ui:field="addFromMap" ui:text="{i18n.addFromMap}" />
+          <container:HorizontalLayoutContainer>
+            
+            <container:child layoutData="{halfWindow}">
+              <grid:Grid ui:field="grid" />
+            </container:child>
+          
+            <container:child layoutData="{halfWindow}">
+              <container:SimpleContainer ui:field="theMap" />
+            </container:child>
+          
+          </container:HorizontalLayoutContainer>
         </container:child>
         
         <container:child layoutData="{verticalLayoutData}">
@@ -87,10 +97,6 @@
         
       </container:VerticalLayoutContainer>
       
-      <!-- RIGHT -->
-      <container:VerticalLayoutContainer layoutData="{halfWindow}" 
-                                         ui:field="theMap" />
-    </container:HorizontalLayoutContainer>
     <gxt:button>
       <button:TextButton ui:field="saveButton" text="{i18n.save}" />
     </gxt:button>
