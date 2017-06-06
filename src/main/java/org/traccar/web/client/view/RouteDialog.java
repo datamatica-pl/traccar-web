@@ -36,6 +36,15 @@ import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
+import com.sencha.gxt.data.shared.event.StoreAddEvent;
+import com.sencha.gxt.data.shared.event.StoreClearEvent;
+import com.sencha.gxt.data.shared.event.StoreDataChangeEvent;
+import com.sencha.gxt.data.shared.event.StoreFilterEvent;
+import com.sencha.gxt.data.shared.event.StoreHandlers;
+import com.sencha.gxt.data.shared.event.StoreRecordChangeEvent;
+import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
+import com.sencha.gxt.data.shared.event.StoreSortEvent;
+import com.sencha.gxt.data.shared.event.StoreUpdateEvent;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
@@ -66,18 +75,30 @@ import org.gwtopenmaps.openlayers.client.Bounds;
 import org.gwtopenmaps.openlayers.client.LonLat;
 import org.gwtopenmaps.openlayers.client.MapOptions;
 import org.gwtopenmaps.openlayers.client.MapWidget;
+import org.gwtopenmaps.openlayers.client.OpenLayersStyle;
+import org.gwtopenmaps.openlayers.client.Projection;
+import org.gwtopenmaps.openlayers.client.StyleMap;
+import org.gwtopenmaps.openlayers.client.StyleOptions;
+import org.gwtopenmaps.openlayers.client.StyleRules;
 import org.gwtopenmaps.openlayers.client.event.MapClickListener;
+import org.gwtopenmaps.openlayers.client.feature.VectorFeature;
+import org.gwtopenmaps.openlayers.client.geometry.LineString;
+import org.gwtopenmaps.openlayers.client.geometry.Point;
 import org.gwtopenmaps.openlayers.client.layer.OSM;
+import org.gwtopenmaps.openlayers.client.layer.Vector;
+import org.gwtopenmaps.openlayers.client.layer.VectorOptions;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.utils.Geocoder;
 import org.traccar.web.client.utils.Geocoder.SearchCallback;
+import static org.traccar.web.client.view.MapView.getGeoFenceLineStyle;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.GeoFenceType;
 import pl.datamatica.traccar.model.Route;
 import pl.datamatica.traccar.model.RoutePoint;
+import pl.datamatica.traccar.model.UserSettings;
 
-public class RouteDialog implements MapPointSelectionDialog.PointSelectedListener {
+public class RouteDialog implements GeoFenceRenderer.IMapView {
     interface _UiBinder extends UiBinder<Widget, RouteDialog> {}
     private static _UiBinder uiBinder = GWT.create(_UiBinder.class);
     private static Resources R = GWT.create(Resources.class);
@@ -106,6 +127,9 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
     ListStore<RoutePointWrapper> store;
     GridEditing<RoutePointWrapper> edit;
     final RouteHandler routeHandler;
+    Vector gfLayer;
+    VectorFeature polyline;
+    GeoFenceRenderer gfRenderer;
     
     private org.gwtopenmaps.openlayers.client.Map map;
     
@@ -133,8 +157,8 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
             public void onValueChange(ValueChangeEvent<Boolean> event) {
                 if(event.getValue() == null) 
                     return;
-                trackNameLabel.setVisible(event.getValue());
-                selectDeviceLabel.setVisible(event.getValue());
+                trackNameLabel.setEnabled(event.getValue());
+                selectDeviceLabel.setEnabled(event.getValue());
             }
             
         });
@@ -146,6 +170,7 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
             selectDevice.setValue(route.getDevice());
         
         prepareMap();
+        bindStoreWithMap();
     }
 
     private void prepareGrid(ListStore<GeoFence> gfs) {
@@ -326,7 +351,11 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
         mapOptions.setMaxExtent(new Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34));
         MapWidget mapWidget = new MapWidget("100%", "100%", mapOptions);
         map = mapWidget.getMap();
+        
         map.addLayer(OSM.Mapnik("OpenStreetMap"));
+        gfLayer = new Vector(i18n.overlayType(UserSettings.OverlayType.GEO_FENCES));
+        map.addLayer(gfLayer);
+        
         LonLat center = new LonLat(19, 52);
         center.transform("EPSG:4326", map.getProjection());
         map.setCenter(center, 7);
@@ -339,6 +368,107 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
             } 
         });
         theMap.add(mapWidget);
+        
+        gfRenderer = new GeoFenceRenderer(this);
+    }
+    
+    private void bindStoreWithMap() {
+        store.addStoreHandlers(new StoreHandlers<RoutePointWrapper>() {
+            @Override
+            public void onAdd(StoreAddEvent<RoutePointWrapper> event) {
+                for(RoutePointWrapper pt : event.getItems()) {
+                    GeoFence gf = pt.getRoutePoint().getGeofence();
+                    if(!gf.points().isEmpty())
+                        gfRenderer.drawGeoFence(gf, true);
+                }
+                drawPolyline();
+            }
+
+            @Override
+            public void onRemove(StoreRemoveEvent<RoutePointWrapper> event) {
+                GeoFence gf = event.getItem().getRoutePoint().getGeofence();
+                gfRenderer.removeGeoFence(gf);
+                drawPolyline();
+            }
+
+            @Override
+            public void onFilter(StoreFilterEvent<RoutePointWrapper> event) {
+            }
+
+            @Override
+            public void onClear(StoreClearEvent<RoutePointWrapper> event) {
+            }
+
+            @Override
+            public void onUpdate(StoreUpdateEvent<RoutePointWrapper> event) {
+                updateAll(event.getItems());
+                drawPolyline();
+            }
+
+            @Override
+            public void onDataChange(StoreDataChangeEvent<RoutePointWrapper> event) {
+            }
+
+            @Override
+            public void onRecordChange(StoreRecordChangeEvent<RoutePointWrapper> event) {
+            }
+
+            @Override
+            public void onSort(StoreSortEvent<RoutePointWrapper> event) {
+            }
+            
+            private void updateAll(List<RoutePointWrapper> list) {
+                for(RoutePointWrapper pt : list) {
+                    GeoFence gf = pt.getRoutePoint().getGeofence();
+                    gfRenderer.removeGeoFence(gf);
+                    if(!gf.points().isEmpty())
+                        gfRenderer.drawGeoFence(gf, true);
+                }
+            }
+            
+            private void drawPolyline() {
+                if(polyline != null) {
+                    gfLayer.removeFeature(polyline);
+                }
+                ArrayList<Point> linePoints = new ArrayList<>();
+                for(RoutePointWrapper pt : store.getAll()) {
+                    List<GeoFence.LonLat> points = pt.getRoutePoint()
+                            .getGeofence().points();
+                    if(points.isEmpty())
+                        continue;
+                    double avgLon = 0, avgLat = 0;
+                    for(GeoFence.LonLat p : points) {
+                        avgLon += p.lon;
+                        avgLat += p.lat;
+                    }
+                    avgLon/=points.size();
+                    avgLat/=points.size();
+                    linePoints.add(createPoint(avgLon, avgLat));
+                }
+                if(linePoints.size() < 2)
+                    return;
+                LineString ls = new LineString(linePoints.toArray(new Point[0]));
+                polyline = new VectorFeature(ls);
+                gfLayer.addFeature(polyline);
+            }
+        });
+    }
+    
+    @Override
+    public org.gwtopenmaps.openlayers.client.Map getMap() {
+        return map;
+    }
+
+    @Override
+    public Point createPoint(double longitude, double latitude) {
+        Point point = new Point(longitude, latitude);
+        point.transform(new Projection("EPSG:4326"), new Projection(map.getProjection()));
+        return point;
+    }
+
+    @Override
+    public Vector getGeofenceLayer() {
+        return gfLayer;
     }
     
     public void show() {
@@ -349,9 +479,9 @@ public class RouteDialog implements MapPointSelectionDialog.PointSelectedListene
     public void add(SelectEvent selectEvent) {
         store.add(new RoutePointWrapper());
         edit.startEditing(new Grid.GridCell(store.size()-1, 2));
+        grid.getSelectionModel().select(store.size()-1, false);
     }
     
-    @Override
     public void onPointSelected(LonLat lonLat) {
         RoutePointWrapper pt = new RoutePointWrapper();
         pt.setLonLat(lonLat.lon(), lonLat.lat());

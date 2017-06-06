@@ -55,7 +55,7 @@ import com.sencha.gxt.widget.core.client.ContentPanel;
 import org.gwtopenmaps.openlayers.client.OpenLayers;
 import pl.datamatica.traccar.model.UserSettings;
 
-public class MapView {
+public class MapView implements GeoFenceRenderer.IMapView {
 
     public interface MapHandler {
         void onPositionSelected(Position position);

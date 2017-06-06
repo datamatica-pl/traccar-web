@@ -28,10 +28,11 @@ import java.util.List;
 import java.util.Map;
 
 public class GeoFenceRenderer {
-    private final MapView mapView;
+    private final IMapView mapView;
     private final Map<Long, GeoFenceDrawing> drawings = new HashMap<>();
+    private final Map<GeoFence, GeoFenceDrawing> id0 = new HashMap<>();
 
-    public GeoFenceRenderer(MapView mapView) {
+    public GeoFenceRenderer(IMapView mapView) {
         this.mapView = mapView;
     }
 
@@ -76,7 +77,11 @@ public class GeoFenceRenderer {
         VectorFeature drawing = new VectorFeature(circleShape, st);
         getVectorLayer().addFeature(drawing);
         VectorFeature title = drawName(circle.getName(), mapView.createPoint(center.lon, center.lat));
-        drawings.put(circle.getId(), new GeoFenceDrawing(drawing, title));
+        GeoFenceDrawing gfDraw = new GeoFenceDrawing(drawing, title);
+        if(circle.getId() != 0)
+            drawings.put(circle.getId(), gfDraw);
+        else
+            id0.put(circle,gfDraw);
         if (drawTitle) {
             getVectorLayer().addFeature(title);
         }
@@ -102,7 +107,13 @@ public class GeoFenceRenderer {
         getVectorLayer().addFeature(drawing);
         Point center = getCollectionCentroid(polygonShape);
         VectorFeature title = drawName(polygon.getName(), center);
-        drawings.put(polygon.getId(), new GeoFenceDrawing(drawing, title));
+        
+        GeoFenceDrawing gfDraw = new GeoFenceDrawing(drawing, title);
+        if(polygon.getId() != 0)
+            drawings.put(polygon.getId(), gfDraw);
+        else
+            id0.put(polygon, gfDraw);
+        
         if (drawTitle) {
             getVectorLayer().addFeature(title);
         }
@@ -124,7 +135,13 @@ public class GeoFenceRenderer {
 
         getVectorLayer().addFeature(lineFeature);
         VectorFeature title = drawName(line.getName(), getCollectionCentroid(lineString));
-        drawings.put(line.getId(), new GeoFenceDrawing(lineFeature, title));
+        
+        GeoFenceDrawing gfDraw = new GeoFenceDrawing(lineFeature, title);
+        if(line.getId() == 0)
+            id0.put(line, gfDraw);
+        else
+            drawings.put(line.getId(), gfDraw);
+        
         if (drawTitle) {
             getVectorLayer().addFeature(title);
         }
@@ -162,6 +179,8 @@ public class GeoFenceRenderer {
     }-*/;
 
     public GeoFenceDrawing getDrawing(GeoFence geoFence) {
+        if(geoFence.getId() == 0)
+            return id0.get(geoFence);
         return drawings.get(geoFence.getId());
     }
 
@@ -170,5 +189,11 @@ public class GeoFenceRenderer {
         if (drawing != null) {
             mapView.getMap().zoomToExtent(drawing.getShape().getGeometry().getBounds());
         }
+    }
+    
+    public interface IMapView {
+        org.gwtopenmaps.openlayers.client.Map getMap();
+        Point createPoint(double longitude, double latitude);
+        Vector getGeofenceLayer();
     }
 }
