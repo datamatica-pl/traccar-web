@@ -39,6 +39,8 @@ import java.util.concurrent.TimeUnit;
 import javax.persistence.TypedQuery;
 import static pl.datamatica.traccar.model.DeviceEventType.*;
 import pl.datamatica.traccar.model.LastDeviceEventTime;
+import pl.datamatica.traccar.model.Route;
+import pl.datamatica.traccar.model.RoutePoint;
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UserDeviceStatus;
 
@@ -452,6 +454,69 @@ public class EventServiceImpl extends RemoteServiceServlet implements EventServi
                     && position.getTime().getTime() - previousIdlePosition.getTime().getTime() > minIdleTime;
         }
     }
+    
+    public static class RoutesDetector extends EventProducer {
+        @Inject
+        Provider<EntityManager> em;
+        GeoFenceCalculator gfCalc;
+        Map<Route, RoutePoint> newestPoint = new HashMap<>(); 
+        
+        @Override
+        @Transactional
+        void before() {
+            Map<Long, GeoFence> gfs = new HashMap<>();
+            List<Route> routes = entityManager.get().createQuery("SELECT r FROM Route r "
+                    + "LEFT JOIN FETCH r.routePoints "
+                    + "WHERE r.device IS NOT NULL", Route.class).getResultList();
+            for(Route r : routes) {
+                for(RoutePoint rp : r.getRoutePoints())
+                    if(rp.getEnterTime() == null 
+                            || rp.getExitTime() == null) {
+                        long id = rp.getGeofence().getId();
+                        if(!gfs.containsKey(id)) {
+                            GeoFence gf = new GeoFence().copyFrom(rp.getGeofence());
+                            gf.setDevices(new HashSet());
+                            gfs.put(id, gf);
+                            
+                        }
+                        gfs.get(id).getDevices().add(r.getDevice());
+                        newestPoint.put(r, rp);
+                        break;
+                    }
+            }
+            if (gfs.isEmpty()) {
+                return;
+            }
+            gfCalc = new GeoFenceCalculator(gfs.values());
+        }
+
+        @Override
+        void positionScanned(Position prevPosition, Position position) {
+            for(Map.Entry<Route, RoutePoint> kv : newestPoint.entrySet()) {
+                GeoFence gf = new GeoFence().copyFrom(kv.getValue().getGeofence());
+                gf.setDevices(Collections.singleton(kv.getKey().getDevice()));
+                boolean beforeEnter = kv.getValue().getEnterTime() == null;
+                if (prevPosition != null) {
+                    boolean containsCurrent = gfCalc.contains(gf, position);
+                    boolean containsPrevious = gfCalc.contains(gf, prevPosition);
+                    
+                    if (containsCurrent && !containsPrevious && beforeEnter) {
+                        kv.getValue().setEnterTime(new Date());
+                        em.get().persist(kv.getValue());
+                    } else if (!containsCurrent && containsPrevious && !beforeEnter) {
+                        kv.getValue().setExitTime(new Date());
+                        em.get().persist(kv.getValue());
+                    }
+                }
+            }
+        }
+
+        @Override
+        void after() {
+            newestPoint.clear();
+            gfCalc = null;
+        }
+    }
 
     @Inject
     private OfflineDetector offlineDetector;
@@ -465,6 +530,8 @@ public class EventServiceImpl extends RemoteServiceServlet implements EventServi
     private StopMoveDetector stopMoveDetector;
     @Inject
     private PositionScanner positionScanner;
+    @Inject
+    private RoutesDetector routesDetector;
 
     private Map<Class<?>, ScheduledFuture<?>> futures = new HashMap<>();
 
@@ -481,6 +548,7 @@ public class EventServiceImpl extends RemoteServiceServlet implements EventServi
         positionScanner.eventProducers.add(odometerUpdater);
         positionScanner.eventProducers.add(overspeedDetector);
         positionScanner.eventProducers.add(stopMoveDetector);
+        positionScanner.eventProducers.add(routesDetector);
 
         if (applicationSettings.get().isEventRecordingEnabled()) {
             startTasks();

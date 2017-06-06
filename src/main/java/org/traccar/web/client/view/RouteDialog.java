@@ -242,6 +242,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         addr.addValueChangeHandler(new ValueChangeHandler<String>(){
             @Override
             public void onValueChange(final ValueChangeEvent<String> event) {
+                store.commitChanges();
                 final RoutePointWrapper p = grid.getSelectionModel().getSelectedItem();
                 
                 MatchResult m = latLonPatt.exec(event.getValue());
@@ -264,6 +265,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                     double lon = Double.parseDouble(m.getGroup(4)) *
                             (m.getGroup(6).equals("W") ? -1 : 1);
                     p.setLonLat(lon, lat);
+                    store.update(p);
                 }
             }
         });
@@ -285,6 +287,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         cbName.addValueChangeHandler(new ValueChangeHandler<String>(){
             @Override
             public void onValueChange(ValueChangeEvent<String> event) {
+                store.commitChanges();
                 RoutePointWrapper p = grid.getSelectionModel().getSelectedItem();
                 p.setGeofence(gfMap.get(event.getValue()));
                 store.update(p);
@@ -546,10 +549,11 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         }
         
         public void setGeofence(GeoFence gf) {
-            if(gf == null)
-                pt.setGeofence(createGF(pt.getGeofence().getName(),
-                        pt.getGeofence().getRadius()));
-            else
+            if(gf == null) {
+                if(pt.getGeofence().getId() != 0)
+                    pt.setGeofence(createGF(pt.getGeofence().getName(),
+                                   pt.getGeofence().getRadius()));
+            } else
                 pt.setGeofence(gf);
         }
         
