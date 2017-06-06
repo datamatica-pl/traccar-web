@@ -146,6 +146,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         });
         uiBinder.createAndBindUi(this);
         
+        prepareMap();
+        bindStoreWithMap();
+        
         connect.setValue(true);
         //editing!
         if(route.getId() != 0)
@@ -163,13 +166,13 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         });
         
         name.setValue(route.getName());
+        ArrayList<RoutePointWrapper> pts = new ArrayList<>();
         for(RoutePoint rp : route.getRoutePoints())
-            store.add(new RoutePointWrapper(rp));
+            pts.add(new RoutePointWrapper(rp));
+        store.addAll(pts);
         if(route.getDevice() != null)
             selectDevice.setValue(route.getDevice());
         
-        prepareMap();
-        bindStoreWithMap();
         prepareDND();
     }
 
@@ -333,11 +336,10 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             } 
         });
         theMap.add(mapWidget);
-        
-        gfRenderer = new GeoFenceRenderer(this);
     }
     
     private void bindStoreWithMap() {
+        gfRenderer = new GeoFenceRenderer(this);
         store.addStoreHandlers(new StoreHandlers<RoutePointWrapper>() {
             @Override
             public void onAdd(StoreAddEvent<RoutePointWrapper> event) {
@@ -403,6 +405,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     private void drawPolyline() {
         if(polyline != null) {
             gfLayer.removeFeature(polyline);
+            polyline.destroy();
+            polyline = null;
         }
         ArrayList<Point> linePoints = new ArrayList<>();
         for(RoutePointWrapper pt : store.getAll()) {
@@ -411,7 +415,6 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 continue;            
             linePoints.add(createPoint(center.lon(), center.lat()));
         }
-        polyline = null;
         if(linePoints.size() < 2 || !connect.getValue())
             return;
         
