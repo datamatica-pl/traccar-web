@@ -45,6 +45,9 @@ import com.sencha.gxt.data.shared.event.StoreRecordChangeEvent;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
 import com.sencha.gxt.data.shared.event.StoreSortEvent;
 import com.sencha.gxt.data.shared.event.StoreUpdateEvent;
+import com.sencha.gxt.dnd.core.client.DND;
+import com.sencha.gxt.dnd.core.client.GridDragSource;
+import com.sencha.gxt.dnd.core.client.GridDropTarget;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
@@ -75,22 +78,17 @@ import org.gwtopenmaps.openlayers.client.Bounds;
 import org.gwtopenmaps.openlayers.client.LonLat;
 import org.gwtopenmaps.openlayers.client.MapOptions;
 import org.gwtopenmaps.openlayers.client.MapWidget;
-import org.gwtopenmaps.openlayers.client.OpenLayersStyle;
 import org.gwtopenmaps.openlayers.client.Projection;
-import org.gwtopenmaps.openlayers.client.StyleMap;
-import org.gwtopenmaps.openlayers.client.StyleOptions;
-import org.gwtopenmaps.openlayers.client.StyleRules;
 import org.gwtopenmaps.openlayers.client.event.MapClickListener;
 import org.gwtopenmaps.openlayers.client.feature.VectorFeature;
 import org.gwtopenmaps.openlayers.client.geometry.LineString;
 import org.gwtopenmaps.openlayers.client.geometry.Point;
 import org.gwtopenmaps.openlayers.client.layer.OSM;
 import org.gwtopenmaps.openlayers.client.layer.Vector;
-import org.gwtopenmaps.openlayers.client.layer.VectorOptions;
+import org.gwtopenmaps.openlayers.client.Style;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.utils.Geocoder;
 import org.traccar.web.client.utils.Geocoder.SearchCallback;
-import static org.traccar.web.client.view.MapView.getGeoFenceLineStyle;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.GeoFenceType;
@@ -159,6 +157,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                     return;
                 trackNameLabel.setEnabled(event.getValue());
                 selectDeviceLabel.setEnabled(event.getValue());
+                drawPolyline();
             }
             
         });
@@ -171,53 +170,16 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         
         prepareMap();
         bindStoreWithMap();
+        prepareDND();
     }
 
     private void prepareGrid(ListStore<GeoFence> gfs) {
         List<ColumnConfig<RoutePointWrapper, ?>> ccList = new ArrayList<>();
-        ColumnConfig<RoutePointWrapper, ImageResource> cUp = new ColumnConfig<>(
-                new ValueProvider<RoutePointWrapper, ImageResource>() {
-                    @Override
-                    public ImageResource getValue(RoutePointWrapper object) {
-                        return R.arrowUp();
-                    }
-
-                    @Override
-                    public void setValue(RoutePointWrapper object, ImageResource value) {
-                    }
-
-                    @Override
-                    public String getPath() {
-                        return "up";
-                    }
-                    
-                }, 24, "");
-        cUp.setCell(new ImageResourceCell());
-        ccList.add(cUp);
-        ColumnConfig<RoutePointWrapper, ImageResource> cDown = new ColumnConfig<>(
-                new ValueProvider<RoutePointWrapper, ImageResource>() {
-                    @Override
-                    public ImageResource getValue(RoutePointWrapper object) {
-                        return R.arrowDown();
-                    }
-
-                    @Override
-                    public void setValue(RoutePointWrapper object, ImageResource value) {
-                    }
-
-                    @Override
-                    public String getPath() {
-                        return "down";
-                    }
-                    
-                }, 24, "");
-        cDown.setCell(new ImageResourceCell());
-        ccList.add(cDown);
         ColumnConfig<RoutePointWrapper, String> cName = new ColumnConfig<>(
-                pointsAccessor.name(), 85, i18n.name());
+                pointsAccessor.name(), 109, i18n.name());
         ccList.add(cName);
         ColumnConfig<RoutePointWrapper, String> cAddress = new ColumnConfig<>(
-                pointsAccessor.address(), 148, i18n.address());
+                pointsAccessor.address(), 172, i18n.address());
         ccList.add(cAddress);
         ColumnConfig<RoutePointWrapper, Integer> cRadius = new ColumnConfig<>(
                 pointsAccessor.radius(), 35, i18n.radius());
@@ -425,33 +387,36 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                         gfRenderer.drawGeoFence(gf, true);
                 }
             }
-            
-            private void drawPolyline() {
-                if(polyline != null) {
-                    gfLayer.removeFeature(polyline);
-                }
-                ArrayList<Point> linePoints = new ArrayList<>();
-                for(RoutePointWrapper pt : store.getAll()) {
-                    List<GeoFence.LonLat> points = pt.getRoutePoint()
-                            .getGeofence().points();
-                    if(points.isEmpty())
-                        continue;
-                    double avgLon = 0, avgLat = 0;
-                    for(GeoFence.LonLat p : points) {
-                        avgLon += p.lon;
-                        avgLat += p.lat;
-                    }
-                    avgLon/=points.size();
-                    avgLat/=points.size();
-                    linePoints.add(createPoint(avgLon, avgLat));
-                }
-                if(linePoints.size() < 2)
-                    return;
-                LineString ls = new LineString(linePoints.toArray(new Point[0]));
-                polyline = new VectorFeature(ls);
-                gfLayer.addFeature(polyline);
-            }
         });
+    }
+    
+    private void prepareDND() {
+        GridDragSource<RoutePointWrapper> dragSource = new GridDragSource<>(grid);
+        GridDropTarget<RoutePointWrapper> dropTarget = new GridDropTarget<>(grid);
+        dropTarget.setAllowSelfAsSource(true);
+        dropTarget.setFeedback(DND.Feedback.BOTH);
+    }
+    
+    private void drawPolyline() {
+        if(polyline != null) {
+            gfLayer.removeFeature(polyline);
+        }
+        ArrayList<Point> linePoints = new ArrayList<>();
+        for(RoutePointWrapper pt : store.getAll()) {
+            LonLat center = pt.getCenter();
+            if(center == null)
+                continue;            
+            linePoints.add(createPoint(center.lon(), center.lat()));
+        }
+        polyline = null;
+        if(linePoints.size() < 2 || !connect.getValue())
+            return;
+        
+        Style st = new Style();
+        st.setStrokeWidth(4);
+        LineString ls = new LineString(linePoints.toArray(new Point[0]));
+        polyline = new VectorFeature(ls, st);
+        gfLayer.addFeature(polyline);
     }
     
     @Override
@@ -478,7 +443,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     @UiHandler("addButton")
     public void add(SelectEvent selectEvent) {
         store.add(new RoutePointWrapper());
-        edit.startEditing(new Grid.GridCell(store.size()-1, 2));
+        edit.startEditing(new Grid.GridCell(store.size()-1, 0));
         grid.getSelectionModel().select(store.size()-1, false);
     }
     
@@ -612,6 +577,20 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         
         public void setLoading(boolean loading) {
             this.loading = loading;
+        }
+        
+        public LonLat getCenter() {
+            if(pt.getGeofence().points().isEmpty())
+                return null;
+            List<GeoFence.LonLat> points = pt.getGeofence().points();
+            double avgLon = 0, avgLat = 0;
+            for(GeoFence.LonLat p : points) {
+                avgLon += p.lon;
+                avgLat += p.lat;
+            }
+            avgLon/=points.size();
+            avgLat/=points.size();
+            return new LonLat(avgLon, avgLat);
         }
         
         private GeoFence createGF(String name, float radius) {
