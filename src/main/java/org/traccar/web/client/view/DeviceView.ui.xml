@@ -59,7 +59,7 @@
           </gxt:child>
           
           <gxt:child config="{tracksTabConfig}">
-            <gxt:ListView ui:field="routeList" />
+            <grid:Grid ui:field="routeGrid" />
           </gxt:child>
         </gxt:TabPanel>
       </container:child>

@@ -153,6 +153,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         //editing!
         if(route.getId() != 0)
             connect.setEnabled(false);
+        else
+            route.setStatus("NOWA");
         connect.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
             @Override
             public void onValueChange(ValueChangeEvent<Boolean> event) {

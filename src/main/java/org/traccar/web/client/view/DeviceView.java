@@ -49,6 +49,7 @@ import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
@@ -67,6 +68,7 @@ import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.StoreFilterField;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
+import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.editing.GridEditing;
 import com.sencha.gxt.widget.core.client.grid.editing.GridInlineEditing;
 import com.sencha.gxt.widget.core.client.menu.CheckMenuItem;
@@ -582,7 +584,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     TabItemConfig tracksTabConfig;
     
     @UiField(provided = true)
-    ListView<Route, String> routeList;
+    Grid<Route> routeGrid;
 
     @UiField(provided = true)
     Messages i18n = GWT.create(Messages.class);
@@ -900,30 +902,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         geoFenceHandler.setGeoFenceListView(geoFenceList);
         
         tracksTabConfig = new TabItemConfig(i18n.tracks());
-        routeList = new ListView<>(routeStore, new ValueProvider<Route, String>(){
-            @Override
-            public String getValue(Route object) {
-                return object.getName();
-            }
-
-            @Override
-            public void setValue(Route object, String value) {
-                object.setName(value);
-            }
-
-            @Override
-            public String getPath() {
-                return "name";
-            }
-        });
-        routeList.getSelectionModel().addSelectionChangedHandler(new SelectionChangedEvent.SelectionChangedHandler<Route>() {
-            @Override
-            public void onSelectionChanged(SelectionChangedEvent<Route> event) {
-                toggleManagementButtons(event.getSelection().isEmpty() ? null : event.getSelection().get(0));
-                if(!event.getSelection().isEmpty())
-                    routeHandler.onSelected(event.getSelection().get(0));
-            }
-        });
+        prepareRouteGrid(routeStore);
 
         // tab panel
         objectsTabs = new TabPanel();
@@ -984,6 +963,57 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         toggleManagementButtons(null);
     }
 
+    private void prepareRouteGrid(ListStore<Route> routeStore) {        
+        List<ColumnConfig<Route, ?>> ccList = new ArrayList<>();
+        ColumnConfig<Route, String> cName = new ColumnConfig<>(new ValueProvider<Route, String>() {
+            @Override
+            public String getValue(Route object) {
+                return object.getName();
+            }
+
+            @Override
+            public void setValue(Route object, String value) {
+            }
+
+            @Override
+            public String getPath() {
+                return "name";
+            } 
+        }, 1, "name");
+        ccList.add(cName);
+        ColumnConfig<Route, String> cStatus = new ColumnConfig<>(new ValueProvider<Route, String>() {
+            @Override
+            public String getValue(Route object) {
+                return object.getStatus();
+            }
+
+            @Override
+            public void setValue(Route object, String value) {
+            }
+
+            @Override
+            public String getPath() {
+                return "status";
+            }
+        }, 50, "status");
+        ccList.add(cStatus);
+        
+        ColumnModel<Route> cm = new ColumnModel<>(ccList);
+        routeGrid = new Grid<>(routeStore, cm);
+        routeGrid.getView().setAutoExpandColumn(cName);
+        routeGrid.setHideHeaders(true);
+        
+        routeGrid.getSelectionModel().addSelectionChangedHandler(new SelectionChangedEvent.SelectionChangedHandler<Route>() {
+            @Override
+            public void onSelectionChanged(SelectionChangedEvent<Route> event) {
+                toggleManagementButtons(event.getSelection().isEmpty() ? null : event.getSelection().get(0));
+                if (!event.getSelection().isEmpty()) {
+                    routeHandler.onSelected(event.getSelection().get(0));
+                }
+            }
+        });
+    }
+
     final SelectionChangedEvent.SelectionChangedHandler<GroupedDevice> deviceSelectionHandler = new SelectionChangedEvent.SelectionChangedHandler<GroupedDevice>() {
         @Override
         public void onSelectionChanged(SelectionChangedEvent<GroupedDevice> event) {
@@ -1029,7 +1059,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     @UiHandler("editButton")
     public void onEditClicked(SelectEvent event) {
         if(editingRoutes()) {
-            routeHandler.onEdit(routeList.getSelectionModel().getSelectedItem());
+            routeHandler.onEdit(routeGrid.getSelectionModel().getSelectedItem());
         } else if (editingGeoFences()) {
             geoFenceHandler.onEdit(geoFenceList.getSelectionModel().getSelectedItem());
         } else {
@@ -1063,7 +1093,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     @UiHandler("removeButton")
     public void onRemoveClicked(SelectEvent event) {
         if(editingRoutes()) {
-            routeHandler.onRemove(routeList.getSelectionModel().getSelectedItem());
+            routeHandler.onRemove(routeGrid.getSelectionModel().getSelectedItem());
         } else if (editingGeoFences()) {
             geoFenceHandler.onRemove(geoFenceList.getSelectionModel().getSelectedItem());
         } else {
@@ -1099,7 +1129,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         grid.getSelectionModel().deselectAll();
         deviceHandler.onClearSelection();
         geoFenceList.getSelectionModel().deselectAll();
-        routeList.getSelectionModel().deselectAll();
+        routeGrid.getSelectionModel().deselectAll();
         routeHandler.onSelected(null);
         toggleManagementButtons(null);
     }
@@ -1109,7 +1139,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     }
     
     private boolean editingRoutes() {
-        return objectsTabs.getActiveWidget() == routeList;
+        return objectsTabs.getActiveWidget() == routeGrid;
     }
 
     private void toggleManagementButtons(Object selection) {
