@@ -310,6 +310,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                     event.setCancelled(true);
                 if(event.getEditCell().getCol() != 0 && !pt.isEditable())
                     event.setCancelled(true);
+                gfRenderer.selectGeoFence(pt.getRoutePoint().getGeofence());
             }
         });
     }

@@ -15,6 +15,7 @@
  */
 package org.traccar.web.client.view;
 
+import java.util.ArrayList;
 import org.gwtopenmaps.openlayers.client.Style;
 import org.gwtopenmaps.openlayers.client.feature.VectorFeature;
 import org.gwtopenmaps.openlayers.client.geometry.*;
@@ -26,11 +27,15 @@ import pl.datamatica.traccar.model.GeoFence;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.gwtopenmaps.openlayers.client.LonLat;
+import pl.datamatica.traccar.model.Route;
+import pl.datamatica.traccar.model.RoutePoint;
 
 public class GeoFenceRenderer {
     private final IMapView mapView;
     private final Map<Long, GeoFenceDrawing> drawings = new HashMap<>();
     private final Map<GeoFence, GeoFenceDrawing> id0 = new HashMap<>();
+    private VectorFeature polyline;
 
     public GeoFenceRenderer(IMapView mapView) {
         this.mapView = mapView;
@@ -168,6 +173,20 @@ public class GeoFenceRenderer {
 
         return new VectorFeature(point, st);
     }
+    
+    private Point getCentroid(GeoFence gf) {
+        List<GeoFence.LonLat> pts = gf.points();
+        if(pts.isEmpty())
+            return null;
+        double lat = 0, lon = 0;
+        for(GeoFence.LonLat ll : pts) {
+            lat += ll.lat;
+            lon += ll.lon;
+        }
+        lon /= pts.size();
+        lat /= pts.size();
+        return mapView.createPoint(lon, lat);
+    }
 
     private static Point getCollectionCentroid(Collection collection) {
         JSObject jsPoint = getCollectionCentroid(collection.getJSObject());
@@ -189,6 +208,32 @@ public class GeoFenceRenderer {
         if (drawing != null) {
             mapView.getMap().zoomToExtent(drawing.getShape().getGeometry().getBounds());
         }
+    }
+    
+    public void selectRoute(Route r) {
+        if(polyline != null) {
+            getVectorLayer().removeFeature(polyline);
+            polyline.destroy();
+            polyline = null;
+        }
+        if(r == null)
+            return;
+        ArrayList<Point> linePoints = new ArrayList<>();
+        for(RoutePoint pt : r.getRoutePoints()) {
+            Point center = getCentroid(pt.getGeofence());
+            if(center == null)
+                continue;            
+            linePoints.add(center);
+        }
+        if(linePoints.size() < 2)
+            return;
+        
+        Style st = new Style();
+        st.setStrokeWidth(4);
+        LineString ls = new LineString(linePoints.toArray(new Point[0]));
+        polyline = new VectorFeature(ls, st);
+        getVectorLayer().addFeature(polyline);
+        mapView.getMap().zoomToExtent(ls.getBounds());
     }
     
     public interface IMapView {

@@ -33,12 +33,15 @@ import pl.datamatica.traccar.model.RoutePoint;
 public class RouteController implements DeviceView.RouteHandler, ContentController{
     private ListStore<Device> deviceStore;
     private ListStore<GeoFence> geoFenceStore;
+    private MapController mapController;
     private final ListStore<Route> routeStore;
     private Messages i18n = GWT.create(Messages.class);
     
-    public RouteController(ListStore<Device> devStore, ListStore<GeoFence> gfStore) {
+    public RouteController(ListStore<Device> devStore, ListStore<GeoFence> gfStore,
+            MapController mapController) {
         this.deviceStore = devStore;
         this.geoFenceStore = gfStore;
+        this.mapController = mapController;
         routeStore = new ListStore<>(new ModelKeyProvider<Route>() {
             @Override
             public String getKey(Route item) {
@@ -104,6 +107,11 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                         routeStore.remove(route);
                     }
                 });
+    }
+    
+    @Override
+    public void onSelected(final Route route) {
+        mapController.selectRoute(route);
     }
     
     

@@ -53,6 +53,7 @@ import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.user.client.Command;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import org.gwtopenmaps.openlayers.client.OpenLayers;
+import pl.datamatica.traccar.model.Route;
 import pl.datamatica.traccar.model.UserSettings;
 
 public class MapView implements GeoFenceRenderer.IMapView {
@@ -392,6 +393,10 @@ public class MapView implements GeoFenceRenderer.IMapView {
 
     public void selectGeoFence(GeoFence geoFence) {
         geoFenceRenderer.selectGeoFence(geoFence);
+    }
+    
+    public void selectRoute(Route route) {
+        geoFenceRenderer.selectRoute(route);
     }
 
     /**

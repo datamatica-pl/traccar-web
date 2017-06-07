@@ -124,10 +124,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     
     public interface RouteHandler {
         void onAdd();
-
-        public void onEdit(Route selectedItem);
-
-        public void onRemove(Route selectedItem);
+        void onEdit(Route selectedItem);
+        void onRemove(Route selectedItem);
+        void onSelected(Route route);
     }
 
     public interface CommandHandler {
@@ -921,6 +920,8 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             @Override
             public void onSelectionChanged(SelectionChangedEvent<Route> event) {
                 toggleManagementButtons(event.getSelection().isEmpty() ? null : event.getSelection().get(0));
+                if(!event.getSelection().isEmpty())
+                    routeHandler.onSelected(event.getSelection().get(0));
             }
         });
 
@@ -1095,12 +1096,11 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
     @UiHandler("objectsTabs")
     public void onTabSelected(SelectionEvent<Widget> event) {
-        if (event.getSelectedItem() == geoFenceList) {
-            grid.getSelectionModel().deselectAll();
-            deviceHandler.onClearSelection();
-        } else {
-            geoFenceList.getSelectionModel().deselectAll();
-        }
+        grid.getSelectionModel().deselectAll();
+        deviceHandler.onClearSelection();
+        geoFenceList.getSelectionModel().deselectAll();
+        routeList.getSelectionModel().deselectAll();
+        routeHandler.onSelected(null);
         toggleManagementButtons(null);
     }
 
