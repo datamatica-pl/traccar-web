@@ -29,6 +29,7 @@ import com.sencha.gxt.data.shared.PropertyAccess;
 import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.form.StoreFilterField;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
@@ -98,6 +99,9 @@ public class UserShareDialog {
 
     @UiField(provided = true)
     Messages i18n = GWT.create(Messages.class);
+    
+    @UiField(provided = true)
+    StoreFilterField<UserShared> userFilter;
 
     public UserShareDialog(Map<User, Boolean> shares, UserShareHandler shareHandler) {
         this.shareHandler = shareHandler;
@@ -113,6 +117,13 @@ public class UserShareDialog {
         UserSharedProperties userSharedProperties = GWT.create(UserSharedProperties.class);
 
         shareStore = new ListStore<>(userSharedProperties.id());
+        userFilter = new StoreFilterField<UserShared>() {
+            @Override
+            protected boolean doSelect(Store<UserShared> store, UserShared parent, UserShared item, String filter) {
+                return filter.trim().isEmpty() || item.getName().contains(filter);
+            }
+        };
+        userFilter.bind(shareStore);
 
         for (User user : users) {
             shareStore.add(new UserShared(user, shares.get(user)));
