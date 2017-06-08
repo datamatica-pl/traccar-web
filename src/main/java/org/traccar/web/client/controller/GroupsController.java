@@ -29,6 +29,7 @@ import pl.datamatica.traccar.model.Group;
 import pl.datamatica.traccar.model.User;
 
 import java.util.*;
+import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 
 public class GroupsController implements NavView.GroupsHandler, ContentController {
@@ -93,6 +94,7 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
                         toAdd.add(entry.getKey());
                     }
                 }
+                Application.getDecoder().setGroups(result.keySet());
 
                 // fill tree store level by level
                 while (!toAdd.isEmpty()) {

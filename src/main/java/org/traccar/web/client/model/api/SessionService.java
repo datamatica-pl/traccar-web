@@ -21,12 +21,12 @@ import javax.ws.rs.Path;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.RestService;
 
+@Path("../api/v1/session")
 public interface SessionService extends RestService{
     @GET
-    @Path("../api/v1/session/user")
+    @Path("user")
     void getUser(JsonCallback callback);
     
     @DELETE
-    @Path("../api/v1/session")
     void logout(JsonCallback callback);
 }

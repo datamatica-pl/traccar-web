@@ -34,21 +34,32 @@ import org.traccar.web.client.model.*;
 import org.traccar.web.client.view.ApplicationView;
 import org.traccar.web.client.view.UserSettingsDialog;
 import org.traccar.web.client.widget.TimeZoneComboBox;
-import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreHandlers;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
+import org.traccar.web.client.model.api.Decoder;
+import org.traccar.web.client.model.api.DevicesService;
 
 public class Application {
 
     private static final DataServiceAsync dataService = GWT.create(DataService.class);
+    private static final DevicesService devices = GWT.create(DevicesService.class);
+    private static final Decoder decoder = new Decoder();
     private final static Messages i18n = GWT.create(Messages.class);
 
     public static DataServiceAsync getDataService() {
         return dataService;
+    }
+    
+    public static DevicesService getDevicesService() {
+        return devices;
+    }
+    
+    public static Decoder getDecoder() {
+        return decoder;
     }
 
     private final SettingsController settingsController;

@@ -101,17 +101,18 @@ public class LoginController implements LoginDialog.LoginHandler {
                     session.getUser(new JsonCallback() {
                         @Override
                         public void onFailure(Method method, Throwable exception) {
+                            new AlertMessageBox(i18n.error(), i18n.errInvalidUsernameOrPassword()).show();
                         }
 
                         @Override
                         public void onSuccess(Method method, JSONValue response) {
+                            if (loginHandler != null) {
+                                dialog.hide();
+                                loginHandler.onLogin();
+                            }
+                            dialog.clearTrackmanBodyStyle();
                         }
                     });
-                    if (loginHandler != null) {
-                        dialog.hide();
-                        loginHandler.onLogin();
-                    }
-                    dialog.clearTrackmanBodyStyle();
                 }
                 @Override
                 public void onFailure(Throwable caught) {

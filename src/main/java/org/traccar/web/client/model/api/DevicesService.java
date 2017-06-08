@@ -15,17 +15,32 @@
  */
 package org.traccar.web.client.model.api;
 
+import java.util.List;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import org.fusesource.restygwt.client.JsonCallback;
+import org.fusesource.restygwt.client.MethodCallback;
 import org.fusesource.restygwt.client.RestService;
 
 @Path("../api/v1/devices")
 public interface DevicesService extends RestService {
+    @GET
+    void getDevices(JsonCallback callback);
+    
     @POST
     void addDevice(AddDeviceDto dto, JsonCallback callback);
     
     
+//    public static class ApiDeviceList {
+//        List<ApiDevice> changed;
+//        List<Long> ids;
+//        
+//        public List<ApiDevice> getChanged() {
+//            return changed;
+//        }
+//    }
+//    
     public static class AddDeviceDto {
         public String imei;
         
