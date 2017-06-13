@@ -591,6 +591,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             tmp_device.setGroup(newGroup);
 
             tmp_device.setIconMode(device.getIconMode());
+            tmp_device.setIconId(device.getIconId());
             tmp_device.setIconRotation(device.isIconRotation());
             tmp_device.setIconArrowMovingColor(device.getIconArrowMovingColor());
             tmp_device.setIconArrowPausedColor(device.getIconArrowPausedColor());

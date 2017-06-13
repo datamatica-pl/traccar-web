@@ -69,6 +69,8 @@ import org.traccar.web.shared.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.traccar.web.client.Application;
+import org.traccar.web.client.model.api.ApiDeviceIcon;
 
 public class DeviceIconEditor {
     private static final DeviceIconEditorUiBinder uiBinder = GWT.create(DeviceIconEditorUiBinder.class);
@@ -233,7 +235,7 @@ public class DeviceIconEditor {
             for (DeviceIcon icon : loaded) {
                 result.add(new MarkerIcon.Database(icon));
             }
-            for (DeviceIconType icon : DeviceIconType.values()) {
+            for (Long icon : Application.getResources().icons()){
                 result.add(new MarkerIcon.BuiltIn(icon));
             }
             markerLoaderCallback.onSuccess(result);
@@ -246,7 +248,7 @@ public class DeviceIconEditor {
             picturesService.getMarkerPictures(new MergingCallback(i18n, callback));
         }
     };
-
+            
     MarkerIcon selected;
 
     final ListStore<MarkerIcon> store;
@@ -365,9 +367,10 @@ public class DeviceIconEditor {
         for (ColorSelector colorSelector : arrowColors) {
             colorSelector.flush(device);
         }
-
+        
         selected = view.getSelectionModel().getSelectedItem();
         if (selected != null) {
+            device.setIconId(selected.getId());
             device.setIconType(selected.getBuiltInIcon());
             device.setIcon(selected.getDatabaseIcon());
         }

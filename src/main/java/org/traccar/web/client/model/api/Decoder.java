@@ -5,7 +5,6 @@
  */
 package org.traccar.web.client.model.api;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
@@ -19,7 +18,6 @@ import java.util.Map;
 import org.traccar.web.client.ApplicationContext;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.DeviceIconMode;
-import pl.datamatica.traccar.model.DeviceIconType;
 import pl.datamatica.traccar.model.Group;
 import pl.datamatica.traccar.model.Position;
 
@@ -72,8 +70,7 @@ public class Decoder {
         d.setMaintenances(Collections.EMPTY_LIST);
         d.setRegistrations(Collections.EMPTY_LIST);
         d.setSensors(Collections.EMPTY_LIST);
-
-        d.setIconType(DeviceIconType.BICYCLE);
+        
         d.setIconMode(DeviceIconMode.ICON);
         return d;
     }

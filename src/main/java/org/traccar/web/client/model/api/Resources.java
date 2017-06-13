@@ -15,28 +15,24 @@
  */
 package org.traccar.web.client.model.api;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import org.fusesource.restygwt.client.JsonCallback;
-import org.fusesource.restygwt.client.RestService;
+import java.util.Map;
+import java.util.TreeMap;
 
-@Path("../api/v1/devices")
-public interface DevicesService extends RestService {
-    @GET
-    void getDevices(JsonCallback callback);
+public class Resources {
+    private Map<Long, String> icons = new TreeMap<>();
+    private String defIcon = "img/GTS_pointer_car.png";
     
-    @POST
-    void addDevice(AddDeviceDto dto, JsonCallback callback);
+    public String icon(Long id) {
+        if(id != null && icons.containsKey(id))
+            return icons.get(id);
+        return defIcon;
+    }
     
-    
-    public static class AddDeviceDto {
-        public String imei;
-        
-        public AddDeviceDto(){}
-        
-        public AddDeviceDto(String imei) {
-            this.imei = imei;
-        }
+    public void icon(long id, String url) {
+        icons.put(id, url);
+    }
+
+    public Iterable<Long> icons() {
+        return icons.keySet();
     }
 }

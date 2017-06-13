@@ -11,12 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
+import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
+import org.traccar.web.client.model.api.ApiDeviceIcon;
 import org.traccar.web.client.model.api.Decoder;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.Position;
+import org.traccar.web.client.model.api.DeviceIconsService;
 
 public class UpdatesController {
     public interface LatestPositionsListener {
@@ -90,6 +93,23 @@ public class UpdatesController {
    }
     
     public void run() {
+        DeviceIconsService icons = GWT.create(DeviceIconsService.class);
+        icons.getIconList(new MethodCallback<List<ApiDeviceIcon>>() {
+            @Override
+            public void onFailure(Method method, Throwable exception) {
+                //FATAL ERROR
+            }
+
+            @Override
+            public void onSuccess(Method method, List<ApiDeviceIcon> response) {
+                for(ApiDeviceIcon ico : response)
+                    if(!ico.isDeleted())
+                        Application.getResources().icon(ico.getId(), 
+                                ico.getUrl().replace("/images/", "/markers/"));
+            }
+            
+        });
+        
         updateTimer = new Timer() {
             @Override
             public void run() {

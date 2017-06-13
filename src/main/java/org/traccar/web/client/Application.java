@@ -42,12 +42,14 @@ import com.sencha.gxt.data.shared.event.StoreHandlers;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
 import org.traccar.web.client.model.api.Decoder;
 import org.traccar.web.client.model.api.DevicesService;
+import org.traccar.web.client.model.api.Resources;
 
 public class Application {
 
     private static final DataServiceAsync dataService = GWT.create(DataService.class);
     private static final DevicesService devices = GWT.create(DevicesService.class);
     private static final Decoder decoder = new Decoder();
+    private static final Resources resources = new Resources();
     private final static Messages i18n = GWT.create(Messages.class);
 
     public static DataServiceAsync getDataService() {
@@ -60,6 +62,10 @@ public class Application {
     
     public static Decoder getDecoder() {
         return decoder;
+    }
+    
+    public static Resources getResources() {
+        return resources;
     }
 
     private final SettingsController settingsController;
