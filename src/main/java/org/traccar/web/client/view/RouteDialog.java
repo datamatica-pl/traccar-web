@@ -50,6 +50,7 @@ import com.sencha.gxt.dnd.core.client.GridDragSource;
 import com.sencha.gxt.dnd.core.client.GridDropTarget;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent.BeforeStartEditHandler;
@@ -89,6 +90,7 @@ import org.gwtopenmaps.openlayers.client.Style;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.utils.Geocoder;
 import org.traccar.web.client.utils.Geocoder.SearchCallback;
+import org.traccar.web.client.utils.RoutePolylineFinder;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.GeoFenceType;
@@ -119,6 +121,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     @UiField
     FieldLabel trackNameLabel;
     
+    @UiField
+    TextButton addButton;
+    
     Messages i18n = GWT.create(Messages.class);
     
     private final Route route;
@@ -128,6 +133,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     Vector gfLayer;
     VectorFeature polyline;
     GeoFenceRenderer gfRenderer;
+    boolean recomputingPath = false;
     
     private org.gwtopenmaps.openlayers.client.Map map;
     
@@ -312,6 +318,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                     event.setCancelled(true);
                 if(event.getEditCell().getCol() != 0 && !pt.isEditable())
                     event.setCancelled(true);
+                if(recomputingPath)
+                    event.setCancelled(true);
                 gfRenderer.selectGeoFence(pt.getRoutePoint().getGeofence());
             }
         });
@@ -333,6 +341,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         map.addMapClickListener(new MapClickListener() {
             @Override
             public void onClick(MapClickListener.MapClickEvent ev) {
+                if(recomputingPath)
+                    return;
                 LonLat ll = ev.getLonLat();
                 ll.transform(map.getProjection(), "EPSG:4326");
                 onPointSelected(ll);
@@ -406,26 +416,50 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     }
     
     private void drawPolyline() {
+        startComputingPath();
         if(polyline != null) {
             gfLayer.removeFeature(polyline);
             polyline.destroy();
             polyline = null;
         }
-        ArrayList<Point> linePoints = new ArrayList<>();
+        List<LonLat> pts = new ArrayList<>();
         for(RoutePointWrapper pt : store.getAll()) {
             LonLat center = pt.getCenter();
             if(center == null)
-                continue;            
-            linePoints.add(createPoint(center.lon(), center.lat()));
+                continue;         
+            pts.add(center);
         }
-        if(linePoints.size() < 2 || !connect.getValue())
+        if(pts.size() < 2 || !connect.getValue()) {
+            endComputingPath();
             return;
+        }
         
-        Style st = new Style();
-        st.setStrokeWidth(4);
-        LineString ls = new LineString(linePoints.toArray(new Point[0]));
-        polyline = new VectorFeature(ls, st);
-        gfLayer.addFeature(polyline);
+        RoutePolylineFinder.find(pts, new RoutePolylineFinder.Callback() {
+            @Override
+            public void onResult(LonLat[] points) {
+                Style st = new Style();
+                st.setStrokeWidth(4);
+                ArrayList<Point> linePoints = new ArrayList<>();
+                for(LonLat pt : points) {
+                    linePoints.add(createPoint(pt.lon(), pt.lat()));
+                }
+                LineString ls = new LineString(linePoints.toArray(new Point[0]));
+                
+                polyline = new VectorFeature(ls, st);
+                gfLayer.addFeature(polyline);
+                endComputingPath();
+            }
+        });
+    }
+    
+    private void startComputingPath() {
+        recomputingPath = true;
+        addButton.setEnabled(!recomputingPath);
+    }
+    
+    private void endComputingPath() {
+        recomputingPath = false;
+        addButton.setEnabled(!recomputingPath);
     }
     
     @Override
