@@ -27,9 +27,7 @@ import pl.datamatica.traccar.model.GeoFence;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.gwtopenmaps.openlayers.client.LonLat;
 import pl.datamatica.traccar.model.Route;
-import pl.datamatica.traccar.model.RoutePoint;
 
 public class GeoFenceRenderer {
     private final IMapView mapView;
@@ -173,20 +171,6 @@ public class GeoFenceRenderer {
 
         return new VectorFeature(point, st);
     }
-    
-    private Point getCentroid(GeoFence gf) {
-        List<GeoFence.LonLat> pts = gf.points();
-        if(pts.isEmpty())
-            return null;
-        double lat = 0, lon = 0;
-        for(GeoFence.LonLat ll : pts) {
-            lat += ll.lat;
-            lon += ll.lon;
-        }
-        lon /= pts.size();
-        lat /= pts.size();
-        return mapView.createPoint(lon, lat);
-    }
 
     private static Point getCollectionCentroid(Collection collection) {
         JSObject jsPoint = getCollectionCentroid(collection.getJSObject());
@@ -219,12 +203,8 @@ public class GeoFenceRenderer {
         if(r == null)
             return;
         ArrayList<Point> linePoints = new ArrayList<>();
-        for(RoutePoint pt : r.getRoutePoints()) {
-            Point center = getCentroid(pt.getGeofence());
-            if(center == null)
-                continue;            
-            linePoints.add(center);
-        }
+        for(GeoFence.LonLat pt : r.getLinePoints())
+            linePoints.add(mapView.createPoint(pt.lon, pt.lat));
         if(linePoints.size() < 2)
             return;
         

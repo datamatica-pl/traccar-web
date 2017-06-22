@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.gwtopenmaps.openlayers.client.LonLat;
-import org.gwtopenmaps.openlayers.client.geometry.Point;
 
 public class RoutePolylineFinder {
     public static void find(List<LonLat> pts, final Callback callback) {
@@ -39,7 +38,7 @@ public class RoutePolylineFinder {
         try {
             RequestBuilder builder = new RequestBuilder(RequestBuilder.GET,
                     "https://router.project-osrm.org/route/v1/driving/"
-                    +rp.toString()+"?geometries=polyline");
+                    +rp.toString()+"?geometries=polyline&overview=full");
             builder.sendRequest(null, new RequestCallback() {
                 @Override
                 public void onResponseReceived(Request request, Response response) {

@@ -12,6 +12,17 @@
   <version>0.12.1</version>
   <name>Traccar Web UI</name>
 
+  <repositories>
+        <repository>
+            <id>OSGEO GeoTools repo</id>
+            <url>http://download.osgeo.org/webdav/geotools</url>
+        </repository>
+        <repository>
+            <id>Hibernate Spatial repo</id>
+            <url>http://www.hibernatespatial.org/repository</url>
+        </repository>
+    </repositories>
+
   <properties>
     <!-- Convenience property to set the hibernate version -->
     <hibernateVersion>4.3.7.Final</hibernateVersion>
@@ -86,6 +97,11 @@
       <groupId>org.hibernate.javax.persistence</groupId>
       <artifactId>hibernate-jpa-2.1-api</artifactId>
       <version>1.0.0.Final</version>
+    </dependency>
+    <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-spatial</artifactId>
+        <version>4.3</version>
     </dependency>
     <!-- Google guice -->
     <dependency>

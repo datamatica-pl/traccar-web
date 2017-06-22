@@ -134,6 +134,24 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     VectorFeature polyline;
     GeoFenceRenderer gfRenderer;
     boolean recomputingPath = false;
+    LonLat[] lineString;
+    RoutePolylineFinder.Callback routeDrawer = new RoutePolylineFinder.Callback() {
+        @Override
+        public void onResult(LonLat[] points) {
+            lineString = points;
+            Style st = new Style();
+            st.setStrokeWidth(4);
+            ArrayList<Point> linePoints = new ArrayList<>();
+            for(LonLat pt : points) {
+                linePoints.add(createPoint(pt.lon(), pt.lat()));
+            }
+            LineString ls = new LineString(linePoints.toArray(new Point[0]));
+
+            polyline = new VectorFeature(ls, st);
+            gfLayer.addFeature(polyline);
+            endComputingPath();
+        }
+    };
     
     private org.gwtopenmaps.openlayers.client.Map map;
     
@@ -151,9 +169,6 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             }
         });
         uiBinder.createAndBindUi(this);
-        
-        prepareMap();
-        bindStoreWithMap();
         
         connect.setValue(true);
         //editing!
@@ -180,6 +195,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         store.addAll(pts);
         if(route.getDevice() != null)
             selectDevice.setValue(route.getDevice());
+        
+        prepareMap();
+        bindStoreWithMap(route);
         
         prepareDND();
     }
@@ -351,7 +369,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         theMap.add(mapWidget);
     }
     
-    private void bindStoreWithMap() {
+    private void bindStoreWithMap(Route route) {
         gfRenderer = new GeoFenceRenderer(this);
         store.addStoreHandlers(new StoreHandlers<RoutePointWrapper>() {
             @Override
@@ -406,6 +424,13 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 }
             }
         });
+        pl.datamatica.traccar.model.GeoFence.LonLat[] pts = route.getLinePoints();
+        if(pts == null)
+            return;
+        lineString = new LonLat[pts.length];
+        for(int i=0;i<pts.length;++i)
+            lineString[i] = new LonLat(pts[i].lon, pts[i].lat);
+        routeDrawer.onResult(lineString);
     }
     
     private void prepareDND() {
@@ -434,22 +459,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             return;
         }
         
-        RoutePolylineFinder.find(pts, new RoutePolylineFinder.Callback() {
-            @Override
-            public void onResult(LonLat[] points) {
-                Style st = new Style();
-                st.setStrokeWidth(4);
-                ArrayList<Point> linePoints = new ArrayList<>();
-                for(LonLat pt : points) {
-                    linePoints.add(createPoint(pt.lon(), pt.lat()));
-                }
-                LineString ls = new LineString(linePoints.toArray(new Point[0]));
-                
-                polyline = new VectorFeature(ls, st);
-                gfLayer.addFeature(polyline);
-                endComputingPath();
-            }
-        });
+        RoutePolylineFinder.find(pts, routeDrawer);
     }
     
     private void startComputingPath() {
@@ -505,11 +515,16 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         if(connect.getValue()) {
             route.setName(name.getValue());
             route.setDevice(selectDevice.getCurrentValue());
+            pl.datamatica.traccar.model.GeoFence.LonLat[] gll = 
+                    new pl.datamatica.traccar.model.GeoFence.LonLat[lineString.length];
+            for(int i=0;i<lineString.length;++i)
+                gll[i] = new pl.datamatica.traccar.model.GeoFence.LonLat(lineString[i].lon(),
+                    lineString[i].lat());
+            route.setLinePoints(gll);
         }
         
         if(validate(route, connect.getValue())) {
-            RouteGenerator g = new RouteGenerator(route, routeHandler, connect.getValue());
-            g.start();
+            routeHandler.onSave(route, connect.getValue());
             window.hide();
         }
     }
@@ -652,60 +667,6 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         ValueProvider<RoutePointWrapper, String> name();
         ValueProvider<RoutePointWrapper, String> address();
         ValueProvider<RoutePointWrapper, Integer> radius();
-    }
-    
-    static class RouteGenerator {
-        List<GeoFence> waiting;
-        int geocodedCount;
-        List<GeoFence> ready;
-        
-        RouteHandler routeHandler;
-        Route route;
-        boolean connect;
-        
-        public RouteGenerator(Route route, RouteHandler rHandler, 
-                boolean connect) {
-            waiting = new ArrayList<>();
-            ready = new ArrayList<>();
-            this.route = route;
-            this.routeHandler = rHandler;
-            this.connect = connect;
-            
-            for(RoutePoint rp : route.getRoutePoints()) {
-                GeoFence gf = rp.getGeofence();
-                if(gf.getId() != 0)
-                    ready.add(gf);
-                else if(gf.getPoints() != null && !gf.getPoints().isEmpty()) {
-                    ready.add(gf);
-                } else {
-                    waiting.add(gf);
-                }
-            }
-        }
-        
-        public void start() {
-            geocodedCount = 0;
-            if(waiting.isEmpty())
-                save();
-            for(final GeoFence gf : waiting) {
-                Geocoder.search(gf.getAddress(), new SearchCallback() {
-                        @Override
-                        public void onResult(float lon, float lat, String name) {
-                            ++geocodedCount;
-                            gf.setPoints(lon+" "+lat);
-                            if(gf.getName() == null || gf.getName().isEmpty())
-                                gf.setName(name);
-                            ready.add(gf);
-                            if(geocodedCount == waiting.size())
-                                save();
-                        }
-                    });
-            }
-        }
-        
-        public void save() {
-            routeHandler.onSave(route, connect);
-        }
     }
     
     static interface Resources extends ClientBundle {

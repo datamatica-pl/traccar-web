@@ -67,6 +67,7 @@ import org.traccar.web.client.model.EventService;
 import org.traccar.web.server.utils.JsonXmlParser;
 import org.traccar.web.server.utils.StopsDetector;
 import org.traccar.web.shared.model.*;
+import pl.datamatica.traccar.model.DbRoute;
 import pl.datamatica.traccar.model.Route;
 import pl.datamatica.traccar.model.RoutePoint;
 import pl.datamatica.traccar.model.UserDeviceStatus;
@@ -1301,11 +1302,11 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     @Override
     public List<Route> getRoutes() {
         EntityManager em = getSessionEntityManager();
-        TypedQuery<Route> tq = em.createQuery("from Route r where owner = :user", 
-                Route.class).setParameter("user", getSessionUser());
+        TypedQuery<DbRoute> tq = em.createQuery("from DbRoute r where owner = :user", 
+                DbRoute.class).setParameter("user", getSessionUser());
         List<Route> copy = new ArrayList<>();
-        for(Route r : tq.getResultList())
-            copy.add(new Route(r));
+        for(DbRoute r : tq.getResultList())
+            copy.add(r.toRoute());
         return copy;
     }
     
@@ -1317,9 +1318,10 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         addRouteGeofences(route);
         route.setCreated(new Date());
         route.setOwner(getSessionUser());
+        DbRoute dbr = new DbRoute(route);
         if(connect)
-            em.persist(route);
-        return new Route(route);
+            em.persist(dbr);
+        return dbr.toRoute();
     }
     
     @Transactional
@@ -1327,12 +1329,12 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     @Override
     public Route updateRoute(Route updated) throws TraccarException {
         EntityManager em = getSessionEntityManager();
-        Route existing = em.find(Route.class, updated.getId());
+        DbRoute existing = em.find(DbRoute.class, updated.getId());
         existing.update(updated);
         addRouteGeofences(existing);
         //attach routepoints
         em.merge(existing);
-        return new Route(existing);
+        return existing.toRoute();
     }
     
     private void addRouteGeofences(Route route) throws TraccarException {
@@ -1348,9 +1350,9 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     @Override
     public Route removeRoute(Route route) {
         EntityManager em = getSessionEntityManager();
-        route = em.find(Route.class, route.getId());
-        em.remove(route);
-        return new Route(route);
+        DbRoute dbRoute = em.find(DbRoute.class, route.getId());
+        em.remove(dbRoute);
+        return dbRoute.toRoute();
     }
     
     public static class CommandHandler implements ICommandHandler{

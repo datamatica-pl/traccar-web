@@ -18,6 +18,8 @@ package org.traccar.web.client.controller;
 import com.google.gwt.core.client.GWT;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
+import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
+import com.sencha.gxt.data.shared.event.StoreRemoveEvent.StoreRemoveHandler;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import java.util.List;
 import org.traccar.web.client.Application;
@@ -47,6 +49,12 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
             public String getKey(Route item) {
                 return Long.toString(item.getId());
             } 
+        });
+        routeStore.addStoreRemoveHandler(new StoreRemoveHandler<Route>() {
+            @Override
+            public void onRemove(StoreRemoveEvent<Route> event) {
+                onSelected(null);
+            }
         });
     }
     
