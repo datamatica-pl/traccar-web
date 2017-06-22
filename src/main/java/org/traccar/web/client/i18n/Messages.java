@@ -475,6 +475,8 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String overspeedCount();
 
     String speedLimit();
+    
+    String fuelCapacity();
 
     String status();
 
