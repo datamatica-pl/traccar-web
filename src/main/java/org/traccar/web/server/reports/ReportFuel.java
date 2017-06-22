@@ -81,7 +81,8 @@ public class ReportFuel extends ReportGenerator {
              "          .range([200, 30]);\n" +
              "var line = d3.line()\n" +
              "             .x(function(d) { return x(d.x);})\n" +
-             "             .y(function(d) { return y(d.y);});\n" +
+             "             .y(function(d) { return y(d.y);})\n" +
+             "             .curve(d3.curveStepAfter);\n" +
              "var svg = d3.select('#'+id);");
         
         html("svg.append('text')\n"+
@@ -147,8 +148,10 @@ public class ReportFuel extends ReportGenerator {
         html("<script type=\"text/javascript\">");
         html("data=[");
         for(Position p : positions)
-            if(p.getOther() != null && !p.getOther().isEmpty())
-                html("{time:new Date(\""+p.getTime()+"\"),other:"+p.getOther()+"},");
+            if(p.getOther() != null && !p.getOther().isEmpty()) {
+                html("{time:new Date("+p.getTime().getTime()+"),"
+                        + "other:"+p.getOther()+"},");
+            }
         html("]");
         html("</script>");
     }
