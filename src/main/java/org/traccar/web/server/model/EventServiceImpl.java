@@ -37,6 +37,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import javax.persistence.TypedQuery;
+import pl.datamatica.traccar.model.DbRoute;
 import static pl.datamatica.traccar.model.DeviceEventType.*;
 import pl.datamatica.traccar.model.LastDeviceEventTime;
 import pl.datamatica.traccar.model.Route;
@@ -459,16 +460,16 @@ public class EventServiceImpl extends RemoteServiceServlet implements EventServi
         @Inject
         Provider<EntityManager> em;
         GeoFenceCalculator gfCalc;
-        Map<Route, RoutePoint> newestPoint = new HashMap<>(); 
+        Map<DbRoute, RoutePoint> newestPoint = new HashMap<>(); 
         
         @Override
         @Transactional
         void before() {
             Map<Long, GeoFence> gfs = new HashMap<>();
-            List<Route> routes = entityManager.get().createQuery("SELECT r FROM Route r "
+            List<DbRoute> routes = entityManager.get().createQuery("SELECT r FROM DbRoute r "
                     + "LEFT JOIN FETCH r.routePoints "
-                    + "WHERE r.device IS NOT NULL", Route.class).getResultList();
-            for(Route r : routes) {
+                    + "WHERE r.device IS NOT NULL", DbRoute.class).getResultList();
+            for(DbRoute r : routes) {
                 for(RoutePoint rp : r.getRoutePoints())
                     if(rp.getEnterTime() == null 
                             || rp.getExitTime() == null) {
@@ -492,7 +493,7 @@ public class EventServiceImpl extends RemoteServiceServlet implements EventServi
 
         @Override
         void positionScanned(Position prevPosition, Position position) {
-            for(Map.Entry<Route, RoutePoint> kv : newestPoint.entrySet()) {
+            for(Map.Entry<DbRoute, RoutePoint> kv : newestPoint.entrySet()) {
                 GeoFence gf = new GeoFence().copyFrom(kv.getValue().getGeofence());
                 gf.setDevices(Collections.singleton(kv.getKey().getDevice()));
                 boolean beforeEnter = kv.getValue().getEnterTime() == null;
