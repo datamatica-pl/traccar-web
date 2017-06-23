@@ -188,6 +188,8 @@ public class DeviceDialog implements Editor<Device> {
 
         driver.initialize(this);
         driver.edit(device);
+        if(device.getUniqueId() != null)
+            uniqueId.setReadOnly(true);
 
         idleSpeedThreshold.setValue(device.getIdleSpeedThreshold() * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactor());
         speedLimit.addValidator(new MaxNumberValidator<>(255.));
