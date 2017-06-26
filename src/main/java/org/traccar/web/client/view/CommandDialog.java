@@ -212,6 +212,7 @@ public class CommandDialog {
 
     public void show() {
         window.show();
+        lblSOSNumber1.setVisible(false);
     }
 
     public void hide() {
