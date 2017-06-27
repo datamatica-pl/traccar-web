@@ -197,8 +197,8 @@ public class DeviceDialog implements Editor<Device> {
             speedLimit.setValue(device.getSpeedLimit() * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactor());
         }
 
-        fuelCapacity.addValidator(new MaxNumberValidator<>(10000.));
-        
+        fuelCapacity.addValidator(new MaxNumberValidator<>(9000.));
+        fuelCapacity.addValidator(new MinNumberValidator<>(1.));
         
         updatePhoto();
 
