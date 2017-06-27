@@ -654,4 +654,8 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String selectDevice();
     String addFromMap();
     String latLonFormat(double lat, String latDir, double lon, String lonDir);
+
+    public String emailResent();
+    String resendLink();
+    String loginDialogMoreInfo();
 }

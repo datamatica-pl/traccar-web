@@ -135,25 +135,28 @@ public class LoginController implements LoginDialog.LoginHandler {
             users.register(dto, new JsonCallback() {
                 @Override
                 public void onSuccess(Method method, JSONValue response) {
-                    switch (method.getResponse().getStatusCode()) {
-                        case Response.SC_CREATED:
-                            new AlertMessageBox(i18n.success(), i18n.validationMailSent()).show();
-                            break;
+                    if(method.getResponse().getStatusCode() == Response.SC_CREATED)
+                        new AlertMessageBox(i18n.success(), i18n.validationMailSent()).show();
+                    else
+                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                }
+                
+                @Override
+                public void onFailure(Method method, Throwable exception) {
+                    switch(method.getResponse().getStatusCode()) {
                         case Response.SC_CONFLICT:
                             new AlertMessageBox(i18n.error(), i18n.errUsernameTaken()).show();
                             break;
                         case Response.SC_BAD_REQUEST:
-                            new AlertMessageBox(i18n.error(), i18n.errInvalidImei()).show();
+                            if(method.getResponse().getText().equals("err_email_resent"))
+                                new AlertMessageBox(i18n.error(), i18n.emailResent()).show();
+                            else
+                                new AlertMessageBox(i18n.error(), i18n.errInvalidImei()).show();
                             break;
                         default:
                             new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                             break;
                     }
-                }
-                
-                @Override
-                public void onFailure(Method method, Throwable exception) {
-                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                 }
             });
         }
