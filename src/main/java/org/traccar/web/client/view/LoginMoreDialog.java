@@ -74,7 +74,7 @@ public class LoginMoreDialog {
     
     @UiHandler("resendButton")
     public void onResendClicked(SelectEvent event) {
-        us.resetPassword(new UsersService.ResetPasswordDto(login.getText()), new JsonCallback() {
+        us.resendLink(new UsersService.ResetPasswordDto(login.getText()), new JsonCallback() {
             @Override
             public void onFailure(Method method, Throwable exception) {
                 new AlertMessageBox(i18n.success(), i18n.emailResent()).show();

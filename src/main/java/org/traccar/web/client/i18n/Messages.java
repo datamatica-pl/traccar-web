@@ -649,4 +649,5 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     public String emailResent();
     String resendLink();
     String loginDialogMoreInfo();
+    String more();
 }
