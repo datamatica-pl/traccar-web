@@ -356,6 +356,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                     .executeUpdate();
         }
         entityManager.createQuery("DELETE FROM NotificationSettings s WHERE s.user=:user").setParameter("user", user).executeUpdate();
+        entityManager.createQuery("DELETE FROM UserDeviceStatus x WHERE x.id.user = :user")
+                .setParameter("user", user).executeUpdate();
         entityManager.createQuery("UPDATE Device d SET d.owner=null, d.deleted=true WHERE d.owner=:user")
                 .setParameter("user", user).executeUpdate();
         for (Device device : user.getDevices()) {
