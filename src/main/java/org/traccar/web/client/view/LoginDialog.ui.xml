@@ -75,7 +75,7 @@
       <container:child>
           <g:HTMLPanel>
               <hr />
-              <a>
+              <a href="#">
                 <g:Label ui:field="moreButton" text="{i18n.more}..." />
               </a>
               <g:Label text="{i18n.loginDialogMoreInfo}" />
