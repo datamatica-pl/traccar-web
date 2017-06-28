@@ -75,10 +75,10 @@
       <container:child>
           <g:HTMLPanel>
               <hr />
-              <a href="#">
-                <g:Label ui:field="moreButton" text="Więcej..." />
+              <a>
+                <g:Label ui:field="moreButton" text="{i18n.more}..." />
               </a>
-              Użytkowniku! Nie klikaj tego linka.
+              <g:Label text="{i18n.loginDialogMoreInfo}" />
               <hr/>
           </g:HTMLPanel>
       </container:child>
