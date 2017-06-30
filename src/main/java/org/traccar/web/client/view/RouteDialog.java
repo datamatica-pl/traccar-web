@@ -46,6 +46,8 @@ import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
 import com.sencha.gxt.data.shared.event.StoreSortEvent;
 import com.sencha.gxt.data.shared.event.StoreUpdateEvent;
 import com.sencha.gxt.dnd.core.client.DND;
+import com.sencha.gxt.dnd.core.client.DndDropEvent;
+import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
 import com.sencha.gxt.dnd.core.client.GridDragSource;
 import com.sencha.gxt.dnd.core.client.GridDropTarget;
 import com.sencha.gxt.widget.core.client.Window;
@@ -430,6 +432,11 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         lineString = new LonLat[pts.length];
         for(int i=0;i<pts.length;++i)
             lineString[i] = new LonLat(pts[i].lon, pts[i].lat);
+        for(RoutePointWrapper pt : store.getAll()) {
+            GeoFence gf = pt.getRoutePoint().getGeofence();
+            if(!gf.points().isEmpty())
+                gfRenderer.drawGeoFence(gf, true);
+        }
         routeDrawer.onResult(lineString);
     }
     
@@ -441,6 +448,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     }
     
     private void drawPolyline() {
+        //drag'n'drop!
+        if(recomputingPath)
+            return;
         startComputingPath();
         if(polyline != null) {
             gfLayer.removeFeature(polyline);

@@ -28,12 +28,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import pl.datamatica.traccar.model.Route;
+import pl.datamatica.traccar.model.RoutePoint;
 
 public class GeoFenceRenderer {
     private final IMapView mapView;
     private final Map<Long, GeoFenceDrawing> drawings = new HashMap<>();
     private final Map<GeoFence, GeoFenceDrawing> id0 = new HashMap<>();
     private VectorFeature polyline;
+    private Route selectedRoute;
 
     public GeoFenceRenderer(IMapView mapView) {
         this.mapView = mapView;
@@ -195,13 +197,19 @@ public class GeoFenceRenderer {
     }
     
     public void selectRoute(Route r) {
+        if(selectedRoute != null)
+            for(RoutePoint rp : selectedRoute.getRoutePoints())
+                removeGeoFence(rp.getGeofence());
         if(polyline != null) {
             getVectorLayer().removeFeature(polyline);
             polyline.destroy();
             polyline = null;
         }
+        selectedRoute = r;
         if(r == null)
             return;
+        for(RoutePoint rp : r.getRoutePoints())
+            drawGeoFence(rp.getGeofence(), true);
         ArrayList<Point> linePoints = new ArrayList<>();
         for(GeoFence.LonLat pt : r.getLinePoints())
             linePoints.add(mapView.createPoint(pt.lon, pt.lat));
