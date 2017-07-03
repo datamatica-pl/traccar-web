@@ -352,6 +352,8 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
 
     @Override
     public void groupRemoved(Group group) {
+        if(!group.isOwned())
+            return;
         for (int i = 0; i < deviceStore.size(); i++) {
             Device device = deviceStore.get(i);
             if (Objects.equals(device.getGroup(), group)) {

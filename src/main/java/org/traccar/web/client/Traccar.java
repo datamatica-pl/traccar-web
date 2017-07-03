@@ -24,6 +24,7 @@ import org.traccar.web.client.state.UIStateProvider;
 import pl.datamatica.traccar.model.ApplicationSettings;
 
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.event.shared.UmbrellaException;
 import org.fusesource.restygwt.client.Defaults;
 import org.traccar.web.client.model.api.Dispatcher;
 
@@ -43,6 +44,23 @@ public class Traccar implements EntryPoint, LoginController.LoginHandler {
         StateManager.get().setProvider(new UIStateProvider());
         
         Defaults.setDispatcher(new Dispatcher());
+        //https://stackoverflow.com/a/11033699
+//        GWT.setUncaughtExceptionHandler(new GWT.UncaughtExceptionHandler() {
+//            @Override
+//            public void onUncaughtException(Throwable e) {
+//                ensureNotUmbrellaError(e);
+//            }
+//            
+//            private void ensureNotUmbrellaError(Throwable e) {
+//                for (Throwable th : ((UmbrellaException) e).getCauses()) {
+//                    if (th instanceof UmbrellaException) {
+//                        ensureNotUmbrellaError(th);
+//                    } else {
+//                        GWT.log("EXCEPTION!",th);
+//                    }
+//                }
+//            }
+//        });
     }
 
     @Override

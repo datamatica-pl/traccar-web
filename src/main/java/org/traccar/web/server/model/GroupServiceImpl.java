@@ -49,13 +49,22 @@ public class GroupServiceImpl extends RemoteServiceServlet implements GroupServi
 
         if (sessionUser.get().getAdmin()) {
             groups = entityManager.get().createQuery("SELECT x FROM Group x", Group.class).getResultList();
+            for(Group g : groups) {
+                g.setShared(true);
+                g.setOwned(true);
+            }
         } else {
             groups = new ArrayList<>(sessionUser.get().getAllAvailableGroups());
-            for(Group group : groups)
-                group.setMine(true);
+            for(Group group : groups) {
+                Set<User> users = new HashSet<>(group.getUsers());
+                users.removeAll(dataService.getUsers());   
+                users.remove(sessionUser.get());
+                group.setOwned(users.isEmpty());
+                group.setShared(true);
+            }
             for (Device device : dataService.getDevices()) {
                 if (device.getGroup() != null && !groups.contains(device.getGroup())) {
-                    device.getGroup().setMine(false);
+                    device.getGroup().setShared(false);
                     groups.add(device.getGroup());
                 }
             }
@@ -64,7 +73,7 @@ public class GroupServiceImpl extends RemoteServiceServlet implements GroupServi
         for(int i=0;i<groups.size();++i) {
             Group parent = groups.get(i).getParent();
             if(parent != null && !groups.contains(parent)) {
-                parent.setMine(false);
+                parent.setShared(false);
                 groups.add(parent);
             }
         }

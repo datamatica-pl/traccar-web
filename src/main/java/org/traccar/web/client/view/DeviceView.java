@@ -160,7 +160,17 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             if (deviceStore.contains(node)) {
                 pendingDevices.addAll(devices(node));
                 Group parent = (Group) deviceStore.getParent(node);
-                deviceStore.remove(node);
+                if(!deviceStore.isGroup(node))
+                    deviceStore.remove(node);
+                else {
+                    Group g = (Group)node;
+                    if(g.isOwned())
+                        deviceStore.remove(g);
+                    else {
+                        g.setShared(false);
+                        deviceStore.update(g);
+                    }
+                }
                 if (parent != null) {
                     removeGroupsIfEmpty(parent);
                 }

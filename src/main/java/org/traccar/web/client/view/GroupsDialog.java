@@ -155,7 +155,7 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
         groupStore.addFilter(new StoreFilter<Group>() {
             @Override
             public boolean select(Store<Group> store, Group parent, Group item) {
-                return ApplicationContext.getInstance().getUser().getAdmin() || item.isMine();
+                return ApplicationContext.getInstance().getUser().getAdmin() || item.isShared();
             }
         });
         groupStore.setEnableFilters(true);
@@ -199,7 +199,7 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
              GridInlineEditing<Group> editing = new GridInlineEditing<Group>(grid) {
                  @Override
                  public void startEditing(Grid.GridCell cell) {
-                     if(grid.getStore().get(cell.getRow()).isMine()
+                     if(grid.getStore().get(cell.getRow()).isShared()
                              || ApplicationContext.getInstance().getUser().getAdmin())
                         super.startEditing(cell);
                  }
@@ -235,9 +235,9 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
 
     @Override
     public void onSelectionChanged(SelectionChangedEvent<Group> event) {
-        boolean isMineSelected = !event.getSelection().isEmpty() && event.getSelection().get(0).isMine();
-        boolean isNonMineSelected = !event.getSelection().isEmpty() && !event.getSelection().get(0).isMine();
-        boolean isConfirmed = event.getSelection().get(0).getId() >= 0;
+        boolean isMineSelected = !event.getSelection().isEmpty() && event.getSelection().get(0).isShared();
+        boolean isNonMineSelected = !event.getSelection().isEmpty() && !event.getSelection().get(0).isShared();
+        boolean isConfirmed = !event.getSelection().isEmpty() && event.getSelection().get(0).getId() >= 0;
         addButton.setEnabled(!isNonMineSelected);
         shareButton.setEnabled(isMineSelected && isConfirmed);
         removeButton.setEnabled(isMineSelected);
