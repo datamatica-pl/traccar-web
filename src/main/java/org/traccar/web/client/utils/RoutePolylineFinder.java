@@ -38,14 +38,16 @@ public class RoutePolylineFinder {
         try {
             RequestBuilder builder = new RequestBuilder(RequestBuilder.GET,
                     "https://router.project-osrm.org/route/v1/driving/"
-                    +rp.toString()+"?geometries=polyline&overview=full");
+                    +rp.toString()+"?geometries=polyline&overview=full&alternatives=true");
             builder.sendRequest(null, new RequestCallback() {
                 @Override
                 public void onResponseReceived(Request request, Response response) {
                     Result r = JsonUtils.safeEval(response.getText());
-                    if(r.geometry() == null)
+                    if(r.geometry(0) == null)
                         GWT.log("null!");
-                    Object[] pts = r.geometry();
+                    if(r.geometry(1) != null)
+                        GWT.log("has second geometry");
+                    Object[] pts = r.geometry(0);
                     LonLat[] lonLat = new LonLat[pts.length];
                     for(int i=0;i<pts.length;++i) {
                         String[] latLon=pts[i].toString().split(",");
@@ -77,9 +79,9 @@ public class RoutePolylineFinder {
     static class Result extends JavaScriptObject {
         protected Result() {}
         
-        public final native Object[] geometry() /*-{
-            if(this.routes && this.routes.length > 0 && this.routes[0].geometry) 
-                return $wnd.polyline.decode(this.routes[0].geometry);
+        public final native Object[] geometry(int i) /*-{
+            if(this.routes && this.routes.length > i && this.routes[i].geometry) 
+                return $wnd.polyline.decode(this.routes[i].geometry);
             return null;
         }-*/;
     }
