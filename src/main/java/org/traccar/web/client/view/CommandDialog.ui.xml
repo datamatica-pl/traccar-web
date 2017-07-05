@@ -102,7 +102,7 @@
                 </form:FieldLabel>
             </container:child>
             <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.SOSNumber1}" ui:field="lblSOSNumber1" visible="false" labelWidth="120">
+                <form:FieldLabel text="{i18n.SOSNumber1}" ui:field="lblSOSNumber1" visible="true" labelWidth="120">
                     <form:widget>
                         <form:TextField ui:field="SOSNumber1" />
                     </form:widget>

@@ -35,6 +35,7 @@ import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.model.api.BasicAuthFilter;
 import org.traccar.web.client.model.api.SessionService;
 import org.traccar.web.client.model.api.UsersService;
+import org.traccar.web.client.widget.InfoMessageBox;
 import org.traccar.web.shared.model.UserBlockedException;
 import org.traccar.web.shared.model.UserExpiredException;
 
@@ -138,7 +139,7 @@ public class LoginController implements LoginDialog.LoginHandler {
                 public void onSuccess(Method method, JSONValue response) {
                     switch (method.getResponse().getStatusCode()) {
                         case Response.SC_CREATED:
-                            new AlertMessageBox(i18n.success(), i18n.validationMailSent()).show();
+                            new InfoMessageBox(i18n.success(), i18n.validationMailSent()).show();
                             break;
                         case Response.SC_CONFLICT:
                             new AlertMessageBox(i18n.error(), i18n.errUsernameTaken()).show();
