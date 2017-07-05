@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Datamatica (dev@datamatica.pl)
+ * Copyright 2017 Datamatica (dev@datamatica.pl)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.traccar.web.server.model;
+package org.traccar.web.client.model.api;
 
-public interface ICommandHandler {
-    void success(String data);
-    void fail(String reason);
+import java.util.List;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import org.fusesource.restygwt.client.MethodCallback;
+import org.fusesource.restygwt.client.RestService;
+
+@Path("../api/v1/resources")
+public interface ResourcesService extends RestService {
+    @GET
+    @Path("deviceicons")
+    public void getDeviceIcons(MethodCallback<List<ApiDeviceIcon>> callback);
 }

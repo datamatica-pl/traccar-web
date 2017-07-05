@@ -40,6 +40,7 @@ import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreHandlers;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
+import org.traccar.web.client.InitialLoader.LoadFinishedListener;
 import org.traccar.web.client.model.api.Decoder;
 import org.traccar.web.client.model.api.DevicesService;
 import org.traccar.web.client.model.api.Resources;
@@ -81,6 +82,8 @@ public class Application {
     private final LogController logController;
     private final GroupsController groupsController;
     private final VisibilityController visibilityController;
+    
+    private final InitialLoader initialLoader;
 
     private ApplicationView view;
 
@@ -121,6 +124,7 @@ public class Application {
         updatesController.addLatestPositionsListener(mapController);
         updatesController.addDevicesListener(deviceController);
 
+        initialLoader = new InitialLoader(deviceStore, groupStore);
         view = new ApplicationView(
                 navController.getView(), deviceController.getView(), mapController.getView(), archiveController.getView());
     }
@@ -128,17 +132,22 @@ public class Application {
     public void run() {
         RootPanel.get().add(view);
 
-        navController.run();
-        deviceController.run();
-        mapController.run();
-        archiveController.run();
-        geoFenceController.run();
-        commandController.run();
-        groupsController.run();
-        visibilityController.run();
-        reportsController.run();
-        updatesController.run();
-        setupTimeZone();
+        initialLoader.load(new LoadFinishedListener() {
+            @Override
+            public void onLoadFinished() {
+                navController.run();
+                deviceController.run();
+                mapController.run();
+                archiveController.run();
+                geoFenceController.run();
+                commandController.run();
+                groupsController.run();
+                visibilityController.run();
+                reportsController.run();
+                updatesController.run();
+                setupTimeZone();
+            }
+        });
     }
 
     private void setupTimeZone() {

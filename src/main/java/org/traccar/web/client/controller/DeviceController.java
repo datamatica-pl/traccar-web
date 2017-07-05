@@ -121,15 +121,8 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
 
     @Override
     public void run() {
-        Application.getDataService().getDevices(new BaseAsyncCallback<List<Device>>(i18n) {
-            @Override
-            public void onSuccess(List<Device> result) {
-                deviceStore.addAll(result);
-                deviceStore.addStoreHandlers(deviceStoreHandler);
-                
-                showDevicesSubscriptionLeftPopup();
-            }
-        });
+        deviceStore.addStoreHandlers(deviceStoreHandler);
+        showDevicesSubscriptionLeftPopup();
     }
 
     @Override
