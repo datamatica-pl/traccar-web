@@ -15,13 +15,15 @@
  */
 package org.traccar.web.client.model.api;
 
+import javax.ws.rs.GET;
 import org.fusesource.restygwt.client.RestService;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import org.fusesource.restygwt.client.JsonCallback;
 
 
-@Path("../api/v1/users")
+@Path("https://localhost/api/v1/users")
+//@Path("../api/v1/users")
 public interface UsersService extends RestService{
     public static class AddUserDto {
         public String email;
@@ -54,4 +56,7 @@ public interface UsersService extends RestService{
     @POST
     @Path("resetreq")
     void resetPassword(ResetPasswordDto dto, JsonCallback callback);
+    
+    @GET
+    void getUsers(JsonCallback callback);
 }

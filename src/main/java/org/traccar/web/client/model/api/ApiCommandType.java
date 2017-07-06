@@ -15,19 +15,21 @@
  */
 package org.traccar.web.client.model.api;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import org.fusesource.restygwt.client.JsonCallback;
-import org.fusesource.restygwt.client.RestService;
+import pl.datamatica.traccar.model.CommandType;
 
-//@Path("../api/v1/session")
-@Path("https://localhost/api/v1/session")
-public interface SessionService extends RestService{
-    @GET
-    @Path("user")
-    void getUser(JsonCallback callback);
+/**
+ *
+ * @author Lukasz
+ */
+public class ApiCommandType {
+    String commandName;
+    boolean isTCP;
     
-    @DELETE
-    void logout(JsonCallback callback);
+    public String getCommandName() {
+        return commandName;
+    }
+    
+    public boolean isTCP() {
+        return isTCP;
+    }
 }

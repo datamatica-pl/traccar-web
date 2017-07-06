@@ -1,12 +1,16 @@
 package org.traccar.web.client;
 
+import java.util.Collection;
+import java.util.HashMap;
 import pl.datamatica.traccar.model.ApplicationSettings;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UserSettings;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import pl.datamatica.traccar.model.Group;
 
 public class ApplicationContext {
 
@@ -103,5 +107,32 @@ public class ApplicationContext {
 
     public boolean isRecordingTrace(Device device) {
         return recordTraceDeviceIds != null && recordTraceDeviceIds.contains(device.getId());
+    }
+
+    Map<Long, User> users = new HashMap<>();
+    
+    public User getUser(long id) {
+        return users.get(id);
+    }
+    
+    public void setUsers(Collection<User> users) {
+        users.clear();
+        for(User u : users)
+            this.users.put(u.getId(), u);
+    }
+    
+    Map<Long, Group> groups = new HashMap<>();
+    
+    public Group getGroup(Long id) {
+        if(id == null)
+            return null;
+        return groups.get(id);
+    }
+    
+    public void setGroups(Collection<Group> groups) {
+        this.groups.clear();
+        for(Group g : groups) {
+            this.groups.put(g.getId(), g);
+        }
     }
 }

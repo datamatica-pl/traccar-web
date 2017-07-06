@@ -21,7 +21,8 @@ import javax.ws.rs.Path;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.RestService;
 
-@Path("../api/v1/devices")
+@Path("https://localhost/api/v1/devices")
+//@Path("../api/v1/devices")
 public interface DevicesService extends RestService {
     @GET
     void getDevices(JsonCallback callback);

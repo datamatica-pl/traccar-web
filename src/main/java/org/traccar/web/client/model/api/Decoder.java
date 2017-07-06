@@ -8,22 +8,23 @@ package org.traccar.web.client.model.api;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
+import com.google.gwt.json.client.JSONValue;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
+import pl.datamatica.traccar.model.CommandType;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.DeviceIconMode;
-import pl.datamatica.traccar.model.Group;
+import pl.datamatica.traccar.model.Maintenance;
 import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.User;
 
-public class Decoder {
-    private final Map<Long, Group> groupMap = new HashMap<>();
-    
+public class Decoder {    
     public List<Device> decodeDevices(JSONObject v) {
         JSONArray arr = v.get("changed").isArray();
         List<Device> devices = new ArrayList<>();
@@ -43,7 +44,7 @@ public class Decoder {
             d.setLatestPosition(decodePosition(v.get("lastPosition").isObject()));
             d.getLatestPosition().setDevice(d);
         }
-        d.setGroup(groupMap.get(aLong(v, "groupId")));
+        d.setGroup(ApplicationContext.getInstance().getGroup(aLong(v, "groupId")));
 
         d.setDeviceModelId(aLong(v, "deviceModelId"));
         d.setIconId(aLong(v, "iconId"));
@@ -59,19 +60,43 @@ public class Decoder {
         d.setSpeedLimit(aDouble(v, "speedLimit"));
         d.setStatus(string(v, "status"));
         d.setOwner(ApplicationContext.getInstance().getUser());
-        d.setUsers(Collections.singleton(d.getOwner()));
+        
+        Set<User> users = new HashSet<>();
+        long[] userIds = longArr(v, "userIds");
+        if(userIds == null)
+            users = Collections.singleton(d.getOwner());
+        else {
+            for(long id : userIds)
+                users.add(ApplicationContext.getInstance().getUser(id));
+        }
+        d.setUsers(users);
 
         d.setPhoneNumber(string(v, "phoneNumber"));
         d.setPlateNumber(string(v, "plateNumber"));
         d.setDescription(string(v, "description"));
         
-        d.setProtocol("null");
+        d.setProtocol("");
         d.setAlarmEnabled(bool(v, "autoArm", false));
-        d.setMaintenances(Collections.EMPTY_LIST);
         d.setRegistrations(Collections.EMPTY_LIST);
         d.setSensors(Collections.EMPTY_LIST);
         
+        d.setUnreadAlarms(bool(v, "unreadAlarms", false));
+        d.setLastAlarmsCheck(date(v, "lastAlarmsCheck"));
+        
         d.setIconMode(DeviceIconMode.ICON);
+        
+        ApiDeviceModel model = Application.getResources().model(d.getDeviceModelId());
+        if(model != null)
+            for(ApiCommandType ct : model.getCommandTypes()) {
+                d.addSupportedCommand(CommandType.fromString(ct.getCommandName()));
+            }
+        if(v.get("maintenances") != null && v.get("maintenances").isArray() != null) {
+            JSONArray arr = v.get("maintenances").isArray();
+            List<Maintenance> ms = new ArrayList<>();
+            for(int i=0;i<arr.size();++i)
+                ms.add(decodeMaintenance(arr.get(i).isObject()));
+            d.setMaintenances(ms);
+        }
         return d;
     }
     
@@ -89,12 +114,42 @@ public class Decoder {
         return p;
     }
     
-    public void setGroups(Collection<Group> groups) {
-        groupMap.clear();
-        for(Group g : groups)
-            groupMap.put(g.getId(), g);
+    public List<User> decodeUsers(JSONArray arr) {
+        List<User> users = new ArrayList<>();
+        for(int i=0;i<arr.size();++i)
+            users.add(decodeUser(arr.get(i).isObject()));
+        return users;
     }
     
+    public User decodeUser(JSONObject v) {
+        User u = new User();
+        u.setId(aLong(v, "id"));
+        u.setLogin(string(v, "login"));
+        u.setEmail(string(v, "email"));
+        u.setCompanyName(string(v, "companyName"));
+        u.setFirstName(string(v, "firstName"));
+        u.setLastName(string(v, "lastName"));
+        u.setPhoneNumber(string(v, "phoneNumber"));
+        u.setExpirationDate(date(v, "expirationDate"));
+        u.setMaxNumOfDevices(anInt(v, "maxNumOfDevices"));
+        u.setManagedBy(null);
+        u.setManager(bool(v, "manager"));
+        u.setAdmin(bool(v, "admin"));
+        u.setArchive(bool(v, "archive"));
+        u.setBlocked(bool(v, "blocked"));
+        return u;
+    }
+    
+    public Maintenance decodeMaintenance(JSONObject v) {
+        if(v == null)
+            return null;
+        Maintenance m = new Maintenance();
+        m.setId(aLong(v, "id"));
+        m.setName(string(v, "name"));
+        m.setServiceInterval(aDouble(v, "serviceInterval"));
+        m.setLastService(aDouble(v, "lastService"));
+        return m;
+    }
     
     private Date date(JSONObject v, String name) {
         String date = string(v, name);
@@ -140,5 +195,18 @@ public class Decoder {
     private boolean bool(JSONObject v, String name, boolean def) {
         Boolean b = bool(v, name);
         return b == null ? def : b;
+    }
+
+    private long[] longArr(JSONObject v, String name) {
+        if(v.get(name) == null || v.get(name).isArray() == null)
+            return null;
+        JSONArray arr = v.get(name).isArray();
+        long[] lArr = new long[arr.size()];
+        for(int i=0;i<arr.size();++i) {
+            if(arr.get(i).isNumber() == null)
+                return null;
+            lArr[i] = (long)arr.get(i).isNumber().doubleValue();
+        }
+        return lArr;
     }
 }

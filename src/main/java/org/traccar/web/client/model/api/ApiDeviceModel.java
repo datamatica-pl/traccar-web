@@ -15,34 +15,37 @@
  */
 package org.traccar.web.client.model.api;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Resources {
-    private Map<Long, String> icons = new TreeMap<>();
-    private Map<Long, ApiDeviceModel> models = new HashMap<>();
-    private String defIcon = "img/GTS_pointer_car.png";
+/**
+ *
+ * @author Łukasz
+ */
+public class ApiDeviceModel {
+    long id;
+    String modelName;
+    String imageUrl;
+    boolean isDeleted;
+    List<ApiCommandType> commandTypes;
     
-    public String icon(Long id) {
-        if(id != null && icons.containsKey(id))
-            return icons.get(id);
-        return defIcon;
-    }
-    
-    public void icon(long id, String url) {
-        icons.put(id, url);
-    }
-
-    public Iterable<Long> icons() {
-        return icons.keySet();
-    }
-
-    public void model(ApiDeviceModel m) {
-        models.put(m.getId(), m);
+    public long getId() {
+        return id;
     }
     
-    public ApiDeviceModel model(long id) {
-        return models.get(id);
+    public String getModelName() {
+        return modelName;
+    }
+    
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+    
+    public List<ApiCommandType> getCommandTypes() {
+        return commandTypes;
     }
 }

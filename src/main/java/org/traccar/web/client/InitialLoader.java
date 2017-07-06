@@ -16,11 +16,14 @@
 package org.traccar.web.client;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.json.client.JSONValue;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.i18n.Messages;
@@ -33,8 +36,10 @@ import org.traccar.web.client.model.api.ApiCommandType;
 import org.traccar.web.client.model.api.ApiDeviceIcon;
 import org.traccar.web.client.model.api.ApiDeviceModel;
 import org.traccar.web.client.model.api.ResourcesService;
+import org.traccar.web.client.model.api.UsersService;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.Group;
+import pl.datamatica.traccar.model.User;
 
 /**
  *
@@ -60,10 +65,12 @@ public class InitialLoader {
         this.listener = listener;
         unansweredRequests = 4;
         ResourcesService res = GWT.create(ResourcesService.class);
+        UsersService users = GWT.create(UsersService.class);
+        
         res.getDeviceIcons(new MethodCallback<List<ApiDeviceIcon>>() {
             @Override
             public void onFailure(Method method, Throwable exception) {
-                //todo handle it somehow
+                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
             }
 
             @Override
@@ -73,6 +80,28 @@ public class InitialLoader {
                     if(!ico.isDeleted())
                         Application.getResources().icon(ico.getId(), 
                                 ico.getUrl().replace("/images/", "/markers/"));
+            }
+        });
+        
+        res.getDeviceModels(new MethodCallback<List<ApiDeviceModel>>() {
+            @Override
+            public void onFailure(Method method, Throwable exception) {
+                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+            }
+
+            @Override
+            public void onSuccess(Method method, List<ApiDeviceModel> response) {
+                onRequestAnswered();
+                for(ApiDeviceModel m : response) {
+                    if(!m.isDeleted()) {
+                        List<ApiCommandType> nonTcp = new ArrayList<>();
+                        for(ApiCommandType ct : m.getCommandTypes())
+                            if(!ct.isTCP())
+                                nonTcp.add(ct);
+                        m.getCommandTypes().removeAll(nonTcp);
+                        Application.getResources().model(m);
+                    }
+                }
             }
         });
         
@@ -88,7 +117,7 @@ public class InitialLoader {
                         toAdd.add(entry.getKey());
                     }
                 }
-                Application.getDecoder().setGroups(result.keySet());
+                ApplicationContext.getInstance().setGroups(result.keySet());
 
                 // fill tree store level by level
                 while (!toAdd.isEmpty()) {
@@ -112,13 +141,17 @@ public class InitialLoader {
             }
         });
         
-        //request for users
-        
-        Application.getDataService().getDevices(new BaseAsyncCallback<List<Device>>(i18n) {
+        users.getUsers(new JsonCallback() {
             @Override
-            public void onSuccess(List<Device> result) {
+            public void onFailure(Method method, Throwable exception) {
+                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+            }
+
+            @Override
+            public void onSuccess(Method method, JSONValue response) {
                 onRequestAnswered();
-                deviceStore.addAll(result);
+                List<User> users = Application.getDecoder().decodeUsers(response.isArray());
+                ApplicationContext.getInstance().setUsers(users);
             }
         });
     }
@@ -126,6 +159,12 @@ public class InitialLoader {
     private void onRequestAnswered() {
         --unansweredRequests;
         if(unansweredRequests == 0)
-            listener.onLoadFinished();
+            Application.getDataService().getDevices(new BaseAsyncCallback<List<Device>>(i18n) {
+                @Override
+                public void onSuccess(List<Device> result) {
+                    deviceStore.addAll(result);
+                    listener.onLoadFinished();
+                }
+            });
     }
 }
