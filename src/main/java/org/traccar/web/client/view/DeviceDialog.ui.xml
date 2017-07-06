@@ -166,6 +166,18 @@
                       </form:FieldLabel>
                   </container:child>
                   <container:child layoutData="{verticalLayoutData}">
+                      <form:FieldLabel text="{i18n.fuelCapacity}" labelWidth="180">
+                          <form:widget>
+                              <form:NumberField editor="{doublePropertyEditor}"
+                                                ui:field="fuelCapacity"
+                                                allowNegative="false"
+                                                allowDecimals="true"
+                                                allowBlank="true"
+                                                width="5" />
+                          </form:widget>
+                      </form:FieldLabel>
+                  </container:child>
+                  <container:child layoutData="{verticalLayoutData}">
                       <form:FieldLabel text="{i18n.timezoneOffset}" labelWidth="180">
                           <form:widget>
                               <form:NumberField editor="{integerPropertyEditor}"
