@@ -59,4 +59,8 @@ public interface UsersService extends RestService{
     
     @GET
     void getUsers(JsonCallback callback);
+    
+    @POST
+    @Path("resend")
+    void resendLink(ResetPasswordDto dto, JsonCallback callback);
 }
