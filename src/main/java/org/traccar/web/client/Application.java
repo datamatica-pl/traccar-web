@@ -146,6 +146,7 @@ public class Application {
                 reportsController.run();
                 updatesController.run();
                 setupTimeZone();
+                updatesController.devicesLoaded(deviceController.getDeviceStore().getAll());
             }
         });
     }

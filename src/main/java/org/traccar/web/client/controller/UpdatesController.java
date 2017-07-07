@@ -55,20 +55,24 @@ public class UpdatesController {
             public void onSuccess(Method method, JSONValue response) {
                 Decoder dec = Application.getDecoder();
                 List<Device> dev = dec.decodeDevices(response.isObject());
-                List<Position> pos = new ArrayList<>();
-                for(Device d : dev) {
-                    if(d.getLatestPosition() != null)
-                        pos.add(d.getLatestPosition());
-                }
-                for(LatestPositionsListener listener : latestPositionsListeners)
-                    listener.onPositionsUpdated(pos);
-                for(DevicesListener listener : devicesListeners)
-                    listener.onDevicesUpdated(dev);
-                updateFailureCount = 0;
-                updateTimer.schedule(ApplicationContext.getInstance()
-                        .getApplicationSettings().getUpdateInterval());
+                devicesLoaded(dev);
             }
         });
+    }
+    
+    public void devicesLoaded(List<Device> dev) {
+        List<Position> pos = new ArrayList<>();
+        for(Device d : dev) {
+            if(d.getLatestPosition() != null)
+                pos.add(d.getLatestPosition());
+        }
+        for(LatestPositionsListener listener : latestPositionsListeners)
+            listener.onPositionsUpdated(pos);
+        for(DevicesListener listener : devicesListeners)
+            listener.onDevicesUpdated(dev);
+        updateFailureCount = 0;
+        updateTimer.schedule(ApplicationContext.getInstance()
+                .getApplicationSettings().getUpdateInterval());
     }
     
     private void onUpdateFailed(Throwable caught) {

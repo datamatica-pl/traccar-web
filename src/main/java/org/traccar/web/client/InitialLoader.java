@@ -159,12 +159,19 @@ public class InitialLoader {
     private void onRequestAnswered() {
         --unansweredRequests;
         if(unansweredRequests == 0)
-            Application.getDataService().getDevices(new BaseAsyncCallback<List<Device>>(i18n) {
+            Application.getDevicesService().getDevices(new JsonCallback() {
                 @Override
-                public void onSuccess(List<Device> result) {
+                public void onFailure(Method method, Throwable exception) {
+                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                }
+
+                @Override
+                public void onSuccess(Method method, JSONValue response) {
+                    List<Device> result = Application.getDecoder()
+                            .decodeDevices(response.isObject());
                     deviceStore.addAll(result);
                     listener.onLoadFinished();
-                }
+                }   
             });
     }
 }
