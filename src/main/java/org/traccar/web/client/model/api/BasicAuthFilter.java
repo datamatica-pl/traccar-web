@@ -32,7 +32,7 @@ public class BasicAuthFilter implements DispatcherFilter {
             return true;
         
         builder.setHeader("Authorization", "Basic "+credentials.encode());
-//        credentials = null;
+        credentials = null;
         return true;
     }
     

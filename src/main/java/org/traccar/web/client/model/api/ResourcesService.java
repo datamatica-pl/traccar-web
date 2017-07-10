@@ -21,8 +21,8 @@ import javax.ws.rs.Path;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.fusesource.restygwt.client.RestService;
 
-@Path("https://localhost/api/v1/resources")
-//@Path("../api/v1/resources")
+//@Path("https://localhost/api/v1/resources")
+@Path("../api/v1/resources")
 public interface ResourcesService extends RestService {
     @GET
     @Path("deviceicons")

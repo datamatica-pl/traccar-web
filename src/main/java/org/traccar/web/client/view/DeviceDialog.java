@@ -43,9 +43,13 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.data.shared.LabelProvider;
+import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.TextField;
+import org.traccar.web.client.Application;
+import org.traccar.web.client.model.api.ApiDeviceModel;
 import pl.datamatica.traccar.model.User;
 
 public class DeviceDialog implements Editor<Device> {
@@ -131,12 +135,6 @@ public class DeviceDialog implements Editor<Device> {
     CheckBox showOdometer;
 
     @UiField
-    ScrollPanel panelPhoto;
-
-    @UiField
-    Image photo;
-
-    @UiField
     VerticalLayoutContainer iconTab;
     final DeviceIconEditor iconEditor;
 
@@ -157,6 +155,9 @@ public class DeviceDialog implements Editor<Device> {
 
     @UiField(provided = true)
     ComboBox<Group> group;
+    
+    @UiField(provided = true)
+    ComboBox<Long> deviceModelId;
 
     @UiField
     Messages i18n;
@@ -180,6 +181,27 @@ public class DeviceDialog implements Editor<Device> {
             }
         });
         this.group.setForceSelection(false);
+        
+        ListStore<Long> modelStore = new ListStore<>(new ModelKeyProvider<Long>() {
+            @Override
+            public String getKey(Long item) {
+                return item+"";
+            }
+        });
+        for(long id : Application.getResources().models())
+            modelStore.add(id);
+        modelStore.add(-1L);
+        this.deviceModelId = new ComboBox<>(modelStore, new LabelProvider<Long>() {
+            @Override
+            public String getLabel(Long id) {
+                if(id == null)
+                    return i18n.unknownModel();
+                ApiDeviceModel m = Application.getResources().model(id);
+                if(m == null)
+                    return i18n.unknownModel();
+                return m.getModelName();
+            }
+        });
 
         uiBinder.createAndBindUi(this);
 
@@ -199,8 +221,6 @@ public class DeviceDialog implements Editor<Device> {
 
         fuelCapacity.addValidator(new MaxNumberValidator<>(9000.));
         fuelCapacity.addValidator(new MinNumberValidator<>(1.));
-        
-        updatePhoto();
 
         User currentUser = ApplicationContext.getInstance().getUser();
         if (currentUser.getAdmin()) {
@@ -261,31 +281,5 @@ public class DeviceDialog implements Editor<Device> {
     @UiHandler("cancelButton")
     public void onCancelClicked(SelectEvent event) {
         window.hide();
-    }
-
-    @UiHandler("editPhotoButton")
-    public void onEditPhoto(SelectEvent event) {
-        new DevicePhotoDialog(new DevicePhotoDialog.DevicePhotoHandler() {
-            @Override
-            public void uploaded(Picture photo) {
-                device.setPhoto(photo);
-                updatePhoto();
-            }
-        }).show();
-    }
-
-    @UiHandler("removePhotoButton")
-    public void onRemovePhoto(SelectEvent event) {
-        device.setPhoto(null);
-        updatePhoto();
-    }
-
-    private void updatePhoto() {
-        if (device.getPhoto() == null) {
-            photo.setVisible(false);
-        } else {
-            photo.setUrl(Picture.URL_PREFIX + device.getPhoto().getId());
-            photo.setVisible(true);
-        }
     }
 }

@@ -21,8 +21,8 @@ import javax.ws.rs.Path;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.RestService;
 
-//@Path("../api/v1/session")
-@Path("https://localhost/api/v1/session")
+@Path("../api/v1/session")
+//@Path("https://localhost/api/v1/session")
 public interface SessionService extends RestService{
     @GET
     @Path("user")

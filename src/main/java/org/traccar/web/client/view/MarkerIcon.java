@@ -31,10 +31,17 @@ public abstract class MarkerIcon {
     abstract String getKey();
 
     abstract String getDefaultURL();
-    abstract int getDefaultWidth();
-    abstract int getDefaultHeight();
+    
+    int getDefaultWidth() {
+        return 36;
+    }
+    int getDefaultHeight() {
+        return 48;
+    }
 
-    abstract String getSelectedURL();
+    String getSelectedURL() {
+        return getDefaultURL();
+    }
     int getSelectedWidth() {
         return getDefaultWidth();
     }
@@ -42,7 +49,9 @@ public abstract class MarkerIcon {
         return getDefaultHeight();
     }
 
-    abstract String getOfflineURL();
+    String getOfflineURL() {
+        return getDefaultURL();
+    }
     int getOfflineWidth() {
         return getDefaultWidth();
     }
@@ -79,108 +88,34 @@ public abstract class MarkerIcon {
         String getDefaultURL() {
             return Application.getResources().icon(id);
         }
-
-        @Override
-        String getOfflineURL() {
-            return getDefaultURL();
-        }
-        
-        @Override
-        String getSelectedURL() {
-            return getDefaultURL();
-        }
-        
-
-        @Override
-        int getDefaultWidth() {
-            return 36;
-        }
-
-        @Override
-        int getDefaultHeight() {
-            return 48;
-        }
     }
-
-    static class Database extends MarkerIcon {
-        DeviceIcon icon;
-
-        Database(DeviceIcon icon) {
-            this.icon = icon;
-        }
-
-        @Override
-        String getKey() {
-            return Long.toString(icon.getId());
+    
+    static class Custom extends MarkerIcon {
+        long id;
+        
+        Custom(long id) {
+            this.id = id;
         }
         
         @Override
         Long getId() {
-            return null;
+            return id;
         }
-
+        
+        @Override
+        String getKey() {
+            return ""+id;
+        }
+        
         @Override
         String getDefaultURL() {
-            return icon.defaultURL();
-        }
-
-        @Override
-        int getDefaultWidth() {
-            return getWidth(icon.getDefaultIcon());
-        }
-
-        @Override
-        int getDefaultHeight() {
-            return getHeight(icon.getDefaultIcon());
-        }
-
-        @Override
-        String getSelectedURL() {
-            return icon.selectedURL();
-        }
-
-        @Override
-        int getSelectedWidth() {
-            return getWidth(icon.getSelectedIcon());
-        }
-
-        @Override
-        int getSelectedHeight() {
-            return getHeight(icon.getSelectedIcon());
-        }
-
-        @Override
-        String getOfflineURL() {
-            return icon.offlineURL();
-        }
-
-        @Override
-        int getOfflineWidth() {
-            return getWidth(icon.getOfflineIcon());
-        }
-
-        @Override
-        int getOfflineHeight() {
-            return getHeight(icon.getOfflineIcon());
-        }
-
-        @Override
-        DeviceIcon getDatabaseIcon() {
-            return icon;
-        }
-
-        private int getWidth(Picture pic) {
-            return pic == null ? 0 : pic.getWidth();
-        }
-
-        private int getHeight(Picture pic) {
-            return pic == null ? 0 : pic.getHeight();
+            return "../api/v1/resources/markers/custom/"+id;
         }
     }
-
+    
     public static MarkerIcon create(Device device) {
-        if (device.getIcon() != null) {
-            return new MarkerIcon.Database(device.getIcon());
+        if (device.getCustomIconId() != null) {
+            return new MarkerIcon.Custom(device.getCustomIconId());
         } else {
             return new MarkerIcon.BuiltIn(device.getIconId());
         }

@@ -233,7 +233,7 @@ public class DeviceIconEditor {
         public void onSuccess(List<DeviceIcon> loaded) {
             List<MarkerIcon> result = new ArrayList<>(loaded.size() + DeviceIconType.values().length);
             for (DeviceIcon icon : loaded) {
-                result.add(new MarkerIcon.Database(icon));
+                result.add(new MarkerIcon.Custom(icon.getDefaultIcon().getId()));
             }
             for (Long icon : Application.getResources().icons()){
                 result.add(new MarkerIcon.BuiltIn(icon));
@@ -370,7 +370,13 @@ public class DeviceIconEditor {
         
         selected = view.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            device.setIconId(selected.getId());
+            if(selected instanceof MarkerIcon.Custom) {
+                device.setIconId(null);
+                device.setCustomIconId(selected.getId());
+            } else {
+                device.setIconId(selected.getId());
+                device.setCustomIconId(null);
+            }
             device.setIconType(selected.getBuiltInIcon());
             device.setIcon(selected.getDatabaseIcon());
         }
@@ -389,23 +395,21 @@ public class DeviceIconEditor {
         }
         panelImages.forceLayout();
 
-        editButton.setEnabled(marker instanceof MarkerIcon.Database);
-        removeButton.setEnabled(marker instanceof MarkerIcon.Database);
+        editButton.setEnabled(marker instanceof MarkerIcon.Custom);
+        removeButton.setEnabled(marker instanceof MarkerIcon.Custom);
     }
 
     @UiHandler("addButton")
     public void addIcon(SelectEvent event) {
         new DeviceIconDialog(false, new DeviceIconDialog.DeviceIconHandler() {
             @Override
-            public void uploaded(Picture defaultIcon, Picture selectedIcon, Picture offlineIcon) {
+            public void uploaded(Picture defaultIcon) {
                 DeviceIcon marker = new DeviceIcon();
                 marker.setDefaultIcon(defaultIcon);
-                marker.setSelectedIcon(selectedIcon);
-                marker.setOfflineIcon(offlineIcon);
                 picturesService.addMarkerPicture(marker, new BaseAsyncCallback<DeviceIcon>(i18n) {
                     @Override
                     public void onSuccess(DeviceIcon added) {
-                        MarkerIcon marker = new MarkerIcon.Database(added);
+                        MarkerIcon marker = new MarkerIcon.Custom(added.getDefaultIcon().getId());
                         selected = marker;
                         store.add(0, marker);
                     }
@@ -416,37 +420,35 @@ public class DeviceIconEditor {
 
     @UiHandler("editButton")
     public void editIcon(SelectEvent event) {
-        final MarkerIcon.Database marker = (MarkerIcon.Database) view.getSelectionModel().getSelectedItem();
+        final MarkerIcon.Custom marker = (MarkerIcon.Custom) view.getSelectionModel().getSelectedItem();
         new DeviceIconDialog(true, new DeviceIconDialog.DeviceIconHandler() {
             @Override
-            public void uploaded(Picture defaultIcon, Picture selectedIcon, Picture offlineIcon) {
-                DeviceIcon icon = marker.icon;
-                if (defaultIcon != null) icon.setDefaultIcon(defaultIcon);
-                if (selectedIcon != null) icon.setSelectedIcon(selectedIcon);
-                if (offlineIcon != null) icon.setOfflineIcon(offlineIcon);
-                if (defaultIcon != null || selectedIcon != null || offlineIcon != null) {
-                    picturesService.updateMarkerPicture(icon, new BaseAsyncCallback<DeviceIcon>(i18n) {
-                        @Override
-                        public void onSuccess(DeviceIcon updated) {
-                            selected = marker;
-                            marker.icon = updated;
-                            selectionChanged();
-                        }
-                    });
-                }
+            public void uploaded(Picture defaultIcon) {
+                if(defaultIcon == null)
+                    return;
+                DeviceIcon icon = new DeviceIcon();
+                icon.setDefaultIcon(defaultIcon);
+                picturesService.updateMarkerPicture(icon, new BaseAsyncCallback<DeviceIcon>(i18n) {
+                    @Override
+                    public void onSuccess(DeviceIcon updated) {
+                        selected = marker;
+                        marker.id = updated.getDefaultIcon().getId();
+                        selectionChanged();
+                    }
+                });
             }
         }).show();
     }
 
     @UiHandler("removeButton")
     public void removeIcon(SelectEvent event) {
-        final MarkerIcon.Database marker = (MarkerIcon.Database) view.getSelectionModel().getSelectedItem();
+        final MarkerIcon.Custom marker = (MarkerIcon.Custom) view.getSelectionModel().getSelectedItem();
         final ConfirmMessageBox dialog = new ConfirmMessageBox(i18n.confirm(), i18n.confirmDeviceIconRemoval());
         dialog.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
             @Override
             public void onDialogHide(DialogHideEvent event) {
                 if (event.getHideButton() == Dialog.PredefinedButton.YES) {
-                    picturesService.removeMarkerPicture(marker.icon, new BaseAsyncCallback<Void>(i18n) {
+                    picturesService.removeMarkerPicture(marker.id, new BaseAsyncCallback<Void>(i18n) {
                         @Override
                         public void onSuccess(Void result) {
                             view.getSelectionModel().deselectAll();

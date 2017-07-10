@@ -12,5 +12,5 @@ public interface PicturesServiceAsync {
 
     void updateMarkerPicture(DeviceIcon marker, AsyncCallback<DeviceIcon> async);
 
-    void removeMarkerPicture(DeviceIcon marker, AsyncCallback<Void> async);
+    void removeMarkerPicture(long iconId, AsyncCallback<Void> async);
 }

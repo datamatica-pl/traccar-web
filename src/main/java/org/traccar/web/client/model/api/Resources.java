@@ -45,4 +45,8 @@ public class Resources {
     public ApiDeviceModel model(long id) {
         return models.get(id);
     }
+    
+    public Iterable<Long> models() {
+        return models.keySet();
+    }
 }

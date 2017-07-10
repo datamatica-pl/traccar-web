@@ -72,8 +72,8 @@ public class PicturesServiceImpl extends RemoteServiceServlet implements Picture
     @Transactional
     @RequireUser
     @Override
-    public void removeMarkerPicture(DeviceIcon marker) {
-        DeviceIcon icon = entityManager.get().find(DeviceIcon.class, marker.getId());
+    public void removeMarkerPicture(long iconId) {
+        DeviceIcon icon = entityManager.get().find(DeviceIcon.class, iconId);
         entityManager.get().createQuery("UPDATE Device d SET d.icon=null, d.iconType=:defaultIcon WHERE d.icon=:icon")
                 .setParameter("icon", icon)
                 .setParameter("defaultIcon", DeviceIconType.DEFAULT)
