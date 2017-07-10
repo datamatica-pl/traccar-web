@@ -141,6 +141,11 @@ public class LoginDialog {
 
     @UiHandler("registerButton")
     public void onRegisterClicked(SelectEvent event) {
+        if(!login.getText().matches(
+                "^[a-zA-Z0-9_!#$%&’*+\\/=?`{|}~^.-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z0-9.-]+$")) {
+            new AlertMessageBox(i18n.error(), i18n.invalidEmail()).show();
+            return;
+        }
         ImeiDialog dialog = new ImeiDialog(new ImeiDialog.ImeiHandler() {
                 @Override
                 public void onImei(String imei) {
