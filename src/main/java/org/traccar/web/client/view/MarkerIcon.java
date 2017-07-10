@@ -99,9 +99,21 @@ public abstract class MarkerIcon {
 
     static class Database extends MarkerIcon {
         DeviceIcon icon;
+        float scale = 1;
+        public static final int MAX_SIZE = 100;
 
         Database(DeviceIcon icon) {
             this.icon = icon;
+            if(icon.getDefaultIcon() != null) {
+                Picture p = icon.getDefaultIcon();
+                if(p.getWidth() > p.getHeight()) {
+                    if(p.getWidth() > MAX_SIZE)
+                        scale = ((float)MAX_SIZE)/p.getWidth();
+                } else {
+                    if(p.getHeight() > MAX_SIZE)
+                        scale = ((float)MAX_SIZE)/p.getHeight();
+                }
+            }
         }
 
         @Override
@@ -160,11 +172,15 @@ public abstract class MarkerIcon {
         }
 
         private int getWidth(Picture pic) {
-            return pic == null ? 0 : pic.getWidth();
+            if(pic == null)
+                return 0;
+            return (int)(scale*pic.getWidth());
         }
 
         private int getHeight(Picture pic) {
-            return pic == null ? 0 : pic.getHeight();
+            if(pic == null)
+                return 0;
+            return (int)(scale*pic.getHeight());
         }
     }
 
