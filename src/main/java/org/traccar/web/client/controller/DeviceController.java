@@ -150,66 +150,6 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
 
     @Override
     public void onAdd() {
-        class AddHandler implements DeviceDialog.DeviceHandler {
-            Window window;
-            
-            @Override
-            public void setWindow(Window window) {
-                this.window = window;
-            }
-            
-            @Override
-            public void onSave(final Device device) {
-                if(device.getUniqueId() == null || device.getUniqueId().isEmpty())
-                    return;
-                DevicesService devices = GWT.create(DevicesService.class);
-                AddDeviceDto dto = new AddDeviceDto(device.getUniqueId());
-                devices.addDevice(dto, new JsonCallback(){
-                    @Override
-                    public void onFailure(Method method, Throwable exception) {
-                        MessageBox msg = new AlertMessageBox(i18n.error(), i18n.errInvalidImeiNoContact());
-                        msg.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
-                            @Override
-                            public void onDialogHide(DialogHideEvent event) {
-                                new DeviceDialog(device, deviceStore, groupStore, AddHandler.this).show();
-                            }
-                        });
-                        msg.show();
-                    }
-
-                    @Override
-                    public void onSuccess(Method method, JSONValue response) {
-                        if(response == null) {
-                            onFailure(method, null);
-                            return;
-                        }
-                        window.hide();
-                        device.setId((long)response.isObject().get("id").isNumber().doubleValue());
-                        Application.getDataService().updateDevice(device, new AsyncCallback<Device>() {
-                            @Override
-                            public void onFailure(Throwable caught) {
-                                MessageBox msg = new AlertMessageBox(i18n.error(), i18n.errUpdateFailed());
-                                msg.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
-                                    @Override
-                                    public void onDialogHide(DialogHideEvent event) {
-                                        new DeviceDialog(device, deviceStore, groupStore, AddHandler.this).show();
-                                    }
-                                });
-                                msg.show();
-                            }
-
-                            @Override
-                            public void onSuccess(Device result) {
-                                //do nothing
-                            }
-                            
-                        });
-                        deviceStore.add(device);
-                    }
-                });
-            }
-        }
-
         User user = ApplicationContext.getInstance().getUser();
         if (!user.getAdmin() &&
                 user.getMaxNumOfDevices() != null &&
@@ -218,10 +158,36 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
             return;
         }
 
-        Device newDevice = new Device();
-        newDevice.setMaintenances(new ArrayList<Maintenance>());
-        newDevice.setSensors(new ArrayList<Sensor>());
-        new DeviceDialog(newDevice, deviceStore, groupStore, new AddHandler()).show();
+        new ImeiDialog(new ImeiDialog.ImeiHandler() {
+            @Override
+            public void onImei(String imei) {
+                DevicesService devices = GWT.create(DevicesService.class);
+                AddDeviceDto dto = new AddDeviceDto(imei);
+                devices.addDevice(dto, new JsonCallback(){
+                    @Override
+                    public void onFailure(Method method, Throwable exception) {
+                        MessageBox msg = new AlertMessageBox(i18n.error(), i18n.errInvalidImeiNoContact());
+                        msg.show();
+                    }
+                    
+                    
+                    @Override
+                    public void onSuccess(Method method, JSONValue response) {
+                        if(response == null) {
+                            onFailure(method, null);
+                            return;
+                        }
+                        Device d = Application.getDecoder().decodeDevice(response.isObject());
+                        if(d == null) {
+                            onFailure(method, null);
+                            return;
+                        }
+                        deviceStore.add(d);
+                        onEdit(d);
+                    }
+                });
+            }
+        }).show();
     }
 
     @Override
@@ -260,7 +226,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
             public void setWindow(Window window) {
             }
         }
-
+        
         new DeviceDialog(new Device(device), deviceStore, groupStore, new UpdateHandler()).show();
     }
 

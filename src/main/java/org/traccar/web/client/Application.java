@@ -41,11 +41,17 @@ import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreHandlers;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
+import org.traccar.web.client.model.api.Decoder;
 
 public class Application {
 
     private static final DataServiceAsync dataService = GWT.create(DataService.class);
     private final static Messages i18n = GWT.create(Messages.class);
+    private static final Decoder decoder = new Decoder();
+    
+    public static Decoder getDecoder() {
+        return decoder;
+    }
 
     public static DataServiceAsync getDataService() {
         return dataService;
