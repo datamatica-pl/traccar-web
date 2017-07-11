@@ -64,8 +64,8 @@ public class PicturesServiceImpl extends RemoteServiceServlet implements Picture
     public DeviceIcon updateMarkerPicture(DeviceIcon marker) {
         DeviceIcon icon = entityManager.get().find(DeviceIcon.class, marker.getId());
         icon.setDefaultIcon(marker.getDefaultIcon() == null ? null : entityManager.get().find(Picture.class, marker.getDefaultIcon().getId()));
-        icon.setSelectedIcon(marker.getSelectedIcon() == null ? null : entityManager.get().find(Picture.class, marker.getSelectedIcon().getId()));
-        icon.setOfflineIcon(marker.getOfflineIcon() == null ? null : entityManager.get().find(Picture.class, marker.getOfflineIcon().getId()));
+        icon.setSelectedIcon(null);
+        icon.setOfflineIcon(null);
         return icon;
     }
 
@@ -73,22 +73,11 @@ public class PicturesServiceImpl extends RemoteServiceServlet implements Picture
     @RequireUser
     @Override
     public void removeMarkerPicture(long iconId) {
-        DeviceIcon icon = entityManager.get().find(DeviceIcon.class, iconId);
-        entityManager.get().createQuery("UPDATE Device d SET d.icon=null, d.iconType=:defaultIcon WHERE d.icon=:icon")
-                .setParameter("icon", icon)
-                .setParameter("defaultIcon", DeviceIconType.DEFAULT)
+        entityManager.get().createQuery("UPDATE Device d SET d.customIconId=null WHERE d.customIconId=:icon")
+                .setParameter("icon", iconId)
                 .executeUpdate();
-        entityManager.get().remove(icon);
-        for (Picture picture : new Picture[] { icon.getOfflineIcon(), icon.getSelectedIcon(), icon.getOfflineIcon() }) {
-            if (picture == null) {
-                continue;
-            }
-            List<DeviceIcon> relatedIcons = entityManager.get().createQuery("SELECT d FROM DeviceIcon d WHERE d.defaultIcon=:p OR d.selectedIcon=:p OR d.offlineIcon=:p", DeviceIcon.class)
-                    .setParameter("p", picture)
-                    .getResultList();
-            if (relatedIcons.isEmpty()) {
-                entityManager.get().remove(picture);
-            }
-        }
+        
+        Picture pic = entityManager.get().find(Picture.class, iconId);
+        entityManager.get().remove(pic);
     }
 }

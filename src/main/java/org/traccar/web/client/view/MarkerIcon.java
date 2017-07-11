@@ -114,7 +114,8 @@ public abstract class MarkerIcon {
     }
     
     public static MarkerIcon create(Device device) {
-        if (device.getCustomIconId() != null) {
+        if ((device.getIconId() == null || device.getIconId() == -1) 
+                && device.getCustomIconId() != null) {
             return new MarkerIcon.Custom(device.getCustomIconId());
         } else {
             return new MarkerIcon.BuiltIn(device.getIconId());

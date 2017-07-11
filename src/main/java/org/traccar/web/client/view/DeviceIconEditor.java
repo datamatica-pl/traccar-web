@@ -16,8 +16,6 @@
 package org.traccar.web.client.view;
 
 import pl.datamatica.traccar.model.Picture;
-import pl.datamatica.traccar.model.DeviceIcon;
-import pl.datamatica.traccar.model.DeviceIconType;
 import pl.datamatica.traccar.model.Device;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -42,7 +40,6 @@ import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.core.client.resources.CommonStyles;
 import com.sencha.gxt.core.client.util.Margins;
-import com.sencha.gxt.core.client.util.ToggleGroup;
 import com.sencha.gxt.data.client.loader.RpcProxy;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
@@ -61,16 +58,13 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.NumberField;
 import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor;
-import com.sencha.gxt.widget.core.client.form.Radio;
 import com.sencha.gxt.widget.core.client.menu.ColorMenu;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.*;
-import org.traccar.web.shared.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import org.traccar.web.client.Application;
-import org.traccar.web.client.model.api.ApiDeviceIcon;
 
 public class DeviceIconEditor {
     private static final DeviceIconEditorUiBinder uiBinder = GWT.create(DeviceIconEditorUiBinder.class);
@@ -221,31 +215,16 @@ public class DeviceIconEditor {
 
     final PicturesServiceAsync picturesService = GWT.create(PicturesService.class);
 
-    static class MergingCallback extends BaseAsyncCallback<List<DeviceIcon>> {
-        final AsyncCallback<List<MarkerIcon>> markerLoaderCallback;
-
-        MergingCallback(Messages i18n, AsyncCallback<List<MarkerIcon>> markerLoaderCallback) {
-            super(i18n);
-            this.markerLoaderCallback = markerLoaderCallback;
-        }
-
-        @Override
-        public void onSuccess(List<DeviceIcon> loaded) {
-            List<MarkerIcon> result = new ArrayList<>(loaded.size() + DeviceIconType.values().length);
-            for (DeviceIcon icon : loaded) {
-                result.add(new MarkerIcon.Custom(icon.getDefaultIcon().getId()));
-            }
-            for (Long icon : Application.getResources().icons()){
-                result.add(new MarkerIcon.BuiltIn(icon));
-            }
-            markerLoaderCallback.onSuccess(result);
-        }
-    }
-
     RpcProxy<Object, List<MarkerIcon>> hybridProxy = new RpcProxy<Object, List<MarkerIcon>>() {
         @Override
         public void load(Object loadConfig, AsyncCallback<List<MarkerIcon>> callback) {
-            picturesService.getMarkerPictures(new MergingCallback(i18n, callback));
+            List<MarkerIcon> result = new ArrayList<>();
+            for(Long icon: Application.getResources().icons()) {
+                result.add(new MarkerIcon.BuiltIn(icon));
+            }
+            if(device.getCustomIconId() != null)
+                result.add(new MarkerIcon.Custom(device.getCustomIconId()));
+            callback.onSuccess(result);
         }
     };
             
@@ -404,16 +383,9 @@ public class DeviceIconEditor {
         new DeviceIconDialog(false, new DeviceIconDialog.DeviceIconHandler() {
             @Override
             public void uploaded(Picture defaultIcon) {
-                DeviceIcon marker = new DeviceIcon();
-                marker.setDefaultIcon(defaultIcon);
-                picturesService.addMarkerPicture(marker, new BaseAsyncCallback<DeviceIcon>(i18n) {
-                    @Override
-                    public void onSuccess(DeviceIcon added) {
-                        MarkerIcon marker = new MarkerIcon.Custom(added.getDefaultIcon().getId());
-                        selected = marker;
-                        store.add(0, marker);
-                    }
-                });
+                MarkerIcon marker = new MarkerIcon.Custom(defaultIcon.getId());
+                selected = marker;
+                store.add(0, marker);
             }
         }).show();
     }
@@ -426,16 +398,9 @@ public class DeviceIconEditor {
             public void uploaded(Picture defaultIcon) {
                 if(defaultIcon == null)
                     return;
-                DeviceIcon icon = new DeviceIcon();
-                icon.setDefaultIcon(defaultIcon);
-                picturesService.updateMarkerPicture(icon, new BaseAsyncCallback<DeviceIcon>(i18n) {
-                    @Override
-                    public void onSuccess(DeviceIcon updated) {
-                        selected = marker;
-                        marker.id = updated.getDefaultIcon().getId();
-                        selectionChanged();
-                    }
-                });
+                selected = marker;
+                marker.id = defaultIcon.getId();
+                selectionChanged();
             }
         }).show();
     }
@@ -453,6 +418,7 @@ public class DeviceIconEditor {
                         public void onSuccess(Void result) {
                             view.getSelectionModel().deselectAll();
                             store.remove(marker);
+                            selectionChanged();
                         }
                     });
                 }
