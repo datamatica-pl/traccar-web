@@ -34,12 +34,13 @@ public class Decoder {
     }
     
     public Device decodeDevice(JSONObject v) {
+        if(v == null)
+            return null;
         Device d = new Device();
         d.setId(aLong(v, "id"));
         d.setUniqueId(string(v, "uniqueId"));
         d.setName(string(v, "deviceName"));
         d.setColor(string(v, "color"));
-        
         if(v.get("lastPosition") != null && v.get("lastPosition").isObject() != null) {
             d.setLatestPosition(decodePosition(v.get("lastPosition").isObject()));
             d.getLatestPosition().setDevice(d);

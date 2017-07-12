@@ -845,11 +845,11 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
 
         StopsDetector stopsDetector = new StopsDetector();
         List<Position> deviceTrack = stopsDetector.detectStops(queryResult);
+        Position positionA = deviceTrack.get(0);
         for (int i = 0; i < deviceTrack.size(); i++) {
             boolean add = true;
             Position position = deviceTrack.get(i);
             if (i > 0) {
-                Position positionA = deviceTrack.get(i - 1);
                 Position positionB = position;
 
                 positionB.setDistance(GeoFenceCalculator.getDistance(positionA.getLongitude(), positionA.getLatitude(), positionB.getLongitude(), positionB.getLatitude()));
@@ -886,7 +886,10 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                     }
                 }
             }
-            if (add) positions.add(deviceTrack.get(i));
+            if (add) {
+                positions.add(deviceTrack.get(i));
+                positionA = deviceTrack.get(i);
+            }
         }
 
         return new ArrayList<>(positions);
