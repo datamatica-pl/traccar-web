@@ -645,4 +645,18 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String errUpdateFailed();
     
     String errInvalidImeiNoContact();
+    
+    //tracks
+    String tracks();
+    String trackName();
+    String connectPoints();
+    String trackCreation();
+    String selectDevice();
+    String addFromMap();
+    String latLonFormat(double lat, String latDir, double lon, String lonDir);
+
+    public String emailResent();
+    String resendLink();
+    String loginDialogMoreInfo();
+    String more();
 }

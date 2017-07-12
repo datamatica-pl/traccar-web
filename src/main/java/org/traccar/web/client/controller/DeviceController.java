@@ -56,6 +56,7 @@ import org.traccar.web.client.model.api.DevicesService;
 import org.traccar.web.client.model.api.DevicesService.AddDeviceDto;
 import pl.datamatica.traccar.model.ReportFormat;
 import pl.datamatica.traccar.model.ReportType;
+import pl.datamatica.traccar.model.Route;
 
 public class DeviceController implements ContentController, DeviceView.DeviceHandler, 
         GroupsController.GroupRemoveHandler, UpdatesController.DevicesListener {
@@ -89,6 +90,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
     public DeviceController(MapController mapController,
                             DeviceView.GeoFenceHandler geoFenceHandler,
                             DeviceView.CommandHandler commandHandler,
+                            DeviceView.RouteHandler routeHandler,
                             DeviceVisibilityHandler deviceVisibilityHandler,
                             final ListStore<Device> deviceStore,
                             StoreHandlers<Device> deviceStoreHandler,
@@ -96,6 +98,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
                             Map<Long, Set<GeoFence>> deviceGeoFences,
                             GroupStore groupStore,
                             final ListStore<Report> reportStore,
+                            ListStore<Route> routeStore,
                             ReportsController reportHandler,
                             Application application) {
         this.application = application;
@@ -108,7 +111,9 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
         this.deviceVisibilityHandler = deviceVisibilityHandler;
         this.reportHandler = reportHandler;
         
-        deviceView = new DeviceView(this, geoFenceHandler, commandHandler, deviceVisibilityHandler, deviceStore, geoFenceStore, groupStore, reportStore, reportHandler);
+        deviceView = new DeviceView(this, geoFenceHandler, commandHandler, routeHandler,
+                deviceVisibilityHandler, deviceStore, geoFenceStore, groupStore,
+                reportStore, routeStore, reportHandler);
     }
 
     public ListStore<Device> getDeviceStore() {

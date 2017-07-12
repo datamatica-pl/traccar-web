@@ -36,6 +36,7 @@ import org.traccar.web.client.view.MapView;
 import org.traccar.web.client.view.MarkerIcon;
 
 import java.util.*;
+import pl.datamatica.traccar.model.Route;
 
 public class MapController implements ContentController, MapView.MapHandler, 
         DeviceVisibilityChangeHandler, UpdatesController.LatestPositionsListener {
@@ -191,6 +192,10 @@ public class MapController implements ContentController, MapView.MapHandler,
 
     public void selectGeoFence(GeoFence geoFence) {
         mapView.selectGeoFence(geoFence);
+    }
+    
+    public void selectRoute(Route route) {
+        mapView.selectRoute(route);
     }
 
     public void selectDevice(Device device) {

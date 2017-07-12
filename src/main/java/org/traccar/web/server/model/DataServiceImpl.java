@@ -56,7 +56,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.persist.Transactional;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hibernate.Session;
@@ -68,6 +67,9 @@ import org.traccar.web.client.model.EventService;
 import org.traccar.web.server.utils.JsonXmlParser;
 import org.traccar.web.server.utils.StopsDetector;
 import org.traccar.web.shared.model.*;
+import pl.datamatica.traccar.model.DbRoute;
+import pl.datamatica.traccar.model.Route;
+import pl.datamatica.traccar.model.RoutePoint;
 import pl.datamatica.traccar.model.UserDeviceStatus;
 
 @Singleton
@@ -1301,6 +1303,62 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         status.setLastCheck(new Date());
         status.setUnreadAlarms(false);
         em.merge(status);
+    }
+    
+    @Override
+    public List<Route> getRoutes() {
+        EntityManager em = getSessionEntityManager();
+        TypedQuery<DbRoute> tq = em.createQuery("from DbRoute r where owner = :user", 
+                DbRoute.class).setParameter("user", getSessionUser());
+        List<Route> copy = new ArrayList<>();
+        for(DbRoute r : tq.getResultList())
+            copy.add(r.toRoute());
+        return copy;
+    }
+    
+    @Transactional
+    @RequireUser
+    @Override
+    public Route addRoute(Route route, boolean connect) throws TraccarException {
+        EntityManager em = getSessionEntityManager();
+        addRouteGeofences(route);
+        route.setCreated(new Date());
+        route.setOwner(getSessionUser());
+        DbRoute dbr = new DbRoute(route);
+        if(connect)
+            em.persist(dbr);
+        return dbr.toRoute();
+    }
+    
+    @Transactional
+    @RequireUser
+    @Override
+    public Route updateRoute(Route updated) throws TraccarException {
+        EntityManager em = getSessionEntityManager();
+        DbRoute existing = em.find(DbRoute.class, updated.getId());
+        existing.update(updated);
+        addRouteGeofences(existing);
+        //attach routepoints
+        em.merge(existing);
+        return existing.toRoute();
+    }
+    
+    private void addRouteGeofences(Route route) throws TraccarException {
+        for(RoutePoint pt : route.getRoutePoints()) {
+            GeoFence gf = pt.getGeofence();
+            if(gf.getId() == 0)
+                addGeoFence(gf);
+        }
+    }
+
+    @Transactional
+    @RequireUser
+    @Override
+    public Route removeRoute(Route route) {
+        EntityManager em = getSessionEntityManager();
+        DbRoute dbRoute = em.find(DbRoute.class, route.getId());
+        em.remove(dbRoute);
+        return dbRoute.toRoute();
     }
     
     public static class CommandHandler implements ICommandHandler{
