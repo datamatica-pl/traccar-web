@@ -16,8 +16,6 @@
 package org.traccar.web.client.view;
 
 import pl.datamatica.traccar.model.Picture;
-import pl.datamatica.traccar.model.DeviceIcon;
-import pl.datamatica.traccar.model.DeviceIconType;
 import pl.datamatica.traccar.model.Device;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -42,7 +40,6 @@ import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.core.client.resources.CommonStyles;
 import com.sencha.gxt.core.client.util.Margins;
-import com.sencha.gxt.core.client.util.ToggleGroup;
 import com.sencha.gxt.data.client.loader.RpcProxy;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
@@ -61,14 +58,13 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.NumberField;
 import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor;
-import com.sencha.gxt.widget.core.client.form.Radio;
 import com.sencha.gxt.widget.core.client.menu.ColorMenu;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.*;
-import org.traccar.web.shared.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.traccar.web.client.Application;
 
 public class DeviceIconEditor {
     private static final DeviceIconEditorUiBinder uiBinder = GWT.create(DeviceIconEditorUiBinder.class);
@@ -219,34 +215,19 @@ public class DeviceIconEditor {
 
     final PicturesServiceAsync picturesService = GWT.create(PicturesService.class);
 
-    static class MergingCallback extends BaseAsyncCallback<List<DeviceIcon>> {
-        final AsyncCallback<List<MarkerIcon>> markerLoaderCallback;
-
-        MergingCallback(Messages i18n, AsyncCallback<List<MarkerIcon>> markerLoaderCallback) {
-            super(i18n);
-            this.markerLoaderCallback = markerLoaderCallback;
-        }
-
-        @Override
-        public void onSuccess(List<DeviceIcon> loaded) {
-            List<MarkerIcon> result = new ArrayList<>(loaded.size() + DeviceIconType.values().length);
-            for (DeviceIcon icon : loaded) {
-                result.add(new MarkerIcon.Database(icon));
-            }
-            for (DeviceIconType icon : DeviceIconType.values()) {
-                result.add(new MarkerIcon.BuiltIn(icon));
-            }
-            markerLoaderCallback.onSuccess(result);
-        }
-    }
-
     RpcProxy<Object, List<MarkerIcon>> hybridProxy = new RpcProxy<Object, List<MarkerIcon>>() {
         @Override
         public void load(Object loadConfig, AsyncCallback<List<MarkerIcon>> callback) {
-            picturesService.getMarkerPictures(new MergingCallback(i18n, callback));
+            List<MarkerIcon> result = new ArrayList<>();
+            for(Long icon: Application.getResources().icons()) {
+                result.add(new MarkerIcon.BuiltIn(icon));
+            }
+            if(device.getCustomIconId() != null)
+                result.add(new MarkerIcon.Custom(device.getCustomIconId()));
+            callback.onSuccess(result);
         }
     };
-
+            
     MarkerIcon selected;
 
     final ListStore<MarkerIcon> store;
@@ -365,9 +346,16 @@ public class DeviceIconEditor {
         for (ColorSelector colorSelector : arrowColors) {
             colorSelector.flush(device);
         }
-
+        
         selected = view.getSelectionModel().getSelectedItem();
         if (selected != null) {
+            if(selected instanceof MarkerIcon.Custom) {
+                device.setIconId(null);
+                device.setCustomIconId(selected.getId());
+            } else {
+                device.setIconId(selected.getId());
+                device.setCustomIconId(null);
+            }
             device.setIconType(selected.getBuiltInIcon());
             device.setIcon(selected.getDatabaseIcon());
         }
@@ -386,68 +374,51 @@ public class DeviceIconEditor {
         }
         panelImages.forceLayout();
 
-        editButton.setEnabled(marker instanceof MarkerIcon.Database);
-        removeButton.setEnabled(marker instanceof MarkerIcon.Database);
+        editButton.setEnabled(marker instanceof MarkerIcon.Custom);
+        removeButton.setEnabled(marker instanceof MarkerIcon.Custom);
     }
 
     @UiHandler("addButton")
     public void addIcon(SelectEvent event) {
         new DeviceIconDialog(false, new DeviceIconDialog.DeviceIconHandler() {
             @Override
-            public void uploaded(Picture defaultIcon, Picture selectedIcon, Picture offlineIcon) {
-                DeviceIcon marker = new DeviceIcon();
-                marker.setDefaultIcon(defaultIcon);
-                marker.setSelectedIcon(selectedIcon);
-                marker.setOfflineIcon(offlineIcon);
-                picturesService.addMarkerPicture(marker, new BaseAsyncCallback<DeviceIcon>(i18n) {
-                    @Override
-                    public void onSuccess(DeviceIcon added) {
-                        MarkerIcon marker = new MarkerIcon.Database(added);
-                        selected = marker;
-                        store.add(0, marker);
-                    }
-                });
+            public void uploaded(Picture defaultIcon) {
+                MarkerIcon marker = new MarkerIcon.Custom(defaultIcon.getId());
+                selected = marker;
+                store.add(0, marker);
             }
         }).show();
     }
 
     @UiHandler("editButton")
     public void editIcon(SelectEvent event) {
-        final MarkerIcon.Database marker = (MarkerIcon.Database) view.getSelectionModel().getSelectedItem();
+        final MarkerIcon.Custom marker = (MarkerIcon.Custom) view.getSelectionModel().getSelectedItem();
         new DeviceIconDialog(true, new DeviceIconDialog.DeviceIconHandler() {
             @Override
-            public void uploaded(Picture defaultIcon, Picture selectedIcon, Picture offlineIcon) {
-                DeviceIcon icon = marker.icon;
-                if (defaultIcon != null) icon.setDefaultIcon(defaultIcon);
-                if (selectedIcon != null) icon.setSelectedIcon(selectedIcon);
-                if (offlineIcon != null) icon.setOfflineIcon(offlineIcon);
-                if (defaultIcon != null || selectedIcon != null || offlineIcon != null) {
-                    picturesService.updateMarkerPicture(icon, new BaseAsyncCallback<DeviceIcon>(i18n) {
-                        @Override
-                        public void onSuccess(DeviceIcon updated) {
-                            selected = marker;
-                            marker.icon = updated;
-                            selectionChanged();
-                        }
-                    });
-                }
+            public void uploaded(Picture defaultIcon) {
+                if(defaultIcon == null)
+                    return;
+                selected = marker;
+                marker.id = defaultIcon.getId();
+                selectionChanged();
             }
         }).show();
     }
 
     @UiHandler("removeButton")
     public void removeIcon(SelectEvent event) {
-        final MarkerIcon.Database marker = (MarkerIcon.Database) view.getSelectionModel().getSelectedItem();
+        final MarkerIcon.Custom marker = (MarkerIcon.Custom) view.getSelectionModel().getSelectedItem();
         final ConfirmMessageBox dialog = new ConfirmMessageBox(i18n.confirm(), i18n.confirmDeviceIconRemoval());
         dialog.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
             @Override
             public void onDialogHide(DialogHideEvent event) {
                 if (event.getHideButton() == Dialog.PredefinedButton.YES) {
-                    picturesService.removeMarkerPicture(marker.icon, new BaseAsyncCallback<Void>(i18n) {
+                    picturesService.removeMarkerPicture(marker.id, new BaseAsyncCallback<Void>(i18n) {
                         @Override
                         public void onSuccess(Void result) {
                             view.getSelectionModel().deselectAll();
                             store.remove(marker);
+                            selectionChanged();
                         }
                     });
                 }

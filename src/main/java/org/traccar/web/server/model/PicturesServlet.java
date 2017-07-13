@@ -16,7 +16,10 @@
 package org.traccar.web.server.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gwt.user.client.ui.Image;
 import com.google.inject.persist.Transactional;
+import java.awt.Graphics2D;
+import java.awt.geom.Ellipse2D;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
@@ -39,6 +42,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -134,7 +138,21 @@ public class PicturesServlet  extends HttpServlet {
                 picture.setWidth(image.getWidth());
                 picture.setHeight(image.getHeight());
                 picture.setMimeType(mimeType);
-                picture.setData(FileUtils.readFileToByteArray(file));
+                if(pictureType == PictureType.MARKER) {
+                    int rad = (int)(Math.min(image.getWidth(), image.getHeight())/2);
+                    int xOff = image.getWidth()/2-rad;
+                    int yOff = image.getHeight()/2-rad;
+                    BufferedImage img = new BufferedImage(2*rad, 2*rad, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g = img.createGraphics();
+                    g.setClip(new Ellipse2D.Float(0, 0, 2*rad, 2*rad));
+                    BufferedImage img1 = ImageIO.read(file);
+                    g.drawImage(img1, 0, 0, 2*rad, 2*rad, xOff, yOff, 2*rad+xOff, 2*rad+yOff, null);
+                    ByteArrayOutputStream boss = new ByteArrayOutputStream();
+                    ImageIO.write(img, "png", boss);
+                    picture.setData(boss.toByteArray());
+                } else {
+                    picture.setData(FileUtils.readFileToByteArray(file));
+                }
                 entityManager.get().persist(picture);
 
                 uploadedPictures.put(next.getFieldName(), picture);

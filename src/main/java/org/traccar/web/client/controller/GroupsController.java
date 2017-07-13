@@ -82,39 +82,7 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
 
     @Override
     public void run() {
-        final GroupServiceAsync service = GWT.create(GroupService.class);
-        service.getGroups(new BaseAsyncCallback<Map<Group, Group>>(i18n) {
-            @Override
-            public void onSuccess(Map<Group, Group> result) {
-                // put root groups into the first level records to add
-                List<Group> toAdd = new ArrayList<>();
-                for (Map.Entry<Group, Group> entry : result.entrySet()) {
-                    if (entry.getValue() == null) {
-                        toAdd.add(entry.getKey());
-                    }
-                }
-
-                // fill tree store level by level
-                while (!toAdd.isEmpty()) {
-                    List<Group> newToAdd = new ArrayList<>();
-                    for (Group group : toAdd) {
-                        Group parent = result.get(group);
-                        if (parent == null) {
-                            groupStore.add(group);
-                        } else {
-                            groupStore.add(parent, group);
-                        }
-                        // prepare next level groups as children of currently processed group
-                        for (Map.Entry<Group, Group> entry : result.entrySet()) {
-                            if (Objects.equals(entry.getValue(), group)) {
-                                newToAdd.add(entry.getKey());
-                            }
-                        }
-                    }
-                    toAdd = newToAdd;
-                }
-            }
-        });
+        //moved to InitialLoader
     }
 
     @Override

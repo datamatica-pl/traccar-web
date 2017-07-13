@@ -41,7 +41,7 @@ public class DeviceIconDialog {
     }
 
     interface DeviceIconHandler {
-        void uploaded(Picture defaultIcon, Picture selectedIcon, Picture offlineIcon);
+        void uploaded(Picture defaultIcon);
     }
 
     @UiField
@@ -52,12 +52,6 @@ public class DeviceIconDialog {
 
     @UiField
     FileUploadField defaultIcon;
-
-    @UiField
-    FileUploadField selectedIcon;
-
-    @UiField
-    FileUploadField offlineIcon;
 
     final DeviceIconHandler handler;
 
@@ -96,9 +90,7 @@ public class DeviceIconDialog {
         }
         if (JsonUtils.safeToEval(s)) {
             JSONObject result = (JSONObject) JSONParser.parseStrict(s);
-            handler.uploaded(picture(result.get(defaultIcon.getName())),
-                             picture(result.get(selectedIcon.getName())),
-                             picture(result.get(offlineIcon.getName())));
+            handler.uploaded(picture(result.get(defaultIcon.getName())));
             hide();
         } else {
             new LogViewDialog(event.getResults()).show();

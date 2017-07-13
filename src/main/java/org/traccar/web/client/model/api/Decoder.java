@@ -36,16 +36,23 @@ public class Decoder {
     public Device decodeDevice(JSONObject v) {
         if(v == null)
             return null;
-        
         Device d = new Device();
         d.setId(aLong(v, "id"));
         d.setUniqueId(string(v, "uniqueId"));
         d.setName(string(v, "deviceName"));
         d.setColor(string(v, "color"));
+        if(v.get("lastPosition") != null && v.get("lastPosition").isObject() != null) {
+            d.setLatestPosition(decodePosition(v.get("lastPosition").isObject()));
+            d.getLatestPosition().setDevice(d);
+        }
+        d.setGroup(ApplicationContext.getInstance().getGroup(aLong(v, "groupId")));
 
         d.setDeviceModelId(aLong(v, "deviceModelId"));
         d.setIconId(aLong(v, "iconId"));
         d.setCustomIconId(aLong(v, "customIconId"));
+
+        d.setBatteryLevel(anInt(v, "batteryLevel"));
+        d.setBatteryTime(date(v, "batteryTime"));
 
         d.setValidTo(date(v, "validTo"));
         d.setHistoryLength(anInt(v, "historyLength"));
@@ -54,7 +61,16 @@ public class Decoder {
         d.setSpeedLimit(aDouble(v, "speedLimit"));
         d.setStatus(string(v, "status"));
         d.setOwner(ApplicationContext.getInstance().getUser());
-        d.setUsers(Collections.singleton(d.getOwner()));
+        
+        Set<User> users = new HashSet<>();
+        long[] userIds = longArr(v, "userIds");
+        if(userIds == null)
+            users = Collections.singleton(d.getOwner());
+        else {
+            for(long id : userIds)
+                users.add(ApplicationContext.getInstance().getUser(id));
+        }
+        d.setUsers(users);
 
         d.setPhoneNumber(string(v, "phoneNumber"));
         d.setPlateNumber(string(v, "plateNumber"));
@@ -69,7 +85,71 @@ public class Decoder {
         d.setLastAlarmsCheck(date(v, "lastAlarmsCheck"));
         
         d.setIconMode(DeviceIconMode.ICON);
+        
+        ApiDeviceModel model = Application.getResources().model(d.getDeviceModelId());
+        if(model != null)
+            for(ApiCommandType ct : model.getCommandTypes()) {
+                d.addSupportedCommand(CommandType.fromString(ct.getCommandName()));
+            }
+        if(v.get("maintenances") != null && v.get("maintenances").isArray() != null) {
+            JSONArray arr = v.get("maintenances").isArray();
+            List<Maintenance> ms = new ArrayList<>();
+            for(int i=0;i<arr.size();++i)
+                ms.add(decodeMaintenance(arr.get(i).isObject()));
+            d.setMaintenances(ms);
+        }
         return d;
+    }
+    
+    public Position decodePosition(JSONObject v) {
+        if(v == null)
+            return null;
+        Position p = new Position(aLong(v, "id"));
+        p.setLatitude(aDouble(v, "latitude"));
+        p.setLongitude(aDouble(v, "longitude"));
+        p.setTime(date(v, "deviceTime"));
+        p.setSpeed(aDouble(v, "speed"));
+        p.setCourse(aDouble(v, "course"));
+        p.setValid(bool(v, "isValid"));        
+        p.setAltitude(aDouble(v, "altitude"));
+        return p;
+    }
+    
+    public List<User> decodeUsers(JSONArray arr) {
+        List<User> users = new ArrayList<>();
+        for(int i=0;i<arr.size();++i)
+            users.add(decodeUser(arr.get(i).isObject()));
+        return users;
+    }
+    
+    public User decodeUser(JSONObject v) {
+        User u = new User();
+        u.setId(aLong(v, "id"));
+        u.setLogin(string(v, "login"));
+        u.setEmail(string(v, "email"));
+        u.setCompanyName(string(v, "companyName"));
+        u.setFirstName(string(v, "firstName"));
+        u.setLastName(string(v, "lastName"));
+        u.setPhoneNumber(string(v, "phoneNumber"));
+        u.setExpirationDate(date(v, "expirationDate"));
+        u.setMaxNumOfDevices(anInt(v, "maxNumOfDevices"));
+        u.setManagedBy(null);
+        u.setManager(bool(v, "manager"));
+        u.setAdmin(bool(v, "admin"));
+        u.setArchive(bool(v, "archive"));
+        u.setBlocked(bool(v, "blocked"));
+        return u;
+    }
+    
+    public Maintenance decodeMaintenance(JSONObject v) {
+        if(v == null)
+            return null;
+        Maintenance m = new Maintenance();
+        m.setId(aLong(v, "id"));
+        m.setName(string(v, "name"));
+        m.setServiceInterval(aDouble(v, "serviceInterval"));
+        m.setLastService(aDouble(v, "lastService"));
+        return m;
     }
     
     private Date date(JSONObject v, String name) {

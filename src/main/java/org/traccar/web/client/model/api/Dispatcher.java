@@ -15,10 +15,20 @@
  */
 package org.traccar.web.client.model.api;
 
+import com.google.gwt.http.client.Request;
+import com.google.gwt.http.client.RequestBuilder;
+import com.google.gwt.http.client.RequestException;
+import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.dispatcher.DefaultFilterawareDispatcher;
 
 public class Dispatcher extends DefaultFilterawareDispatcher {
     public Dispatcher() {
         addFilter(BasicAuthFilter.getInstance());
+    }
+
+    @Override
+    public Request send(Method method, RequestBuilder builder) throws RequestException {
+        builder.setHeader("If-Modified-Since", "Thu, 01 Jan 1970 00:00:01 GMT");
+        return super.send(method, builder);
     }
 }

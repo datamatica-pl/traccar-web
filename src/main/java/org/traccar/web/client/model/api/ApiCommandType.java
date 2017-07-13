@@ -15,29 +15,21 @@
  */
 package org.traccar.web.client.model.api;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import org.fusesource.restygwt.client.JsonCallback;
-import org.fusesource.restygwt.client.RestService;
+import pl.datamatica.traccar.model.CommandType;
 
-//@Path("https://localhost/api/v1/devices")
-@Path("../api/v1/devices")
-public interface DevicesService extends RestService {
-    @GET
-    void getDevices(JsonCallback callback);
+/**
+ *
+ * @author Lukasz
+ */
+public class ApiCommandType {
+    String commandName;
+    boolean isTCP;
     
-    @POST
-    void addDevice(AddDeviceDto dto, JsonCallback callback);
+    public String getCommandName() {
+        return commandName;
+    }
     
-    
-    public static class AddDeviceDto {
-        public String imei;
-        
-        public AddDeviceDto(){}
-        
-        public AddDeviceDto(String imei) {
-            this.imei = imei;
-        }
+    public boolean isTCP() {
+        return isTCP;
     }
 }

@@ -22,20 +22,6 @@
                         </form:widget>
                     </form:FieldLabel>
                 </container:child>
-                <container:child layoutData="{verticalLayoutData}">
-                    <form:FieldLabel text="{i18n.selectedIcon}">
-                        <form:widget>
-                            <form:FileUploadField ui:field="selectedIcon" name="selectedIcon" allowBlank="false" />
-                        </form:widget>
-                    </form:FieldLabel>
-                </container:child>
-                <container:child layoutData="{verticalLayoutData}">
-                    <form:FieldLabel text="{i18n.offlineIcon}">
-                        <form:widget>
-                            <form:FileUploadField ui:field="offlineIcon" name="offlineIcon" allowBlank="false" />
-                        </form:widget>
-                    </form:FieldLabel>
-                </container:child>
             </container:VerticalLayoutContainer>
         </form:FormPanel>
 

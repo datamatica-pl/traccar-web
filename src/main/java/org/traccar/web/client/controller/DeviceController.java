@@ -39,7 +39,6 @@ import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.i18n.client.DateTimeFormat;
-import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.storage.client.Storage;
@@ -127,15 +126,8 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
 
     @Override
     public void run() {
-        Application.getDataService().getDevices(new BaseAsyncCallback<List<Device>>(i18n) {
-            @Override
-            public void onSuccess(List<Device> result) {
-                deviceStore.addAll(result);
-                deviceStore.addStoreHandlers(deviceStoreHandler);
-                
-                showDevicesSubscriptionLeftPopup();
-            }
-        });
+        deviceStore.addStoreHandlers(deviceStoreHandler);
+        showDevicesSubscriptionLeftPopup();
     }
 
     @Override

@@ -100,17 +100,18 @@ public class LoginController implements LoginDialog.LoginHandler {
                     session.getUser(new JsonCallback() {
                         @Override
                         public void onFailure(Method method, Throwable exception) {
+                            new AlertMessageBox(i18n.error(), i18n.errInvalidUsernameOrPassword()).show();
                         }
 
                         @Override
                         public void onSuccess(Method method, JSONValue response) {
+                            if (loginHandler != null) {
+                                dialog.hide();
+                                loginHandler.onLogin();
+                            }
+                            dialog.clearTrackmanBodyStyle();
                         }
                     });
-                    if (loginHandler != null) {
-                        dialog.hide();
-                        loginHandler.onLogin();
-                    }
-                    dialog.clearTrackmanBodyStyle();
                 }
                 @Override
                 public void onFailure(Throwable caught) {
@@ -135,7 +136,7 @@ public class LoginController implements LoginDialog.LoginHandler {
                 @Override
                 public void onSuccess(Method method, JSONValue response) {
                     if(method.getResponse().getStatusCode() == Response.SC_CREATED)
-                        new AlertMessageBox(i18n.success(), i18n.validationMailSent()).show();
+                        new InfoMessageBox(i18n.success(), i18n.validationMailSent()).show();
                     else
                         new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                 }
@@ -147,10 +148,7 @@ public class LoginController implements LoginDialog.LoginHandler {
                             new AlertMessageBox(i18n.error(), i18n.errUsernameTaken()).show();
                             break;
                         case Response.SC_BAD_REQUEST:
-                            if(method.getResponse().getText().equals("err_email_resent"))
-                                new AlertMessageBox(i18n.error(), i18n.emailResent()).show();
-                            else
-                                new AlertMessageBox(i18n.error(), i18n.errInvalidImei()).show();
+                            new AlertMessageBox(i18n.error(), i18n.errInvalidImei()).show();
                             break;
                         default:
                             new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();

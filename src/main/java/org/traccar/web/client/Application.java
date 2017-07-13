@@ -34,27 +34,39 @@ import org.traccar.web.client.model.*;
 import org.traccar.web.client.view.ApplicationView;
 import org.traccar.web.client.view.UserSettingsDialog;
 import org.traccar.web.client.widget.TimeZoneComboBox;
-import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreHandlers;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
+import org.traccar.web.client.InitialLoader.LoadFinishedListener;
 import org.traccar.web.client.model.api.Decoder;
+import org.traccar.web.client.model.api.DevicesService;
+import org.traccar.web.client.model.api.Resources;
 
 public class Application {
 
     private static final DataServiceAsync dataService = GWT.create(DataService.class);
-    private final static Messages i18n = GWT.create(Messages.class);
+    private static final DevicesService devices = GWT.create(DevicesService.class);
     private static final Decoder decoder = new Decoder();
+    private static final Resources resources = new Resources();
+    private final static Messages i18n = GWT.create(Messages.class);
+
+    public static DataServiceAsync getDataService() {
+        return dataService;
+    }
+    
+    public static DevicesService getDevicesService() {
+        return devices;
+    }
     
     public static Decoder getDecoder() {
         return decoder;
     }
-
-    public static DataServiceAsync getDataService() {
-        return dataService;
+    
+    public static Resources getResources() {
+        return resources;
     }
 
     private final SettingsController settingsController;
@@ -71,6 +83,8 @@ public class Application {
     private final LogController logController;
     private final GroupsController groupsController;
     private final VisibilityController visibilityController;
+    
+    private final InitialLoader initialLoader;
 
     private ApplicationView view;
 
@@ -115,6 +129,7 @@ public class Application {
         updatesController.addLatestPositionsListener(mapController);
         updatesController.addDevicesListener(deviceController);
 
+        initialLoader = new InitialLoader(deviceStore, groupStore);
         view = new ApplicationView(
                 navController.getView(), deviceController.getView(), mapController.getView(), archiveController.getView());
     }
@@ -122,18 +137,23 @@ public class Application {
     public void run() {
         RootPanel.get().add(view);
 
-        navController.run();
-        deviceController.run();
-        mapController.run();
-        archiveController.run();
-        geoFenceController.run();
-        routeController.run();
-        commandController.run();
-        groupsController.run();
-        visibilityController.run();
-        reportsController.run();
-        updatesController.run();
-        setupTimeZone();
+        initialLoader.load(new LoadFinishedListener() {
+            @Override
+            public void onLoadFinished() {
+                navController.run();
+                deviceController.run();
+                mapController.run();
+                archiveController.run();
+                geoFenceController.run();
+                commandController.run();
+                groupsController.run();
+                visibilityController.run();
+                reportsController.run();
+                updatesController.run();
+                setupTimeZone();
+                updatesController.devicesLoaded(deviceController.getDeviceStore().getAll());
+            }
+        });
     }
 
     private void setupTimeZone() {
