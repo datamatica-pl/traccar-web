@@ -28,10 +28,8 @@ import org.traccar.web.client.view.LoginDialog;
 import pl.datamatica.traccar.model.User;
 
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
-import org.fusesource.restygwt.client.Defaults;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
-import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.model.api.BasicAuthFilter;
 import org.traccar.web.client.model.api.SessionService;
 import org.traccar.web.client.model.api.UsersService;
@@ -137,28 +135,25 @@ public class LoginController implements LoginDialog.LoginHandler {
             users.register(dto, new JsonCallback() {
                 @Override
                 public void onSuccess(Method method, JSONValue response) {
-                    switch (method.getResponse().getStatusCode()) {
-                        case Response.SC_CREATED:
-                            new InfoMessageBox(i18n.success(), i18n.validationMailSent()).show();
-                            break;
+                    if(method.getResponse().getStatusCode() == Response.SC_CREATED)
+                        new InfoMessageBox(i18n.success(), i18n.validationMailSent()).show();
+                    else
+                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                }
+                
+                @Override
+                public void onFailure(Method method, Throwable exception) {
+                    switch(method.getResponse().getStatusCode()) {
                         case Response.SC_CONFLICT:
                             new AlertMessageBox(i18n.error(), i18n.errUsernameTaken()).show();
                             break;
                         case Response.SC_BAD_REQUEST:
-                            if(method.getResponse().getText().equals("err_email_resent"))
-                                new AlertMessageBox(i18n.error(), i18n.emailResent()).show();
-                            else
-                                new AlertMessageBox(i18n.error(), i18n.errInvalidImei()).show();
+                            new AlertMessageBox(i18n.error(), i18n.errInvalidImei()).show();
                             break;
                         default:
                             new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                             break;
                     }
-                }
-
-                @Override
-                public void onFailure(Method method, Throwable exception) {
-                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                 }
             });
         }
