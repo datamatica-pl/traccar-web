@@ -845,6 +845,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
 
         StopsDetector stopsDetector = new StopsDetector();
         List<Position> deviceTrack = stopsDetector.detectStops(queryResult);
+        if(deviceTrack.isEmpty())
+            return new ArrayList<>(positions);
         Position positionA = deviceTrack.get(0);
         for (int i = 0; i < deviceTrack.size(); i++) {
             boolean add = true;
