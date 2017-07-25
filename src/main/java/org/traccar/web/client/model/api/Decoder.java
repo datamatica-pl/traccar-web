@@ -97,7 +97,7 @@ public class Decoder {
             for(int i=0;i<arr.size();++i)
                 ms.add(decodeMaintenance(arr.get(i).isObject()));
             d.setMaintenances(ms);
-        }
+        }        
         return d;
     }
     
@@ -112,6 +112,8 @@ public class Decoder {
         p.setCourse(aDouble(v, "course"));
         p.setValid(bool(v, "isValid"));        
         p.setAltitude(aDouble(v, "altitude"));
+        if(v.get("other") != null && v.get("other").isString() != null)
+            p.setOther(v.get("other").isString().stringValue());
         return p;
     }
     
