@@ -15,36 +15,29 @@
  */
 package org.traccar.web.client.model.api;
 
-import com.github.nmorel.gwtjackson.client.ObjectMapper;
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.http.client.RequestBuilder;
-import com.google.gwt.http.client.RequestCallback;
-import com.google.gwt.http.client.RequestException;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import org.fusesource.restygwt.client.JsonCallback;
-import org.traccar.web.client.model.api.IDevicesService.AddDeviceDto;
-import org.traccar.web.client.model.api.IDevicesService.EditDeviceDto;
+import org.fusesource.restygwt.client.RestService;
 
-public class DevicesService {
-    public static interface EditDeviceDtoMapper extends ObjectMapper<EditDeviceDto>{}
+//@Path("https://localhost/api/v1/devices")
+@Path("../api/v1/devices")
+public interface DevicesService extends RestService {
+    @GET
+    void getDevices(JsonCallback callback);
     
-    private IDevicesService service = GWT.create(IDevicesService.class);
-    private EditDeviceDtoMapper mapper = GWT.create(EditDeviceDtoMapper.class);
+    @POST
+    void addDevice(AddDeviceDto dto, JsonCallback callback);
     
-    public void getDevices(JsonCallback callback) {
-        service.getDevices(callback);
-    }
-
-    public void addDevice(AddDeviceDto dto, JsonCallback callback) {
-        service.addDevice(dto, callback);
-    }
     
-    public void updateDevice(long id, EditDeviceDto dto, RequestCallback callback) {
-        RequestBuilder builder = new MyRequestBuilder("PATCH",
-            "../api/v1/devices/"+id);
-        try{
-            builder.sendRequest(mapper.write(dto), callback);
-        } catch(RequestException e) {
-            callback.onError(null, e);
+    public static class AddDeviceDto {
+        public String imei;
+        
+        public AddDeviceDto(){}
+        
+        public AddDeviceDto(String imei) {
+            this.imei = imei;
         }
     }
 }

@@ -38,9 +38,6 @@ import org.traccar.web.client.view.*;
 import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.http.client.Request;
-import com.google.gwt.http.client.RequestCallback;
-import com.google.gwt.http.client.Response;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
@@ -54,12 +51,11 @@ import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
-import org.traccar.web.client.model.api.IDevicesService.AddDeviceDto;
-import org.traccar.web.client.model.api.IDevicesService.EditDeviceDto;
+import org.traccar.web.client.model.api.DevicesService;
+import org.traccar.web.client.model.api.DevicesService.AddDeviceDto;
 import pl.datamatica.traccar.model.ReportFormat;
 import pl.datamatica.traccar.model.ReportType;
 import pl.datamatica.traccar.model.Route;
-import org.traccar.web.client.model.api.IDevicesService;
 
 public class DeviceController implements ContentController, DeviceView.DeviceHandler, 
         GroupsController.GroupRemoveHandler, UpdatesController.DevicesListener {
@@ -162,7 +158,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
         new ImeiDialog(new ImeiDialog.ImeiHandler() {
             @Override
             public void onImei(String imei) {
-                IDevicesService devices = GWT.create(IDevicesService.class);
+                DevicesService devices = GWT.create(DevicesService.class);
                 AddDeviceDto dto = new AddDeviceDto(imei);
                 devices.addDevice(dto, new JsonCallback(){
                     @Override
@@ -196,21 +192,31 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
         class UpdateHandler implements DeviceDialog.DeviceHandler {
             @Override
             public void onSave(final Device device) {
-                Application.getDevicesService().updateDevice(device.getId(),
-                        new EditDeviceDto(device), new RequestCallback() {
-                            @Override
-                            public void onResponseReceived(Request request, Response response) {
-                                if(response.getStatusCode() == 400) {
-                                    new AlertMessageBox(i18n.error(), i18n.errNoDeviceNameOrId()).show();
-                                } else
-                                    onDevicesUpdated(Collections.singletonList(device));
-                            }
+                Application.getDataService().updateDevice(device, new BaseAsyncCallback<Device>(i18n) {
+                    @Override
+                    public void onSuccess(Device result) {
+                        onDevicesUpdated(Collections.singletonList(result));
+                    }
 
-                            @Override
-                            public void onError(Request request, Throwable exception) {
-                                new AlertMessageBox(i18n.error(), i18n.errUpdateFailed()).show();
-                            }
-                        });
+                    @Override
+                    public void onFailure(Throwable caught) {
+                        MessageBox msg = null;
+                        if (caught instanceof ValidationException) {
+                            msg = new AlertMessageBox(i18n.error(), i18n.errNoDeviceNameOrId());
+                        } else {
+                            msg = new AlertMessageBox(i18n.error(), i18n.errUpdateFailed());
+                        }
+                        if (msg != null) {
+                            msg.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
+                                @Override
+                                public void onDialogHide(DialogHideEvent event) {
+                                    new DeviceDialog(device, deviceStore, groupStore, UpdateHandler.this).show();
+                                }
+                            });
+                            msg.show();
+                        }
+                    }
+                });
             }
 
             @Override

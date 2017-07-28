@@ -8,13 +8,13 @@ package org.traccar.web.client.model.api;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
+import com.google.gwt.json.client.JSONValue;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import pl.datamatica.traccar.model.CommandType;
@@ -53,10 +53,8 @@ public class Decoder {
 
         d.setBatteryLevel(anInt(v, "batteryLevel"));
         d.setBatteryTime(date(v, "batteryTime"));
-        //API adds 1 day to validTo field!
-        Date validTo = date(v, "validTo");
-        if(validTo != null)
-            d.setValidTo(new Date(validTo.getTime()-24*60*60*1000));
+
+        d.setValidTo(date(v, "validTo"));
         d.setHistoryLength(anInt(v, "historyLength"));
         d.setBlocked(bool(v, "blocked"));
         
@@ -99,23 +97,7 @@ public class Decoder {
             for(int i=0;i<arr.size();++i)
                 ms.add(decodeMaintenance(arr.get(i).isObject()));
             d.setMaintenances(ms);
-        }
-        
-        d.setVehicleInfo(string(v, "vehicleInfo"));
-        d.setAutoUpdateOdometer(bool(v, "autoUpdateOdometer", false));
-        d.setTimeout(anInt(v, "timeout"));
-        d.setTimezoneOffset(anInt(v, "timeZoneOffset"));
-        d.setCommandPassword(string(v, "commandPassword"));
-        d.setShowOdometer(bool(v, "showOdometer"));
-        d.setShowProtocol(bool(v, "showProtocol"));
-        d.setShowName(bool(v, "showName"));
-        Double arrowRadius = aDouble(v, "arrowRadius");
-        if(arrowRadius != null)
-            d.setIconArrowRadius(arrowRadius);
-        d.setIconArrowMovingColor(string(v, "arrowMovingColor"));
-        d.setIconArrowOfflineColor(string(v, "arrowOfflineColor"));
-        d.setIconArrowPausedColor(string(v, "arrowPausedColor"));
-        d.setIconArrowStoppedColor(string(v, "arrowStoppedColor"));
+        }        
         return d;
     }
     

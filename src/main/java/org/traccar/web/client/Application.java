@@ -44,12 +44,11 @@ import org.traccar.web.client.InitialLoader.LoadFinishedListener;
 import org.traccar.web.client.model.api.Decoder;
 import org.traccar.web.client.model.api.DevicesService;
 import org.traccar.web.client.model.api.Resources;
-import org.traccar.web.client.model.api.IDevicesService;
 
 public class Application {
 
     private static final DataServiceAsync dataService = GWT.create(DataService.class);
-    private static final DevicesService devices = new DevicesService();
+    private static final DevicesService devices = GWT.create(DevicesService.class);
     private static final Decoder decoder = new Decoder();
     private static final Resources resources = new Resources();
     private final static Messages i18n = GWT.create(Messages.class);
