@@ -28,7 +28,7 @@ import com.sencha.gxt.widget.core.client.form.TextField;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.api.UsersService;
+import org.traccar.web.client.model.api.IUsersService;
 
 public class LoginMoreDialog {
     private static _UiBinder uiBinder = GWT.create(_UiBinder.class);
@@ -45,7 +45,7 @@ public class LoginMoreDialog {
     @UiField(provided = true)
     Messages i18n = GWT.create(Messages.class);
     
-    UsersService us = GWT.create(UsersService.class);
+    IUsersService us = GWT.create(IUsersService.class);
     
     public LoginMoreDialog() {
         uiBinder.createAndBindUi(this);
@@ -57,8 +57,8 @@ public class LoginMoreDialog {
     
     @UiHandler("resetButton")
     public void onResetClicked(SelectEvent event) {
-        UsersService us = GWT.create(UsersService.class);
-        us.resetPassword(new UsersService.ResetPasswordDto(login.getText()), new JsonCallback() {
+        IUsersService us = GWT.create(IUsersService.class);
+        us.resetPassword(new IUsersService.ResetPasswordDto(login.getText()), new JsonCallback() {
             @Override
             public void onFailure(Method method, Throwable exception) {
                 new AlertMessageBox(i18n.success(), i18n.resetMailSent()).show();
@@ -74,7 +74,7 @@ public class LoginMoreDialog {
     
     @UiHandler("resendButton")
     public void onResendClicked(SelectEvent event) {
-        us.resendLink(new UsersService.ResetPasswordDto(login.getText()), new JsonCallback() {
+        us.resendLink(new IUsersService.ResetPasswordDto(login.getText()), new JsonCallback() {
             @Override
             public void onFailure(Method method, Throwable exception) {
                 new AlertMessageBox(i18n.success(), i18n.emailResent()).show();

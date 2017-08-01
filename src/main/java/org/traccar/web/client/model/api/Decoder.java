@@ -19,6 +19,7 @@ import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import pl.datamatica.traccar.model.CommandType;
 import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.DeviceEventType;
 import pl.datamatica.traccar.model.DeviceIconMode;
 import pl.datamatica.traccar.model.Maintenance;
 import pl.datamatica.traccar.model.Position;
@@ -158,6 +159,18 @@ public class Decoder {
         u.setAdmin(bool(v, "admin"));
         u.setArchive(bool(v, "archive"));
         u.setBlocked(bool(v, "blocked"));
+        u.setReadOnly(bool(v, "readOnly"));
+        u.setPassword(string(v, "password"));
+        if(v.get("notificationEvents") != null && v.get("notificationEvents").isArray() != null) {
+            JSONArray ne = v.get("notificationEvents").isArray();
+            Set<DeviceEventType> notificationEvents = new HashSet<>();
+            for(int i=0;i<ne.size();++i)
+                if(ne.get(i).isString() != null)
+                    notificationEvents.add(DeviceEventType.valueOf(ne.get(i)
+                            .isString().stringValue()));
+            u.setNotificationEvents(notificationEvents);
+            u.setTransferNotificationEvents(new HashSet<>(notificationEvents));
+        }
         return u;
     }
     
