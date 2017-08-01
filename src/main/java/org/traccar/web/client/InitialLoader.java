@@ -35,6 +35,8 @@ import org.traccar.web.client.model.GroupStore;
 import org.traccar.web.client.model.api.ApiCommandType;
 import org.traccar.web.client.model.api.ApiDeviceIcon;
 import org.traccar.web.client.model.api.ApiDeviceModel;
+import org.traccar.web.client.model.api.ApplicationSettingsService;
+import org.traccar.web.client.model.api.ApplicationSettingsService.ApplicationSettingsDto;
 import org.traccar.web.client.model.api.ResourcesService;
 import org.traccar.web.client.model.api.UsersService;
 import pl.datamatica.traccar.model.Device;
@@ -63,9 +65,23 @@ public class InitialLoader {
     
     public void load(LoadFinishedListener listener) {
         this.listener = listener;
-        unansweredRequests = 4;
+        unansweredRequests = 5;
         ResourcesService res = GWT.create(ResourcesService.class);
         UsersService users = GWT.create(UsersService.class);
+        ApplicationSettingsService settings = GWT.create(ApplicationSettingsService.class);
+        
+        settings.get(new MethodCallback<ApplicationSettingsDto>() {
+            @Override
+            public void onFailure(Method method, Throwable exception) {
+                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+            }
+
+            @Override
+            public void onSuccess(Method method, ApplicationSettingsDto response) {
+                onRequestAnswered();
+                ApplicationContext.getInstance().setApplicationSettings(response.toApplicationSettings());
+            }
+        });
         
         res.getDeviceIcons(new MethodCallback<List<ApiDeviceIcon>>() {
             @Override
