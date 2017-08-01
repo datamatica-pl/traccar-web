@@ -38,16 +38,11 @@ import org.traccar.web.client.view.*;
 import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.json.client.JSONValue;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
-import org.fusesource.restygwt.client.JsonCallback;
-import org.fusesource.restygwt.client.Method;
-import org.traccar.web.client.model.api.ApplicationSettingsService;
-import org.traccar.web.client.model.api.ApplicationSettingsService.ApplicationSettingsDto;
 
 public class SettingsController implements NavView.SettingsHandler {
 
@@ -202,24 +197,17 @@ public class SettingsController implements NavView.SettingsHandler {
 
     @Override
     public void onApplicationSelected() {
-        final ApplicationSettingsService appSettings = GWT.create(ApplicationSettingsService.class);
         new ApplicationSettingsDialog(
                 ApplicationContext.getInstance().getApplicationSettings(),
                 new ApplicationSettingsDialog.ApplicationSettingsHandler() {
                     @Override
                     public void onSave(final ApplicationSettings applicationSettings) {
-                        appSettings.update(ApplicationSettingsDto.create(applicationSettings), 
-                                new JsonCallback() {
+                        Application.getDataService().updateApplicationSettings(applicationSettings, new BaseAsyncCallback<Void>(i18n) {
                             @Override
-                            public void onFailure(Method method, Throwable exception) {
-                                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                            }
-
-                            @Override
-                            public void onSuccess(Method method, JSONValue response) {
+                            public void onSuccess(Void result) {
                                 ApplicationContext.getInstance().setApplicationSettings(applicationSettings);
                             }
-                                });
+                        });
                     }
                 }).show();
     }

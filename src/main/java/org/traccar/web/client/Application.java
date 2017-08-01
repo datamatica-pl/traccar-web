@@ -44,7 +44,6 @@ import org.traccar.web.client.InitialLoader.LoadFinishedListener;
 import org.traccar.web.client.model.api.Decoder;
 import org.traccar.web.client.model.api.DevicesService;
 import org.traccar.web.client.model.api.Resources;
-import pl.datamatica.traccar.model.ApplicationSettings;
 
 public class Application {
 
@@ -138,13 +137,6 @@ public class Application {
     public void run() {
         RootPanel.get().add(view);
 
-        Application.getDataService().getApplicationSettings(new BaseAsyncCallback<ApplicationSettings>(i18n) {
-            @Override
-            public void onSuccess(ApplicationSettings result) {
-                ApplicationContext.getInstance().setApplicationSettings(result);
-                
-            }
-        });
         initialLoader.load(new LoadFinishedListener() {
             @Override
             public void onLoadFinished() {
