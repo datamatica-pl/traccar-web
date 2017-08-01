@@ -65,8 +65,20 @@ public class LoginController implements LoginDialog.LoginHandler {
             public void onSuccess(Method method, JSONValue response) {
                 User u = Application.getDecoder().decodeUser(response.isObject());
                 ApplicationContext.getInstance().setUser(u);
-                hideLoadingDiv();
-                loginHandler.onLogin();
+                Application.getDataService().authenticated(new BaseAsyncCallback<User>(i18n) {
+                    @Override
+                    public void onSuccess(User result) {
+                        if(result == null) {
+                            dialog = new LoginDialog(LoginController.this);
+                            hideLoadingDiv();
+                            dialog.show();
+                        } else {
+                            hideLoadingDiv();
+                            loginHandler.onLogin();
+                        }
+                    }
+                    
+                });
             }
 
             void hideLoadingDiv() {
