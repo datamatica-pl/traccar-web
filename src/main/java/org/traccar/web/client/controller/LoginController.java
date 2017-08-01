@@ -51,19 +51,34 @@ public class LoginController implements LoginDialog.LoginHandler {
 
     public void login(final LoginHandler loginHandler) {
         this.loginHandler = loginHandler;
+        SessionService session = GWT.create(SessionService.class);
 
-        Application.getDataService().authenticated(new BaseAsyncCallback<User>(i18n) {
+        session.getUser(new JsonCallback() {
             @Override
-            public void onSuccess(User result) {
-                if (result == null) {
-                    dialog = new LoginDialog(LoginController.this);
-                    hideLoadingDiv();
-                    dialog.show();
-                } else {
-                    ApplicationContext.getInstance().setUser(result);
-                    hideLoadingDiv();
-                    loginHandler.onLogin();
-                }
+            public void onFailure(Method method, Throwable exception) {
+                dialog = new LoginDialog(LoginController.this);
+                hideLoadingDiv();
+                dialog.show();
+            }
+
+            @Override
+            public void onSuccess(Method method, JSONValue response) {
+                User u = Application.getDecoder().decodeUser(response.isObject());
+                ApplicationContext.getInstance().setUser(u);
+                Application.getDataService().authenticated(new BaseAsyncCallback<User>(i18n) {
+                    @Override
+                    public void onSuccess(User result) {
+                        if(result == null) {
+                            dialog = new LoginDialog(LoginController.this);
+                            hideLoadingDiv();
+                            dialog.show();
+                        } else {
+                            hideLoadingDiv();
+                            loginHandler.onLogin();
+                        }
+                    }
+                    
+                });
             }
 
             void hideLoadingDiv() {
