@@ -95,19 +95,20 @@ public class Decoder {
             for(ApiCommandType ct : model.getCommandTypes()) {
                 d.addSupportedCommand(CommandType.fromString(ct.getCommandName()));
             }
+        List<Maintenance> ms = new ArrayList<>();
         if(v.get("maintenances") != null && v.get("maintenances").isArray() != null) {
             JSONArray arr = v.get("maintenances").isArray();
-            List<Maintenance> ms = new ArrayList<>();
             for(int i=0;i<arr.size();++i) {
                 MaintenanceBase mb = decodeMaintenance(arr.get(i).isObject(), i);
                 if(mb == null)
                     continue;
                 ms.add((Maintenance)mb);
             }
-            d.setMaintenances(ms);
         }
+        d.setMaintenances(ms);
+        
+        List<RegistrationMaintenance> rms = new ArrayList<>();
         if(v.get("registrations") != null && v.get("registrations").isArray() != null) {
-            List<RegistrationMaintenance> rms = new ArrayList<>();
             JSONArray arr = v.get("registrations").isArray();
             for(int i=0;i<arr.size();++i) {
                 MaintenanceBase mb = decodeMaintenance(arr.get(i).isObject(), i);
@@ -115,8 +116,8 @@ public class Decoder {
                     continue;
                 rms.add((RegistrationMaintenance)mb);
             }
-            d.setRegistrations(rms);
         }
+        d.setRegistrations(rms);
         
         d.setVehicleInfo(string(v, "vehicleInfo"));
         d.setAutoUpdateOdometer(bool(v, "autoUpdateOdometer", false));
