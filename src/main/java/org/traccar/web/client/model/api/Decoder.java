@@ -21,7 +21,9 @@ import pl.datamatica.traccar.model.CommandType;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.DeviceIconMode;
 import pl.datamatica.traccar.model.Maintenance;
+import pl.datamatica.traccar.model.MaintenanceBase;
 import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.RegistrationMaintenance;
 import pl.datamatica.traccar.model.User;
 
 public class Decoder {    
@@ -93,13 +95,29 @@ public class Decoder {
             for(ApiCommandType ct : model.getCommandTypes()) {
                 d.addSupportedCommand(CommandType.fromString(ct.getCommandName()));
             }
+        List<Maintenance> ms = new ArrayList<>();
         if(v.get("maintenances") != null && v.get("maintenances").isArray() != null) {
             JSONArray arr = v.get("maintenances").isArray();
-            List<Maintenance> ms = new ArrayList<>();
-            for(int i=0;i<arr.size();++i)
-                ms.add(decodeMaintenance(arr.get(i).isObject()));
-            d.setMaintenances(ms);
+            for(int i=0;i<arr.size();++i) {
+                MaintenanceBase mb = decodeMaintenance(arr.get(i).isObject(), i);
+                if(mb == null)
+                    continue;
+                ms.add((Maintenance)mb);
+            }
         }
+        d.setMaintenances(ms);
+        
+        List<RegistrationMaintenance> rms = new ArrayList<>();
+        if(v.get("registrations") != null && v.get("registrations").isArray() != null) {
+            JSONArray arr = v.get("registrations").isArray();
+            for(int i=0;i<arr.size();++i) {
+                MaintenanceBase mb = decodeMaintenance(arr.get(i).isObject(), i);
+                if(mb == null)
+                    continue;
+                rms.add((RegistrationMaintenance)mb);
+            }
+        }
+        d.setRegistrations(rms);
         
         d.setVehicleInfo(string(v, "vehicleInfo"));
         d.setAutoUpdateOdometer(bool(v, "autoUpdateOdometer", false));
@@ -161,14 +179,23 @@ public class Decoder {
         return u;
     }
     
-    public Maintenance decodeMaintenance(JSONObject v) {
+    public MaintenanceBase decodeMaintenance(JSONObject v, int i) {
         if(v == null)
             return null;
-        Maintenance m = new Maintenance();
+        MaintenanceBase m;
+        if(aDouble(v, "lastService") != null) {
+            Maintenance mt = new Maintenance();
+            mt.setServiceInterval(aDouble(v, "serviceInterval"));
+            mt.setLastService(aDouble(v, "lastService"));
+            m = mt;
+        } else {
+            RegistrationMaintenance mt = new RegistrationMaintenance();
+            mt.setServiceDate(date(v, "serviceDate"));
+            m = mt;
+        }
         m.setId(aLong(v, "id"));
         m.setName(string(v, "name"));
-        m.setServiceInterval(aDouble(v, "serviceInterval"));
-        m.setLastService(aDouble(v, "lastService"));
+        m.setIndexNo(i);
         return m;
     }
     
