@@ -16,13 +16,17 @@
 package org.traccar.web.client.model.api;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.RestService;
 import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.Maintenance;
+import pl.datamatica.traccar.model.RegistrationMaintenance;
 
 //@Path("https://localhost/api/v1/devices")
 @Path("../api/v1/devices")
@@ -41,6 +45,29 @@ public interface IDevicesService extends RestService {
         
         public AddDeviceDto(String imei) {
             this.imei = imei;
+        }
+    }
+    
+    public static class MaintenanceDto {
+        public long id;
+        public String name;
+        public Double serviceInterval;
+        public Double lastService;
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ",
+                timezone="GMT")
+        public Date serviceDate;
+        
+        public MaintenanceDto(Maintenance m) {
+            this.id = m.getId();
+            this.name = m.getName();
+            this.serviceInterval = m.getServiceInterval();
+            this.lastService = m.getLastService();
+        }
+        
+        public MaintenanceDto(RegistrationMaintenance rm) {
+            this.id = rm.getId();
+            this.name = rm.getName();
+            this.serviceDate = rm.getServiceDate();
         }
     }
     
@@ -77,6 +104,8 @@ public interface IDevicesService extends RestService {
         public final String arrowStoppedColor;
         public final String arrowPausedColor;
         public final String arrowOfflineColor;
+        public final List<MaintenanceDto> maintenances;
+        public final List<MaintenanceDto> registrations;
         
         public EditDeviceDto(Device device) {
             this.deviceName = device.getName();
@@ -107,6 +136,13 @@ public interface IDevicesService extends RestService {
             this.arrowStoppedColor = device.getIconArrowStoppedColor();
             this.arrowPausedColor = device.getIconArrowPausedColor();
             this.arrowOfflineColor = device.getIconArrowOfflineColor();
+            
+            this.maintenances = new ArrayList<>();
+            for(Maintenance m : device.getMaintenances())
+                this.maintenances.add(new MaintenanceDto(m));
+            this.registrations = new ArrayList<>();
+            for(RegistrationMaintenance rm : device.getRegistrations())
+                this.registrations.add(new MaintenanceDto(rm));
         }
     }
 }
