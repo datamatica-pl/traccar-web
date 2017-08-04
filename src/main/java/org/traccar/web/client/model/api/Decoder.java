@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import pl.datamatica.traccar.model.CommandType;
@@ -92,13 +93,7 @@ public class Decoder {
         ApiDeviceModel model = Application.getResources().model(d.getDeviceModelId());
         if(model != null)
             for(ApiCommandType ct : model.getCommandTypes()) {
-                try {
-                    d.addSupportedCommand(CommandType.fromString(ct.getCommandName()));
-                } catch (IllegalArgumentException e) {
-                    // We want to process rest of commands
-                    // It will be thrown only in case of developer mistake.
-                    
-                }
+                d.addSupportedCommand(CommandType.fromString(ct.getCommandName()));
             }
         List<Maintenance> ms = new ArrayList<>();
         if(v.get("maintenances") != null && v.get("maintenances").isArray() != null) {
