@@ -177,6 +177,7 @@ public class Decoder {
         u.setAdmin(bool(v, "admin"));
         u.setArchive(bool(v, "archive"));
         u.setBlocked(bool(v, "blocked"));
+        u.setPremium(bool(v, "premium"));
         if(v.containsKey("settings") && v.get("settings").isObject() != null) {
             u.setUserSettings(decodeUserSettings(v.get("settings").isObject()));
         }
