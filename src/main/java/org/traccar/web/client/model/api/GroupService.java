@@ -15,30 +15,49 @@
  */
 package org.traccar.web.client.model.api;
 
+import com.github.nmorel.gwtjackson.client.ObjectMapper;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.http.client.RequestBuilder;
+import com.google.gwt.http.client.RequestCallback;
+import com.google.gwt.http.client.RequestException;
 import java.util.List;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
 import org.fusesource.restygwt.client.MethodCallback;
-import org.fusesource.restygwt.client.RestService;
-import pl.datamatica.traccar.model.Group;
+import org.traccar.web.client.model.api.IGroupService.AddDeviceGroupDto;
+import org.traccar.web.client.model.api.IGroupService.DeviceGroupDto;
 
-@Path("../api/v1/groups")
-public interface GroupService extends RestService{
-    @GET
-    void getGroups(MethodCallback<List<DeviceGroupDto>> callback);
+/**
+ *
+ * @author ŁŁ
+ */
+public class GroupService {
+    public static interface AddDeviceGroupDtoMapper extends ObjectMapper<AddDeviceGroupDto>{}
+
+    private IGroupService service = GWT.create(IGroupService.class);
+    private AddDeviceGroupDtoMapper mapper = GWT.create(AddDeviceGroupDtoMapper.class);
     
-    static class DeviceGroupDto {
-        public long id;
-        public String name;
-        public String description;
-        public boolean owned;
-        
-        public Group toGroup() {
-            Group g = new Group(id, name);
-            g.setDescription(description);
-            g.setOwned(owned);
-            g.setParent(null);
-            return g;
+    public void getGroups(MethodCallback<List<DeviceGroupDto>> callback) {
+        service.getGroups(callback);
+    }
+
+    public void addGroup(AddDeviceGroupDto dto, MethodCallback<DeviceGroupDto> callback) {
+        service.addGroup(dto, callback);
+    }
+    
+    public void updateGroup(long id, AddDeviceGroupDto group, final RequestCallback callback) {
+        RequestBuilder rb = new RequestBuilder(RequestBuilder.PUT, "../api/v1/devicegroups/"+id);
+        try {
+            rb.sendRequest(mapper.write(group), callback);
+        } catch (RequestException ex) {
+            callback.onError(null, ex);
+        }
+    }
+    
+    public void removeGroup(long id, RequestCallback callback) {
+        RequestBuilder rb = new RequestBuilder(RequestBuilder.DELETE, "../api/v1/devicegroups/"+id);
+        try {
+            rb.sendRequest(null, callback);
+        } catch(RequestException ex) {
+            callback.onError(null, ex);
         }
     }
 }

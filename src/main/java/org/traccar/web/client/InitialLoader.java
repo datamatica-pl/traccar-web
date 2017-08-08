@@ -31,13 +31,13 @@ import org.traccar.web.client.model.api.ApiDeviceIcon;
 import org.traccar.web.client.model.api.ApiDeviceModel;
 import org.traccar.web.client.model.api.ApplicationSettingsService;
 import org.traccar.web.client.model.api.ApplicationSettingsService.ApplicationSettingsDto;
-import org.traccar.web.client.model.api.GroupService;
-import org.traccar.web.client.model.api.GroupService.DeviceGroupDto;
+import org.traccar.web.client.model.api.IGroupService.DeviceGroupDto;
 import org.traccar.web.client.model.api.ResourcesService;
 import org.traccar.web.client.model.api.UsersService;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.Group;
 import pl.datamatica.traccar.model.User;
+import org.traccar.web.client.model.api.GroupService;
 
 /**
  *
@@ -117,7 +117,7 @@ public class InitialLoader {
             }
         });
         
-        final GroupService service = GWT.create(GroupService.class);
+        final GroupService service = new GroupService();
         service.getGroups(new MethodCallback<List<DeviceGroupDto>>() {
             @Override
             public void onFailure(Method method, Throwable exception) {
