@@ -104,7 +104,12 @@ public class Decoder {
         ApiDeviceModel model = Application.getResources().model(d.getDeviceModelId());
         if(model != null)
             for(ApiCommandType ct : model.getCommandTypes()) {
-                d.addSupportedCommand(CommandType.fromString(ct.getCommandName()));
+                try {
+                    d.addSupportedCommand(CommandType.fromString(ct.getCommandName()));
+                } catch (IllegalArgumentException e) {
+                    // We want to process rest of commands
+                    // It will be thrown only in case of developer mistake.
+                }
             }
         List<Maintenance> ms = new ArrayList<>();
         if(v.get("maintenances") != null && v.get("maintenances").isArray() != null) {
