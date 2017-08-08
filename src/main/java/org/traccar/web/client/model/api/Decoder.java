@@ -153,6 +153,20 @@ public class Decoder {
         return d;
     }
     
+    public List<Position> decodePositions(Device d, JSONObject obj) {
+        if(obj == null || obj.get("changed") == null 
+                || obj.get("changed").isArray() == null)
+            return Collections.EMPTY_LIST;
+        JSONArray arr = obj.get("changed").isArray();
+        ArrayList<Position> ps = new ArrayList<>();
+        for(int i=0;i<arr.size();++i) {
+            Position p = decodePosition(arr.get(i).isObject());
+            p.setDevice(d);
+            ps.add(p);
+        }
+        return ps;
+    }
+    
     public Position decodePosition(JSONObject v) {
         if(v == null)
             return null;
