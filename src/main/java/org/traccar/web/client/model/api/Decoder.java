@@ -14,7 +14,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import pl.datamatica.traccar.model.CommandType;
@@ -23,8 +22,10 @@ import pl.datamatica.traccar.model.DeviceIconMode;
 import pl.datamatica.traccar.model.Maintenance;
 import pl.datamatica.traccar.model.MaintenanceBase;
 import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.PositionIconType;
 import pl.datamatica.traccar.model.RegistrationMaintenance;
 import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserSettings;
 
 public class Decoder {    
     public List<Device> decodeDevices(JSONObject v) {
@@ -176,7 +177,40 @@ public class Decoder {
         u.setAdmin(bool(v, "admin"));
         u.setArchive(bool(v, "archive"));
         u.setBlocked(bool(v, "blocked"));
+        if(v.containsKey("settings") && v.get("settings").isObject() != null) {
+            u.setUserSettings(decodeUserSettings(v.get("settings").isObject()));
+        }
         return u;
+    }
+    
+    public UserSettings decodeUserSettings(JSONObject v) {
+        UserSettings us = new UserSettings();
+        String markerType = string(v, "archiveMarkerType");
+        if(markerType != null && !markerType.isEmpty()) {
+            us.setArchiveMarkerType(PositionIconType.valueOf(markerType));
+        }
+        us.setCenterLatitude(aDouble(v, "centerLatitude"));
+        us.setCenterLongitude(aDouble(v, "centerLongitude"));
+        us.setFollowedDeviceZoomLevel(aShort(v, "followedDeviceZoomLevel"));
+        us.setHideDuplicates(bool(v, "hideDuplicates"));
+        us.setHideInvalidLocations(bool(v, "hideInvalidLocations"));
+        us.setHideZeroCoordinates(bool(v, "hideZeroCoordinates"));
+        String mapType = string(v, "mapType");
+        if(mapType != null && !mapType.isEmpty())
+            us.setMapType(UserSettings.MapType.valueOf(mapType));
+        us.setMaximizeOverviewMap(bool(v, "maximizeOverviewMap"));
+        us.setMinDistance(aDouble(v, "minDistance"));
+        us.setOverlays(string(v, "overlays"));
+        us.setSpeedForFilter(aDouble(v, "speedForFilter"));
+        us.setSpeedModifier(string(v, "speedModifier"));
+        String speedUnit = string(v, "speedUnit");
+        if(speedUnit != null && !speedUnit.isEmpty())
+            us.setSpeedUnit(UserSettings.SpeedUnit.valueOf(speedUnit));
+        us.setTimePrintInterval(aShort(v, "timePrintInterval"));
+        us.setTimeZoneId(string(v, "timeZoneId"));
+        us.setTraceInterval(aShort(v, "traceInterval"));
+        us.setZoomLevel(anInt(v, "zoomLevel"));
+        return us;
     }
     
     public MaintenanceBase decodeMaintenance(JSONObject v, int i) {
@@ -226,6 +260,13 @@ public class Decoder {
         if(val == null)
             return null;
         return (int)val.intValue();
+    }
+    
+    private Short aShort(JSONObject v, String name) {
+        Double value = aDouble(v, name);
+        if(value == null)
+            return null;
+        return value.shortValue();
     }
     
     private Double aDouble(JSONObject v, String name) {
