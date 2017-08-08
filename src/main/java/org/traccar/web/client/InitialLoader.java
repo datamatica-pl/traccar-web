@@ -21,27 +21,23 @@ import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.BaseAsyncCallback;
-import org.traccar.web.client.model.DeviceStore;
-import org.traccar.web.client.model.GroupService;
-import org.traccar.web.client.model.GroupServiceAsync;
 import org.traccar.web.client.model.GroupStore;
 import org.traccar.web.client.model.api.ApiCommandType;
 import org.traccar.web.client.model.api.ApiDeviceIcon;
 import org.traccar.web.client.model.api.ApiDeviceModel;
 import org.traccar.web.client.model.api.ApplicationSettingsService;
 import org.traccar.web.client.model.api.ApplicationSettingsService.ApplicationSettingsDto;
+import org.traccar.web.client.model.api.IGroupService.DeviceGroupDto;
 import org.traccar.web.client.model.api.ResourcesService;
 import org.traccar.web.client.model.api.UsersService;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.Group;
 import pl.datamatica.traccar.model.User;
+import org.traccar.web.client.model.api.GroupService;
 
 /**
  *
@@ -121,39 +117,21 @@ public class InitialLoader {
             }
         });
         
-        final GroupServiceAsync service = GWT.create(GroupService.class);
-        service.getGroups(new BaseAsyncCallback<Map<Group, Group>>(i18n) {
+        final GroupService service = new GroupService();
+        service.getGroups(new MethodCallback<List<DeviceGroupDto>>() {
             @Override
-            public void onSuccess(Map<Group, Group> result) {
-                onRequestAnswered();
-                // put root groups into the first level records to add
-                List<Group> toAdd = new ArrayList<>();
-                for (Map.Entry<Group, Group> entry : result.entrySet()) {
-                    if (entry.getValue() == null) {
-                        toAdd.add(entry.getKey());
-                    }
-                }
-                ApplicationContext.getInstance().setGroups(result.keySet());
+            public void onFailure(Method method, Throwable exception) {
+                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+            }
 
-                // fill tree store level by level
-                while (!toAdd.isEmpty()) {
-                    List<Group> newToAdd = new ArrayList<>();
-                    for (Group group : toAdd) {
-                        Group parent = result.get(group);
-                        if (parent == null) {
-                            groupStore.add(group);
-                        } else {
-                            groupStore.add(parent, group);
-                        }
-                        // prepare next level groups as children of currently processed group
-                        for (Map.Entry<Group, Group> entry : result.entrySet()) {
-                            if (Objects.equals(entry.getValue(), group)) {
-                                newToAdd.add(entry.getKey());
-                            }
-                        }
-                    }
-                    toAdd = newToAdd;
-                }
+            @Override
+            public void onSuccess(Method method, List<DeviceGroupDto> response) {
+                onRequestAnswered();
+                List<Group> groups = new ArrayList<>();
+                for(DeviceGroupDto dto : response)
+                    groups.add(dto.toGroup());
+                ApplicationContext.getInstance().setGroups(groups);
+                groupStore.add(groups);
             }
         });
         
