@@ -151,6 +151,7 @@ public class Application {
                 visibilityController.run();
                 reportsController.run();
                 updatesController.run();
+                routeController.run();
                 setupTimeZone();
                 updatesController.devicesLoaded(deviceController.getDeviceStore().getAll());
             }
