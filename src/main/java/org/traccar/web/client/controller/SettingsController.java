@@ -50,6 +50,7 @@ import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.model.api.ApplicationSettingsService;
 import org.traccar.web.client.model.api.ApplicationSettingsService.ApplicationSettingsDto;
+import org.traccar.web.client.model.api.IUsersService.AddUserDto;
 import org.traccar.web.client.model.api.IUsersService.EditUserDto;
 import org.traccar.web.client.model.api.UsersService;
 
@@ -113,28 +114,19 @@ public class SettingsController implements NavView.SettingsHandler {
                         class AddHandler implements UserDialog.UserHandler {
                             @Override
                             public void onSave(final User user) {
-                                Application.getDataService().addUser(user, new BaseAsyncCallback<User>(i18n) {
+                                users.addUser(new AddUserDto(user), new JsonCallback() {
                                     @Override
-                                    public void onSuccess(User result) {
-                                        userStore.add(result);
+                                    public void onFailure(Method method, Throwable exception) {
+                                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                                     }
+
                                     @Override
-                                    public void onFailure(Throwable caught) {
-                                        AlertMessageBox msg;
-                                        if (caught instanceof InvalidMaxDeviceNumberForUserException) {
-                                            InvalidMaxDeviceNumberForUserException e = (InvalidMaxDeviceNumberForUserException) caught;
-                                            msg = new AlertMessageBox(i18n.error(), i18n.errMaxNumOfDevicesExceeded(e.getAllowedDevicesNumber()));
-                                        } else {
-                                            msg = new AlertMessageBox(i18n.error(), i18n.errUsernameTaken());
-                                        }
-                                        msg.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
-                                            @Override
-                                            public void onDialogHide(DialogHideEvent event) {
-                                                new UserDialog(user, AddHandler.this).show();
-                                            }
-                                        });
-                                        msg.show();
+                                    public void onSuccess(Method method, JSONValue response) {
+                                        User u = Application.getDecoder().decodeUser(response.isObject());
+                                        ApplicationContext.getInstance().addUser(u);
+                                        userStore.add(u);
                                     }
+                                    
                                 });
                             }
                         }

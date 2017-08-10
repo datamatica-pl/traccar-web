@@ -33,15 +33,15 @@ import pl.datamatica.traccar.model.User;
 //@Path("https://localhost/api/v1/users")
 @Path("../api/v1/users")
 public interface IUsersService extends RestService{
-    public static class AddUserDto {
+    public static class RegisterUserDto {
         public String email;
         public String imei;
         public String password;
         public boolean checkMarketing = false;
         
-        public AddUserDto() {}
+        public RegisterUserDto() {}
         
-        public AddUserDto(String email, String imei, String password) {
+        public RegisterUserDto(String email, String imei, String password) {
             this.email = email;
             this.imei = imei;
             this.password = password;
@@ -49,7 +49,11 @@ public interface IUsersService extends RestService{
     }
     
     @POST
-    void register(AddUserDto dto, JsonCallback callback);
+    @Path("register")
+    void register(RegisterUserDto dto, JsonCallback callback);
+    
+    @POST
+    void addUser(AddUserDto dto, JsonCallback callback);
     
     
     public static class ResetPasswordDto {
@@ -69,22 +73,24 @@ public interface IUsersService extends RestService{
     void getUsers(JsonCallback callback);
     
     public static class EditUserDto {
-        public final String email;
-        public final String companyName;
-        public final String firstName;
-        public final String lastName;
-        public final String phoneNumber;
+        public String email;
+        public String companyName;
+        public String firstName;
+        public String lastName;
+        public String phoneNumber;
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ",
                 timezone="GMT")
-        public final Date expirationDate;
-        public final Integer maxNumOfDevices;
-        public final boolean manager;
-        public final boolean admin;
-        public final boolean archive;
-        public final boolean blocked;
-        public final boolean readOnly;
-        public final String password;
-        public final List<String> notificationEvents;
+        public Date expirationDate;
+        public Integer maxNumOfDevices;
+        public boolean manager;
+        public boolean admin;
+        public boolean archive;
+        public boolean blocked;
+        public boolean readOnly;
+        public String password;
+        public List<String> notificationEvents;
+        
+        public EditUserDto() {}
         
         public EditUserDto(User u) {
             this.email = u.getEmail();
@@ -104,6 +110,17 @@ public interface IUsersService extends RestService{
             if(u.getTransferNotificationEvents() != null)
                 for(DeviceEventType det : u.getTransferNotificationEvents())
                     notificationEvents.add(det.name());
+        }
+    }
+    
+    public static class AddUserDto extends EditUserDto {
+        public String login;
+        
+        public AddUserDto() {}
+        
+        public AddUserDto(User u) {
+            super(u);
+            this.login = u.getLogin();
         }
     }
     

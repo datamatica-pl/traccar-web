@@ -131,7 +131,7 @@ public class LoginController implements LoginDialog.LoginHandler {
     public void onRegister(String email, String imei, String password) {
         if (validate(email, imei, password)) {
             IUsersService users = GWT.create(IUsersService.class);
-            IUsersService.AddUserDto dto = new IUsersService.AddUserDto(email, imei, password);
+            IUsersService.RegisterUserDto dto = new IUsersService.RegisterUserDto(email, imei, password);
             users.register(dto, new JsonCallback() {
                 @Override
                 public void onSuccess(Method method, JSONValue response) {

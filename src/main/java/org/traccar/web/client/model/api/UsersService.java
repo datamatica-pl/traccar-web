@@ -22,6 +22,7 @@ import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.traccar.web.client.model.api.IUsersService.AddUserDto;
+import org.traccar.web.client.model.api.IUsersService.RegisterUserDto;
 import org.traccar.web.client.model.api.IUsersService.EditUserDto;
 import org.traccar.web.client.model.api.IUsersService.ResetPasswordDto;
 
@@ -34,7 +35,7 @@ public class UsersService {
     private IUsersService service = GWT.create(IUsersService.class);
     private EditUserDtoMapper mapper = GWT.create(EditUserDtoMapper.class);
     
-    public void register(AddUserDto dto, JsonCallback callback) {
+    public void register(RegisterUserDto dto, JsonCallback callback) {
         service.register(dto, callback);
     }
     
@@ -44,6 +45,10 @@ public class UsersService {
     
     public void getUsers(JsonCallback callback) {
         service.getUsers(callback);
+    }
+    
+    public void addUser(AddUserDto dto, JsonCallback callback) {
+        service.addUser(dto, callback);
     }
 
     public void updateUser(long id, EditUserDto dto, RequestCallback callback) {
