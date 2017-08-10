@@ -104,6 +104,9 @@ public class CommandController implements ContentController, DeviceView.CommandH
                 command.getAttributes().put(CommandType.KEY_SOS_NUMBER,
                         extendedAttributes.get(CommandType.KEY_SOS_NUMBER));
                 break;
+            case positionPeriodicAlt:
+                command.getAttributes().put(CommandType.KEY_FREQUENCY, frequency);
+                break;
             case setCenterNumber:
                 command.getAttributes().put(CommandType.KEY_CENTER_NUMBER,
                         extendedAttributes.get(CommandType.KEY_CENTER_NUMBER));

@@ -106,6 +106,8 @@ public class CommandArgumentsBinder {
                 new String[]{"lblCenterNumber", "centerNumber"});
         visibilityInfo.put(CommandType.deleteSOSNumber,
                 new String[]{"lblSOSNumber", "SOSNumber"});
+        visibilityInfo.put(CommandType.positionPeriodicAlt,
+                new String[]{"lblFrequency", "frequency", "frequencyUnit"});
     }
     
     public void bind(CommandType type) {
