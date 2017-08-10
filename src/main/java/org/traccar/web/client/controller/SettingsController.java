@@ -206,13 +206,17 @@ public class SettingsController implements NavView.SettingsHandler {
                                 if (event.getHideButton() == PredefinedButton.OK) {
                                     final String oldPassword = user.getPassword();
                                     user.setPassword(passwordInput.getValue());
-                                    Application.getDataService().updateUser(user, new BaseAsyncCallback<User>(i18n) {
+                                    users.updateUser(user.getId(), new EditUserDto(user),
+                                            new RequestCallback() {
                                         @Override
-                                        public void onFailure(Throwable caught) {
-                                            user.setPassword(oldPassword);
-                                            super.onFailure(caught);
+                                        public void onResponseReceived(Request request, Response response) {
                                         }
-                                    });
+
+                                        @Override
+                                        public void onError(Request request, Throwable exception) {
+                                            new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                                        }  
+                                            });
                                 }
                             }
                         });
