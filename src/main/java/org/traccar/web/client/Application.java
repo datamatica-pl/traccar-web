@@ -138,13 +138,6 @@ public class Application {
     public void run() {
         RootPanel.get().add(view);
 
-        Application.getDataService().getApplicationSettings(new BaseAsyncCallback<ApplicationSettings>(i18n) {
-            @Override
-            public void onSuccess(ApplicationSettings result) {
-                ApplicationContext.getInstance().setApplicationSettings(result);
-                
-            }
-        });
         initialLoader.load(new LoadFinishedListener() {
             @Override
             public void onLoadFinished() {
@@ -158,6 +151,7 @@ public class Application {
                 visibilityController.run();
                 reportsController.run();
                 updatesController.run();
+                routeController.run();
                 setupTimeZone();
                 updatesController.devicesLoaded(deviceController.getDeviceStore().getAll());
             }
