@@ -159,18 +159,24 @@ public class SettingsController implements NavView.SettingsHandler {
                     public void onRemove(final User user) {
                         final ConfirmMessageBox dialog = new ConfirmMessageBox(i18n.confirm(), i18n.confirmUserRemoval());
                         dialog.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
-							@Override
-							public void onDialogHide(DialogHideEvent event) {
-								if (event.getHideButton() == PredefinedButton.YES) {
-                                    Application.getDataService().removeUser(user, new BaseAsyncCallback<User>(i18n) {
-                                        @Override
-                                        public void onSuccess(User result) {
-                                            userStore.remove(user);
+                                @Override
+                                public void onDialogHide(DialogHideEvent event) {
+                                        if (event.getHideButton() == PredefinedButton.YES) {
+                                            users.deleteUser(user.getId(), new RequestCallback() {
+                                                @Override
+                                                public void onResponseReceived(Request request, Response response) {
+                                                    userStore.remove(user);
+                                                }
+
+                                                @Override
+                                                public void onError(Request request, Throwable exception) {
+                                                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                                                }
+
+                                            });
                                         }
-                                    });
-								}
-							}
-						});
+                                }
+                        });
                         dialog.show();
                     }
                     
@@ -225,12 +231,6 @@ public class SettingsController implements NavView.SettingsHandler {
                 }).show();
             }
         
-        });
-        Application.getDataService().getUsers(new BaseAsyncCallback<List<User>>(i18n) {
-            @Override
-            public void onSuccess(List<User> result) {
-                
-            }
         });
     }
 

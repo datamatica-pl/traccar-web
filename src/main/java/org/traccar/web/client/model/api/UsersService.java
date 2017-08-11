@@ -61,6 +61,16 @@ public class UsersService {
         }
     }
     
+    public void deleteUser(long id, RequestCallback callback) {
+        RequestBuilder builder = new RequestBuilder(RequestBuilder.DELETE,
+            "../api/v1/users/"+id);
+        try {
+            builder.sendRequest(null, callback);
+        } catch(RequestException e) {
+            callback.onError(null, e);
+        }
+    }
+    
     public void resendLink(ResetPasswordDto dto, JsonCallback callback) {
         service.resendLink(dto, callback);
     }
