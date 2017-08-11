@@ -23,11 +23,13 @@ import java.util.List;
 import javax.ws.rs.GET;
 import org.fusesource.restygwt.client.RestService;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import org.fusesource.restygwt.client.JsonCallback;
 import pl.datamatica.traccar.model.DeviceEventType;
 import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserSettings;
+import pl.datamatica.traccar.model.UserSettings.DistanceUnit;
+import pl.datamatica.traccar.model.UserSettings.SpeedUnit;
 
 
 //@Path("https://localhost/api/v1/users")
@@ -127,4 +129,56 @@ public interface IUsersService extends RestService{
     @POST
     @Path("resend")
     void resendLink(ResetPasswordDto dto, JsonCallback callback);
+    
+    public static class EditUserSettingsDto {
+        public final String archiveMarkerType;
+        public final double centerLatitude;
+        public final double centerLongitude;
+        public final boolean hideDuplicates;
+        public final boolean hideInvalidLocations;
+        public final boolean hideZeroCoordinates;
+        public final String mapType;
+        public final boolean maximizeOverviewMap;
+        public final Double minDistance;
+        public final String overlays;
+        public final Double speedForFilter;
+        public final String speedModifier;
+        public final String speedUnit;
+        public final short timePrintInterval;
+        public final String timeZoneId;
+        public final Short traceInterval;
+        public final int zoomLevel;
+        public final Short followedDeviceZoomLevel;
+        
+        public EditUserSettingsDto(UserSettings us) {
+            if(us.getArchiveMarkerType() != null)
+                this.archiveMarkerType = us.getArchiveMarkerType().name();
+            else
+                this.archiveMarkerType = null;
+            this.centerLatitude = us.getCenterLatitude();
+            this.centerLongitude = us.getCenterLongitude();
+            this.zoomLevel = us.getZoomLevel();
+            this.mapType = us.getMapType().name();
+            this.maximizeOverviewMap = us.isMaximizeOverviewMap();
+            this.overlays = us.getOverlays();
+            this.followedDeviceZoomLevel = us.getFollowedDeviceZoomLevel();
+            
+            this.hideDuplicates = us.isHideDuplicates();
+            this.hideInvalidLocations = us.isHideInvalidLocations();
+            this.hideZeroCoordinates = us.isHideZeroCoordinates();
+            
+            SpeedUnit su = us.getSpeedUnit();
+            this.speedForFilter = us.getSpeedForFilter();
+            this.speedModifier = us.getSpeedModifier();
+            if(us.getMinDistance() != null)
+                this.minDistance = us.getMinDistance()/su.getDistanceUnit().getFactor();
+            else
+                this.minDistance = null;
+            this.speedUnit = su.name();
+            
+            this.timePrintInterval = us.getTimePrintInterval();
+            this.timeZoneId = us.getTimeZoneId();
+            this.traceInterval = us.getTraceInterval();
+        }
+    }
 }

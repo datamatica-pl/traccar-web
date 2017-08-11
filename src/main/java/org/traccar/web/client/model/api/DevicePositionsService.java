@@ -24,6 +24,7 @@ import java.util.Date;
 import org.traccar.web.client.ApplicationContext;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.UserSettings;
+import pl.datamatica.traccar.model.UserSettings.SpeedUnit;
 
 /**
  *
@@ -52,7 +53,8 @@ public class DevicePositionsService {
         if(us.getSpeedForFilter() != null && us.getSpeedModifier() != null) {
             String speedComp = speedCompFromSpeedModifier(us.getSpeedModifier());
             url.append("&speedComp=").append(speedComp)
-                    .append("&speedValue=").append(us.getSpeedForFilter());
+                    .append("&speedValue=").append(SpeedUnit.kilometersPerHour.getFactor()
+                            *us.getSpeedForFilter()/us.getSpeedUnit().getFactor());
         }
         String addr = url.toString().replace("+", "%2B");
         RequestBuilder rb = new RequestBuilder(RequestBuilder.GET, addr);

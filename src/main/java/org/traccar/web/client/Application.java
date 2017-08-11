@@ -36,14 +36,20 @@ import org.traccar.web.client.view.UserSettingsDialog;
 import org.traccar.web.client.widget.TimeZoneComboBox;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.http.client.Request;
+import com.google.gwt.http.client.RequestCallback;
+import com.google.gwt.http.client.Response;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreHandlers;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
+import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import org.traccar.web.client.InitialLoader.LoadFinishedListener;
 import org.traccar.web.client.model.api.Decoder;
 import org.traccar.web.client.model.api.DevicesService;
+import org.traccar.web.client.model.api.IUsersService.EditUserSettingsDto;
 import org.traccar.web.client.model.api.Resources;
+import org.traccar.web.client.model.api.UsersService;
 import pl.datamatica.traccar.model.ApplicationSettings;
 
 public class Application {
@@ -263,14 +269,26 @@ public class Application {
     };
 
     private class UserSettingsHandlerImpl implements UserSettingsDialog.UserSettingsHandler {
+        private UsersService users = new UsersService();
+        
         @Override
-        public void onSave(UserSettings userSettings) {
-            Application.getDataService().updateUserSettings(userSettings, new BaseAsyncCallback<UserSettings>(i18n) {
+        public void onSave(final UserSettings userSettings) {
+            users.updateUserSettings(ApplicationContext.getInstance().getUser().getId(), 
+                    new EditUserSettingsDto(userSettings), new RequestCallback() {
                 @Override
-                public void onSuccess(UserSettings result) {
-                    ApplicationContext.getInstance().setUserSettings(result);
+                public void onResponseReceived(Request request, Response response) {
+                    if(userSettings.getMinDistance() != null)
+                        userSettings.setMinDistance(userSettings.getMinDistance()
+                            /userSettings.getSpeedUnit().getDistanceUnit().getFactor());
+                    ApplicationContext.getInstance().setUserSettings(userSettings);
                 }
-            });
+
+                @Override
+                public void onError(Request request, Throwable exception) {
+                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                }
+                        
+                    });
         }
 
         @Override

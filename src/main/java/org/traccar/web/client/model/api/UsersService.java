@@ -24,6 +24,7 @@ import org.fusesource.restygwt.client.JsonCallback;
 import org.traccar.web.client.model.api.IUsersService.AddUserDto;
 import org.traccar.web.client.model.api.IUsersService.RegisterUserDto;
 import org.traccar.web.client.model.api.IUsersService.EditUserDto;
+import org.traccar.web.client.model.api.IUsersService.EditUserSettingsDto;
 import org.traccar.web.client.model.api.IUsersService.ResetPasswordDto;
 
 /**
@@ -32,8 +33,10 @@ import org.traccar.web.client.model.api.IUsersService.ResetPasswordDto;
  */
 public class UsersService {
     public static interface EditUserDtoMapper extends ObjectMapper<EditUserDto> {}
+    public static interface SettingsMapper extends ObjectMapper<EditUserSettingsDto> {}
     private IUsersService service = GWT.create(IUsersService.class);
     private EditUserDtoMapper mapper = GWT.create(EditUserDtoMapper.class);
+    private SettingsMapper sMapper = GWT.create(SettingsMapper.class);
     
     public void register(RegisterUserDto dto, JsonCallback callback) {
         service.register(dto, callback);
@@ -66,6 +69,16 @@ public class UsersService {
             "../api/v1/users/"+id);
         try {
             builder.sendRequest(null, callback);
+        } catch(RequestException e) {
+            callback.onError(null, e);
+        }
+    }
+    
+    public void updateUserSettings(long id, EditUserSettingsDto dto, RequestCallback callback) {
+        RequestBuilder builder = new RequestBuilder(RequestBuilder.PUT,
+            "../api/v1/users/"+id+"/settings");
+        try {
+            builder.sendRequest(sMapper.write(dto), callback);
         } catch(RequestException e) {
             callback.onError(null, e);
         }
