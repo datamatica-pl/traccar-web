@@ -77,7 +77,7 @@ public class CommandController implements ContentController, DeviceView.CommandH
                 attrs.put(CommandType.KEY_FREQUENCY, new JSONString(Integer.toString(frequency)));
                 break;
             case setTimezone:
-                attrs.put(CommandType.KEY_TIMEZONE, new JSONString(Long.toString(timezone)));
+                attrs.put(CommandType.KEY_TIMEZONE, new JSONString(Long.toString(timezone/3600)));
                 break;
             case movementAlarm:
                 attrs.put(CommandType.KEY_RADIUS, new JSONString(Integer.toString(radius)));
