@@ -293,9 +293,9 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 existingUser.setPasswordHashMethod(getApplicationSettings().getDefaultHashImplementation());
                 existingUser.setPassword(existingUser.getPasswordHashMethod().doHash(user.getPassword(), getApplicationSettings().getSalt()));
             }
-            if (existingUser.getAdmin() || existingUser.getManager())
+            if (currentUser.getAdmin() || currentUser.getManager())
             {
-                if (existingUser.getAdmin()) {
+                if (currentUser.getAdmin()) {
                     existingUser.setAdmin(user.getAdmin());
                 }
                 existingUser.setManager(user.getManager());

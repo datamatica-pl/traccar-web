@@ -19,7 +19,6 @@ import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.NotificationSettings;
 import pl.datamatica.traccar.model.NotificationTemplate;
 import pl.datamatica.traccar.model.ApplicationSettings;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -38,6 +37,9 @@ import org.traccar.web.client.view.*;
 import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.http.client.Request;
+import com.google.gwt.http.client.RequestCallback;
+import com.google.gwt.http.client.Response;
 import com.google.gwt.json.client.JSONValue;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
@@ -48,11 +50,15 @@ import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.model.api.ApplicationSettingsService;
 import org.traccar.web.client.model.api.ApplicationSettingsService.ApplicationSettingsDto;
+import org.traccar.web.client.model.api.IUsersService.AddUserDto;
+import org.traccar.web.client.model.api.IUsersService.EditUserDto;
+import org.traccar.web.client.model.api.UsersService;
 
 public class SettingsController implements NavView.SettingsHandler {
 
     private Messages i18n = GWT.create(Messages.class);
     private final UserSettingsDialog.UserSettingsHandler userSettingsHandler;
+    private UsersService users = new UsersService();
 
     public SettingsController(UserSettingsDialog.UserSettingsHandler userSettingsHandler) {
         this.userSettingsHandler = userSettingsHandler;
@@ -64,13 +70,19 @@ public class SettingsController implements NavView.SettingsHandler {
                 ApplicationContext.getInstance().getUser(),
                 new UserDialog.UserHandler() {
                     @Override
-                    public void onSave(User user) {
-                        Application.getDataService().updateUser(user, new BaseAsyncCallback<User>(i18n) {
+                    public void onSave(final User user) {
+                        users.updateUser(user.getId(), new EditUserDto(user),
+                                new RequestCallback() {
                             @Override
-                            public void onSuccess(User result) {
-                                ApplicationContext.getInstance().setUser(result);
+                            public void onResponseReceived(Request request, Response response) {
+                                ApplicationContext.getInstance().setUser(user);
                             }
-                        });
+
+                            @Override
+                            public void onError(Request request, Throwable exception) {
+                                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                            } 
+                                });
                     }
                 }).show();
     }
@@ -82,9 +94,15 @@ public class SettingsController implements NavView.SettingsHandler {
 
     @Override
     public void onUsersSelected() {
-        Application.getDataService().getUsers(new BaseAsyncCallback<List<User>>(i18n) {
+        users.getUsers(new JsonCallback() {
             @Override
-            public void onSuccess(List<User> result) {
+            public void onFailure(Method method, Throwable exception) {
+                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+            }
+
+            @Override
+            public void onSuccess(Method method, JSONValue response) {
+                List<User> result = Application.getDecoder().decodeUsers(response.isArray());
                 UserProperties userProperties = GWT.create(UserProperties.class);
                 final ListStore<User> userStore = new ListStore<>(userProperties.id());
                 userStore.addAll(result);
@@ -96,28 +114,19 @@ public class SettingsController implements NavView.SettingsHandler {
                         class AddHandler implements UserDialog.UserHandler {
                             @Override
                             public void onSave(final User user) {
-                                Application.getDataService().addUser(user, new BaseAsyncCallback<User>(i18n) {
+                                users.addUser(new AddUserDto(user), new JsonCallback() {
                                     @Override
-                                    public void onSuccess(User result) {
-                                        userStore.add(result);
+                                    public void onFailure(Method method, Throwable exception) {
+                                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                                     }
+
                                     @Override
-                                    public void onFailure(Throwable caught) {
-                                        AlertMessageBox msg;
-                                        if (caught instanceof InvalidMaxDeviceNumberForUserException) {
-                                            InvalidMaxDeviceNumberForUserException e = (InvalidMaxDeviceNumberForUserException) caught;
-                                            msg = new AlertMessageBox(i18n.error(), i18n.errMaxNumOfDevicesExceeded(e.getAllowedDevicesNumber()));
-                                        } else {
-                                            msg = new AlertMessageBox(i18n.error(), i18n.errUsernameTaken());
-                                        }
-                                        msg.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
-                                            @Override
-                                            public void onDialogHide(DialogHideEvent event) {
-                                                new UserDialog(user, AddHandler.this).show();
-                                            }
-                                        });
-                                        msg.show();
+                                    public void onSuccess(Method method, JSONValue response) {
+                                        User u = Application.getDecoder().decodeUser(response.isObject());
+                                        ApplicationContext.getInstance().addUser(u);
+                                        userStore.add(u);
                                     }
+                                    
                                 });
                             }
                         }
@@ -130,7 +139,17 @@ public class SettingsController implements NavView.SettingsHandler {
                         class EditHandler implements UserDialog.UserHandler {
                             @Override
                             public void onSave(final User user) {
-                                Application.getDataService().updateUser(user, new BaseAsyncCallback<User>(i18n));
+                                users.updateUser(user.getId(), new EditUserDto(user),
+                                        new RequestCallback() {
+                                    @Override
+                                    public void onResponseReceived(Request request, Response response) {
+                                    }
+
+                                    @Override
+                                    public void onError(Request request, Throwable exception) {
+                                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                                    } 
+                                        });
                             }
                         }
                         new UserDialog(user, new EditHandler()).show();
@@ -140,38 +159,48 @@ public class SettingsController implements NavView.SettingsHandler {
                     public void onRemove(final User user) {
                         final ConfirmMessageBox dialog = new ConfirmMessageBox(i18n.confirm(), i18n.confirmUserRemoval());
                         dialog.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
-							@Override
-							public void onDialogHide(DialogHideEvent event) {
-								if (event.getHideButton() == PredefinedButton.YES) {
-                                    Application.getDataService().removeUser(user, new BaseAsyncCallback<User>(i18n) {
-                                        @Override
-                                        public void onSuccess(User result) {
-                                            userStore.remove(user);
+                                @Override
+                                public void onDialogHide(DialogHideEvent event) {
+                                        if (event.getHideButton() == PredefinedButton.YES) {
+                                            users.deleteUser(user.getId(), new RequestCallback() {
+                                                @Override
+                                                public void onResponseReceived(Request request, Response response) {
+                                                    userStore.remove(user);
+                                                }
+
+                                                @Override
+                                                public void onError(Request request, Throwable exception) {
+                                                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                                                }
+
+                                            });
                                         }
-                                    });
-								}
-							}
-						});
+                                }
+                        });
                         dialog.show();
                     }
-
+                    
                     @Override
                     public void onSaveRoles() {
-                        List<User> updatedUsers = new ArrayList<>(userStore.getModifiedRecords().size());
-                        for (Store<User>.Record record : userStore.getModifiedRecords()) {
+                        UsersService users = new UsersService();
+                        for (final Store<User>.Record record : userStore.getModifiedRecords()) {
                             User updatedUser = new User(record.getModel());
                             for (Store.Change<User, ?> change : record.getChanges()) {
                                 change.modify(updatedUser);
                             }
-                            updatedUsers.add(updatedUser);
-                        }
+                            users.updateUser(updatedUser.getId(), new EditUserDto(updatedUser),
+                                    new RequestCallback() {
+                                        @Override
+                                        public void onResponseReceived(Request request, Response response) {
+                                            record.commit(false);
+                                        }
 
-                        Application.getDataService().saveRoles(updatedUsers, new BaseAsyncCallback<Void>(i18n) {
-                            @Override
-                            public void onSuccess(Void result) {
-                                userStore.commitChanges();
-                            }
-                        });
+                                        @Override
+                                        public void onError(Request request, Throwable exception) {
+                                            new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                                        }
+                                    });
+                        }
                     }
 
                     @Override
@@ -183,13 +212,17 @@ public class SettingsController implements NavView.SettingsHandler {
                                 if (event.getHideButton() == PredefinedButton.OK) {
                                     final String oldPassword = user.getPassword();
                                     user.setPassword(passwordInput.getValue());
-                                    Application.getDataService().updateUser(user, new BaseAsyncCallback<User>(i18n) {
+                                    users.updateUser(user.getId(), new EditUserDto(user),
+                                            new RequestCallback() {
                                         @Override
-                                        public void onFailure(Throwable caught) {
-                                            user.setPassword(oldPassword);
-                                            super.onFailure(caught);
+                                        public void onResponseReceived(Request request, Response response) {
                                         }
-                                    });
+
+                                        @Override
+                                        public void onError(Request request, Throwable exception) {
+                                            new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                                        }  
+                                            });
                                 }
                             }
                         });
@@ -197,6 +230,7 @@ public class SettingsController implements NavView.SettingsHandler {
                     }
                 }).show();
             }
+        
         });
     }
 

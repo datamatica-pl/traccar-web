@@ -121,6 +121,10 @@ public class ApplicationContext {
             this.users.put(u.getId(), u);
     }
     
+    public void addUser(User u) {
+        users.put(u.getId(), u);
+    }
+    
     Map<Long, Group> groups = new HashMap<>();
     
     public Group getGroup(Long id) {

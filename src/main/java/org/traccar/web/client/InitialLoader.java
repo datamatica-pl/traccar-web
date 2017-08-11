@@ -33,15 +33,15 @@ import org.traccar.web.client.model.api.ApplicationSettingsService;
 import org.traccar.web.client.model.api.ApplicationSettingsService.ApplicationSettingsDto;
 import org.traccar.web.client.model.api.IGroupService.DeviceGroupDto;
 import org.traccar.web.client.model.api.ResourcesService;
-import org.traccar.web.client.model.api.UsersService;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.Group;
 import pl.datamatica.traccar.model.User;
+import org.traccar.web.client.model.api.IUsersService;
 import org.traccar.web.client.model.api.GroupService;
 
 /**
  *
- * @author Łukasz
+ * @author ŁŁ
  */
 public class InitialLoader {
     public interface LoadFinishedListener {
@@ -63,7 +63,7 @@ public class InitialLoader {
         this.listener = listener;
         unansweredRequests = 5;
         ResourcesService res = GWT.create(ResourcesService.class);
-        UsersService users = GWT.create(UsersService.class);
+        IUsersService users = GWT.create(IUsersService.class);
         ApplicationSettingsService settings = GWT.create(ApplicationSettingsService.class);
         
         settings.get(new MethodCallback<ApplicationSettingsDto>() {

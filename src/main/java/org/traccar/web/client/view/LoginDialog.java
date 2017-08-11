@@ -46,8 +46,8 @@ import java.util.Map;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.api.UsersService;
-import org.traccar.web.client.model.api.UsersService.ResetPasswordDto;
+import org.traccar.web.client.model.api.IUsersService.ResetPasswordDto;
+import org.traccar.web.client.model.api.IUsersService;
 
 public class LoginDialog {
 

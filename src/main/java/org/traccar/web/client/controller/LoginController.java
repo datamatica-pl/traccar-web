@@ -32,10 +32,10 @@ import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.model.api.BasicAuthFilter;
 import org.traccar.web.client.model.api.SessionService;
-import org.traccar.web.client.model.api.UsersService;
 import org.traccar.web.client.widget.InfoMessageBox;
 import org.traccar.web.shared.model.UserBlockedException;
 import org.traccar.web.shared.model.UserExpiredException;
+import org.traccar.web.client.model.api.IUsersService;
 
 public class LoginController implements LoginDialog.LoginHandler {
 
@@ -145,8 +145,8 @@ public class LoginController implements LoginDialog.LoginHandler {
     @Override
     public void onRegister(String email, String imei, String password) {
         if (validate(email, imei, password)) {
-            UsersService users = GWT.create(UsersService.class);
-            UsersService.AddUserDto dto = new UsersService.AddUserDto(email, imei, password);
+            IUsersService users = GWT.create(IUsersService.class);
+            IUsersService.RegisterUserDto dto = new IUsersService.RegisterUserDto(email, imei, password);
             users.register(dto, new JsonCallback() {
                 @Override
                 public void onSuccess(Method method, JSONValue response) {
