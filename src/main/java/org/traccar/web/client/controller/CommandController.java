@@ -19,9 +19,7 @@ import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.http.client.*;
-import com.google.gwt.json.client.JSONNumber;
 import com.google.gwt.json.client.JSONString;
-import com.google.gwt.json.client.JSONValue;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import org.traccar.web.client.i18n.Messages;
@@ -69,20 +67,20 @@ public class CommandController implements ContentController, DeviceView.CommandH
         JSONObject attrs = new JSONObject();
         switch (type) {
             case positionPeriodic:
-                attrs.put(CommandType.KEY_FREQUENCY, new JSONNumber(frequency));
+                attrs.put(CommandType.KEY_FREQUENCY, new JSONString(Integer.toString(frequency)));
                 if (extendedAttributes.get(CommandType.KEY_FREQUENCY_STOP) != null) {
                     attrs.put(CommandType.KEY_FREQUENCY_STOP,
-                            new JSONNumber(((Number)extendedAttributes.get(CommandType.KEY_FREQUENCY_STOP)).doubleValue()));
+                            new JSONString(extendedAttributes.get(CommandType.KEY_FREQUENCY_STOP).toString()));
                 }
                 break;
             case positionStop:
-                attrs.put(CommandType.KEY_FREQUENCY, new JSONNumber(frequency));
+                attrs.put(CommandType.KEY_FREQUENCY, new JSONString(Integer.toString(frequency)));
                 break;
             case setTimezone:
-                attrs.put(CommandType.KEY_TIMEZONE, new JSONNumber(timezone));
+                attrs.put(CommandType.KEY_TIMEZONE, new JSONString(Long.toString(timezone)));
                 break;
             case movementAlarm:
-                attrs.put(CommandType.KEY_RADIUS, new JSONNumber(radius));
+                attrs.put(CommandType.KEY_RADIUS, new JSONString(Integer.toString(radius)));
                 break;
             case sendSms:
                 attrs.put(CommandType.KEY_PHONE_NUMBER, new JSONString(phoneNumber));

@@ -20,11 +20,12 @@ import java.util.List;
 
 /**
  *
- * @author Łukasz
+ * @author ŁŁ
  */
 public class ApiDeviceModel {
     long id;
     String modelName;
+    String protocolName;
     String imageUrl;
     boolean isDeleted;
     List<ApiCommandType> commandTypes;
@@ -35,6 +36,10 @@ public class ApiDeviceModel {
     
     public String getModelName() {
         return modelName;
+    }
+    
+    public String getProtocolName() {
+        return protocolName;
     }
     
     public String getImageUrl() {
