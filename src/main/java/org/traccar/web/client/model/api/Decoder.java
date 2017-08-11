@@ -103,7 +103,11 @@ public class Decoder {
         d.setIconMode(DeviceIconMode.ICON);
         
         ApiDeviceModel model = Application.getResources().model(d.getDeviceModelId());
-        if(model != null)
+        if(ApplicationContext.getInstance().getUser().getAdmin()) {
+            d.addSupportedCommand(CommandType.custom);
+            d.addSupportedCommand(CommandType.extendedCustom);
+        }
+        if(model != null) {
             for(ApiCommandType ct : model.getCommandTypes()) {
                 try {
                     d.addSupportedCommand(CommandType.fromString(ct.getCommandName()));
@@ -112,6 +116,8 @@ public class Decoder {
                     // It will be thrown only in case of developer mistake.
                 }
             }
+            d.setProtocol(model.getProtocolName());
+        }
         List<Maintenance> ms = new ArrayList<>();
         if(v.get("maintenances") != null && v.get("maintenances").isArray() != null) {
             JSONArray arr = v.get("maintenances").isArray();
