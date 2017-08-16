@@ -35,8 +35,6 @@ import java.util.*;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.ApplicationContext;
-import org.traccar.web.client.model.BaseAsyncCallback;
-import org.traccar.web.client.model.GroupServiceAsync;
 import org.traccar.web.client.model.GroupStore;
 import org.traccar.web.client.model.api.GroupService;
 import org.traccar.web.client.model.api.IGroupService.AddDeviceGroupDto;
@@ -100,8 +98,6 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
     public void onShowGroups() {
         final GroupService service = new GroupService();
         final Map<Group, List<Group>> originalParents = getParents();
-        final GroupServiceAsync gwtService = GWT.create(
-                org.traccar.web.client.model.GroupService.class);
         
         GroupsDialog.GroupsHandler handler = EMPTY_GROUPS_HANDLER;
         if(ApplicationContext.getInstance().getUser().isAdminOrManager())
@@ -207,18 +203,41 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
 
             @Override
             public void onShare(final Group group) {
-                gwtService.getGroupShare(group, new BaseAsyncCallback<Map<User, Boolean>>(i18n) {
+                service.getGroupShare(group.getId(), new MethodCallback<Set<Long>>() {
                     @Override
-                    public void onSuccess(Map<User, Boolean> result) {
+                    public void onFailure(Method method, Throwable exception) {
+                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                    }
+
+                    @Override
+                    public void onSuccess(Method method, Set<Long> response) {
+                        Map<User, Boolean> result = new HashMap<>();
+                        for(User u : ApplicationContext.getInstance().getUsers())
+                            result.put(u, response.contains(u.getId()));
                         new UserShareDialog(result, new UserShareDialog.UserShareHandler() {
                             @Override
-                            public void onSaveShares(Map<User, Boolean> shares, final Window window) {
-                                gwtService.saveGroupShare(group, shares, new BaseAsyncCallback<Void>(i18n) {
+                            public void onSaveShares(final Map<User, Boolean> shares, final Window window) {
+                                List<Long> uids = new ArrayList<>();
+                                for(Map.Entry<User, Boolean> e : shares.entrySet())
+                                    if(Boolean.TRUE.equals(e.getValue()))
+                                        uids.add(e.getKey().getId());
+                                    
+                                service.updateGroupShare(group.getId(), uids, 
+                                        new RequestCallback() {
+
                                     @Override
-                                    public void onSuccess(Void result) {
+                                    public void onResponseReceived(Request request, Response response) {
+                                        User u = ApplicationContext.getInstance().getUser();
+                                        if(!u.getAdmin() && !shares.get(u))
+                                            groupStore.remove(group);
                                         window.hide();
                                     }
-                                });
+
+                                    @Override
+                                    public void onError(Request request, Throwable exception) {
+                                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                                    }
+                                        });
                             }
                         }).show();
                     }

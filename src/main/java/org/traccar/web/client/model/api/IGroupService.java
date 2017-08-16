@@ -16,10 +16,12 @@
 package org.traccar.web.client.model.api;
 
 import java.util.List;
+import java.util.Set;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.fusesource.restygwt.client.RestService;
 import pl.datamatica.traccar.model.Group;
@@ -59,4 +61,8 @@ public interface IGroupService extends RestService{
     
     @DELETE
     void removeGroup(Long id, MethodCallback<Void> callback);
+    
+    @GET
+    @Path("/{id}/share")
+    public void getGroupShare(@PathParam("id")long id, MethodCallback<Set<Long>> callback);
 }

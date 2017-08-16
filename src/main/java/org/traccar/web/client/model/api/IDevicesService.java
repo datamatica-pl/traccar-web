@@ -19,10 +19,13 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import org.fusesource.restygwt.client.JsonCallback;
+import org.fusesource.restygwt.client.MethodCallback;
 import org.fusesource.restygwt.client.RestService;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.Maintenance;
@@ -36,6 +39,10 @@ public interface IDevicesService extends RestService {
     
     @POST
     void addDevice(AddDeviceDto dto, JsonCallback callback);
+    
+    @GET
+    @Path("/{id}/share")
+    void getDeviceShares(@PathParam("id") long id, MethodCallback<Set<Long>> callback);
     
     
     public static class AddDeviceDto {

@@ -16,6 +16,9 @@
 package org.traccar.web.client.controller;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.http.client.Request;
+import com.google.gwt.http.client.RequestCallback;
+import com.google.gwt.http.client.Response;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store;
@@ -39,6 +42,10 @@ import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.User;
 
 import java.util.*;
+import org.fusesource.restygwt.client.Method;
+import org.fusesource.restygwt.client.MethodCallback;
+import org.traccar.web.client.ApplicationContext;
+import org.traccar.web.client.model.api.GeofencesService;
 
 public class GeoFenceController implements ContentController, DeviceView.GeoFenceHandler {
     private final MapController mapController;
@@ -227,21 +234,41 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
         if (geoFenceManagementInProgress()) {
             return;
         }
-        Application.getDataService().getGeoFenceShare(geoFence, new BaseAsyncCallback<Map<User, Boolean>>(i18n) {
+        final GeofencesService service = new GeofencesService();
+        service.getGeofenceShare(geoFence.getId(), new MethodCallback<Set<Long>>() {
             @Override
-            public void onSuccess(final Map<User, Boolean> share) {
+            public void onFailure(Method method, Throwable exception) {
+                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+            }
+
+            @Override
+            public void onSuccess(Method method, Set<Long> response) {
+                Map<User, Boolean> share = new HashMap<>();
+                for(User u : ApplicationContext.getInstance().getUsers())
+                    share.put(u, response.contains(u.getId()));
                 new UserShareDialog(share, new UserShareDialog.UserShareHandler() {
                     @Override
                     public void onSaveShares(Map<User, Boolean> shares, final Window window) {
-                        Application.getDataService().saveGeoFenceShare(geoFence, shares, new BaseAsyncCallback<Void>(i18n) {
+                        List<Long> uids = new ArrayList<>();
+                        for(Map.Entry<User, Boolean> e : shares.entrySet())
+                            if(e.getValue())
+                                uids.add(e.getKey().getId());
+                        service.updateGeofenceShare(geoFence.getId(), uids,
+                                new RequestCallback() {
                             @Override
-                            public void onSuccess(Void result) {
+                            public void onResponseReceived(Request request, Response response) {
                                 window.hide();
                             }
-                        });
+
+                            @Override
+                            public void onError(Request request, Throwable exception) {
+                                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                            }               
+                                });
                     }
                 }).show();
             }
+        
         });
     }
 
