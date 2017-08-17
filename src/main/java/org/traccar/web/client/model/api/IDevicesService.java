@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -43,6 +44,10 @@ public interface IDevicesService extends RestService {
     @GET
     @Path("/{id}/share")
     void getDeviceShares(@PathParam("id") long id, MethodCallback<Set<Long>> callback);
+
+    @DELETE
+    @Path("/{id}")
+    public void removeDevice(@PathParam("id") long id, JsonCallback callback);
     
     
     public static class AddDeviceDto {

@@ -20,13 +20,14 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
+import com.google.gwt.i18n.client.DateTimeFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.model.api.IDevicesService.AddDeviceDto;
 import org.traccar.web.client.model.api.IDevicesService.EditDeviceDto;
-import pl.datamatica.traccar.model.User;
 
 public class DevicesService {
     public static interface EditDeviceDtoMapper extends ObjectMapper<EditDeviceDto>{}
@@ -52,6 +53,20 @@ public class DevicesService {
         } catch(RequestException e) {
             callback.onError(null, e);
         }
+    }
+    
+    public void updateAlarmsViewTime(long id, RequestCallback callback) {
+        RequestBuilder rb = new MyRequestBuilder("PATCH", "../api/v1/devices/"+id);
+        try {
+            DateTimeFormat df = DateTimeFormat.getFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+            rb.sendRequest("{\"lastAlarmsCheck\":"+df.format(new Date()), callback);
+        } catch(RequestException e) {
+            callback.onError(null, e);
+        }
+    }
+    
+    public void removeDevice(long id, JsonCallback callback) {
+        service.removeDevice(id, callback);
     }
     
     public void getDeviceShare(long id, MethodCallback<Set<Long>> callback) {

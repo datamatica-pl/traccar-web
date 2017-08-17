@@ -52,6 +52,7 @@ import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
+import org.traccar.web.client.model.api.DevicesService;
 import org.traccar.web.client.model.api.IDevicesService.AddDeviceDto;
 import org.traccar.web.client.model.api.IDevicesService.EditDeviceDto;
 import pl.datamatica.traccar.model.ReportFormat;
@@ -87,7 +88,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
     private Storage localStore = null;
     
     private final ReportsController reportHandler;
-
+    
     public DeviceController(MapController mapController,
                             DeviceView.GeoFenceHandler geoFenceHandler,
                             DeviceView.CommandHandler commandHandler,
@@ -160,9 +161,8 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
         new ImeiDialog(new ImeiDialog.ImeiHandler() {
             @Override
             public void onImei(String imei) {
-                IDevicesService devices = GWT.create(IDevicesService.class);
                 AddDeviceDto dto = new AddDeviceDto(imei);
-                devices.addDevice(dto, new JsonCallback(){
+                Application.getDevicesService().addDevice(dto, new JsonCallback(){
                     @Override
                     public void onFailure(Method method, Throwable exception) {
                         MessageBox msg = new AlertMessageBox(i18n.error(), i18n.errInvalidImeiNoContact());
@@ -265,9 +265,14 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
             @Override
             public void onDialogHide(DialogHideEvent event) {
                 if (event.getHideButton() == PredefinedButton.YES) {
-                    Application.getDataService().removeDevice(device, new BaseAsyncCallback<Device>(i18n) {
+                    Application.getDevicesService().removeDevice(device.getId(), new JsonCallback(){
                         @Override
-                        public void onSuccess(Device result) {
+                        public void onFailure(Method method, Throwable exception) {
+                            new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                        }
+
+                        @Override
+                        public void onSuccess(Method method, JSONValue response) {
                             deviceStore.remove(device);
                         }
                     });
@@ -426,6 +431,6 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
         report.setPreview(true);
         report.setFormat(ReportFormat.HTML);
         reportHandler.generate(report);
-        Application.getDataService().updateAlarmsViewTime(device, null);
+        Application.getDevicesService().updateAlarmsViewTime(device.getId(), null);
     }
 }
