@@ -19,6 +19,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.http.client.Request;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.Response;
+import com.google.gwt.json.client.JSONValue;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store;
@@ -29,6 +30,8 @@ import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.GeoFenceDrawing;
 import org.traccar.web.client.i18n.Messages;
@@ -42,9 +45,11 @@ import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.User;
 
 import java.util.*;
+import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.ApplicationContext;
+import org.traccar.web.client.model.api.ApiGeofence;
 import org.traccar.web.client.model.api.GeofencesService;
 
 public class GeoFenceController implements ContentController, DeviceView.GeoFenceHandler {
@@ -55,6 +60,8 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
     private ListView<GeoFence, String> geoFenceListView;
     private boolean geoFenceManagementInProgress;
     private GeoFence selectedGeoFence;
+    
+    private GeofencesService service = new GeofencesService();
 
     private Messages i18n = GWT.create(Messages.class);
 
@@ -100,23 +107,24 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
         new BaseGeoFenceHandler(geoFence) {
             @Override
             public void onSave(final GeoFence geoFence) {
-                Application.getDataService().addGeoFence(geoFence,
-                        new BaseAsyncCallback<GeoFence>(i18n) {
-                            @Override
-                            public void onSuccess(GeoFence addedGeoFence) {
-                                mapController.removeGeoFence(geoFence);
-                                geoFenceStore.add(addedGeoFence);
-                                geoFenceStore.applySort(false);
-                                geoFenceListView.getSelectionModel().select(addedGeoFence, false);
-                                geoFenceManagementStopped();
-                            }
+                service.addGeofence(new ApiGeofence(geoFence), new MethodCallback<ApiGeofence>() {
+                    @Override
+                    public void onFailure(Method method, Throwable exception) {
+                        onCancel();
+                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                    }
 
-                            @Override
-                            public void onFailure(Throwable caught) {
-                                onCancel();
-                                super.onFailure(caught);
-                            }
-                        });
+                    @Override
+                    public void onSuccess(Method method, ApiGeofence response) {
+                        mapController.removeGeoFence(geoFence);
+                        GeoFence gf = response.toGeofence(deviceStore.getAll());
+                        geoFenceStore.add(gf);
+                        geoFenceStore.applySort(false);
+                        geoFenceListView.getSelectionModel().select(gf, false);
+                        geoFenceManagementStopped();
+                    }
+                    
+                });
             }
 
             @Override
@@ -138,30 +146,31 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
         new GeoFenceWindow(geoFence, drawing, deviceStore, mapController.getMap(), mapController.getGeoFenceLayer(),
         new BaseGeoFenceHandler(geoFence) {
             @Override
-            public void onSave(GeoFence updatedGeoFence) {
-                Application.getDataService().updateGeoFence(updatedGeoFence,
-                        new BaseAsyncCallback<GeoFence>(i18n) {
-                            @Override
-                            public void onSuccess(GeoFence geoFence) {
-                                mapController.removeGeoFence(geoFence);
-                                if (geoFence.equals(selectedGeoFence)) {
-                                    mapController.drawGeoFence(geoFence, true);
-                                    selectedGeoFence = geoFence;
-                                }
-                                geoFenceStore.update(geoFence);
-                                geoFenceStore.applySort(false);
-                                for (Collection<GeoFence> geoFences : deviceGeoFences.values()) {
-                                    geoFences.remove(geoFence);
-                                }
-                                geoFenceAdded(geoFence);
-                                geoFenceManagementStopped();
-                            }
+            public void onSave(final GeoFence updatedGeoFence) {
+                service.updateGeofence(updatedGeoFence.getId(), new ApiGeofence(updatedGeoFence),
+                        new RequestCallback() {
+                    @Override
+                    public void onResponseReceived(Request request, Response response) {
+                        mapController.removeGeoFence(updatedGeoFence);
+                        if (updatedGeoFence.equals(selectedGeoFence)) {
+                            mapController.drawGeoFence(updatedGeoFence, true);
+                            selectedGeoFence = updatedGeoFence;
+                        }
+                        geoFenceStore.update(updatedGeoFence);
+                        geoFenceStore.applySort(false);
+                        for (Collection<GeoFence> geoFences : deviceGeoFences.values()) {
+                            geoFences.remove(updatedGeoFence);
+                        }
+                        geoFenceAdded(updatedGeoFence);
+                        geoFenceManagementStopped();
+                    }
 
-                            @Override
-                            public void onFailure(Throwable caught) {
-                                onCancel();
-                                super.onFailure(caught);
-                            }
+                    @Override
+                    public void onError(Request request, Throwable exception) {
+                        onCancel();
+                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                    }
+                            
                         });
             }
 
@@ -186,11 +195,17 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
             @Override
             public void onDialogHide(DialogHideEvent event) {
                 if (event.getHideButton() == Dialog.PredefinedButton.YES) {
-                    Application.getDataService().removeGeoFence(geoFence, new BaseAsyncCallback<GeoFence>(i18n) {
-                        @Override
-                        public void onSuccess(GeoFence geoFence) {
-                            geoFenceStore.remove(geoFence);
-                        }
+                   service.removeGeofence(geoFence.getId(), new JsonCallback() {
+                       @Override
+                       public void onFailure(Method method, Throwable exception) {
+                           new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                       }
+
+                       @Override
+                       public void onSuccess(Method method, JSONValue response) {
+                           geoFenceStore.remove(geoFence);
+                       }
+                       
                     });
                 }
             }
@@ -204,15 +219,23 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
     }
 
     public void run() {
-        Application.getDataService().getGeoFences(new BaseAsyncCallback<List<GeoFence>>(i18n) {
+        service.getGeoFences(new MethodCallback<List<ApiGeofence>>() {
             @Override
-            public void onSuccess(List<GeoFence> result) {
-                geoFenceStore.addAll(result);
+            public void onFailure(Method method, Throwable exception) {
+                new AlertMessageBox(i18n.error(), exception.getMessage()).show();
+            }
+
+            @Override
+            public void onSuccess(Method method, List<ApiGeofence> response) {
+                List<GeoFence> gfs = new ArrayList<>();
+                for(ApiGeofence agf : response)
+                    gfs.add(agf.toGeofence(deviceStore.getAll()));
+                geoFenceStore.addAll(gfs);
                 geoFenceStore.applySort(false);
             }
         });
     }
-
+    
     public ListStore<GeoFence> getGeoFenceStore() {
         return geoFenceStore;
     }
@@ -234,7 +257,6 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
         if (geoFenceManagementInProgress()) {
             return;
         }
-        final GeofencesService service = new GeofencesService();
         service.getGeofenceShare(geoFence.getId(), new MethodCallback<Set<Long>>() {
             @Override
             public void onFailure(Method method, Throwable exception) {
