@@ -109,7 +109,6 @@ public class LoginController implements LoginDialog.LoginHandler {
             Application.getDataService().login(login, password, new BaseAsyncCallback<User>(i18n) {
                 @Override
                 public void onSuccess(User result) {
-                    ApplicationContext.getInstance().setUser(result);
                     BasicAuthFilter.getInstance().pushCredentials(login, password);
                     SessionService session = GWT.create(SessionService.class);
                     session.getUser(new JsonCallback() {
@@ -120,6 +119,8 @@ public class LoginController implements LoginDialog.LoginHandler {
 
                         @Override
                         public void onSuccess(Method method, JSONValue response) {
+                            User u = Application.getDecoder().decodeUser(response.isObject());
+                            ApplicationContext.getInstance().setUser(u);
                             if (loginHandler != null) {
                                 dialog.hide();
                                 loginHandler.onLogin();

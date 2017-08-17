@@ -15,7 +15,6 @@
  */
 package org.traccar.web.client.model.api;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

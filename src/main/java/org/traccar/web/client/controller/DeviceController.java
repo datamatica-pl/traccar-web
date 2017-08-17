@@ -17,7 +17,6 @@ package org.traccar.web.client.controller;
 
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.Report;
-import pl.datamatica.traccar.model.Sensor;
 import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.Group;
 import pl.datamatica.traccar.model.Maintenance;
@@ -35,7 +34,6 @@ import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.model.GroupStore;
 import org.traccar.web.client.state.DeviceVisibilityHandler;
 import org.traccar.web.client.view.*;
-import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.http.client.Request;
@@ -45,7 +43,6 @@ import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.storage.client.Storage;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
@@ -54,6 +51,7 @@ import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
+import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.model.api.IDevicesService.AddDeviceDto;
 import org.traccar.web.client.model.api.IDevicesService.EditDeviceDto;
 import pl.datamatica.traccar.model.ReportFormat;
@@ -223,22 +221,41 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
 
     @Override
     public void onShare(final Device device) {
-        Application.getDataService().getDeviceShare(device, new BaseAsyncCallback<Map<User, Boolean>>(i18n) {
+        Application.getDevicesService().getDeviceShare(device.getId(),
+                new MethodCallback<Set<Long>>() {
             @Override
-            public void onSuccess(final Map<User, Boolean> share) {
+            public void onFailure(Method method, Throwable exception) {
+                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+            }
+
+            @Override
+            public void onSuccess(Method method, Set<Long> response) {
+                Map<User, Boolean> share = new HashMap<>();
+                Set<User> users = ApplicationContext.getInstance().getUsers();
+                for(User u : users) 
+                    share.put(u, response.contains(u.getId()));
                 new UserShareDialog(share, new UserShareDialog.UserShareHandler() {
                     @Override
                     public void onSaveShares(Map<User, Boolean> shares, final Window window) {
-                        Application.getDataService().saveDeviceShare(device, shares, new BaseAsyncCallback<Void>(i18n) {
+                        List<Long> uids = new ArrayList<>();
+                        for(Map.Entry<User, Boolean> e : shares.entrySet()) 
+                            if(Boolean.TRUE.equals(e.getValue()))
+                                uids.add(e.getKey().getId());
+                        Application.getDevicesService().updateDeviceShare(device.getId(),
+                                uids, new RequestCallback() {
                             @Override
-                            public void onSuccess(Void result) {
+                            public void onResponseReceived(Request request, Response response) {
                                 window.hide();
                             }
-                        });
+
+                            @Override
+                            public void onError(Request request, Throwable exception) {
+                                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                            }
+                                });
                     }
                 }).show();
-            }
-        });
+            }});
     }
 
     @Override

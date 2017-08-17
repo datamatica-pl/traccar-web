@@ -21,9 +21,13 @@ import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.model.api.IGroupService.AddDeviceGroupDto;
 import org.traccar.web.client.model.api.IGroupService.DeviceGroupDto;
+import pl.datamatica.traccar.model.User;
 
 /**
  *
@@ -31,9 +35,11 @@ import org.traccar.web.client.model.api.IGroupService.DeviceGroupDto;
  */
 public class GroupService {
     public static interface AddDeviceGroupDtoMapper extends ObjectMapper<AddDeviceGroupDto>{}
+    public static interface LLongMapper extends ObjectMapper<List<Long>>{}
 
     private IGroupService service = GWT.create(IGroupService.class);
     private AddDeviceGroupDtoMapper mapper = GWT.create(AddDeviceGroupDtoMapper.class);
+    private LLongMapper llMapper = GWT.create(LLongMapper.class);
     
     public void getGroups(MethodCallback<List<DeviceGroupDto>> callback) {
         service.getGroups(callback);
@@ -58,6 +64,20 @@ public class GroupService {
             rb.sendRequest(null, callback);
         } catch(RequestException ex) {
             callback.onError(null, ex);
+        }
+    }
+    
+    public void getGroupShare(long id, MethodCallback<Set<Long>> callback) {
+        service.getGroupShare(id, callback);
+    }
+
+    public void updateGroupShare(long id, List<Long> uids, RequestCallback callback) {
+        RequestBuilder rb = new RequestBuilder(RequestBuilder.PUT, 
+                "../api/v1/devicegroups/"+id+"/share");
+        try {
+            rb.sendRequest(llMapper.write(uids), callback);
+        } catch(RequestException e) {
+            callback.onError(null, e);
         }
     }
 }
