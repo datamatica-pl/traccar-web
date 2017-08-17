@@ -21,8 +21,12 @@ import java.util.Set;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.DELETE;
+import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.fusesource.restygwt.client.RestService;
+import pl.datamatica.traccar.model.GeoFence;
 
 /**
  *
@@ -30,6 +34,16 @@ import org.fusesource.restygwt.client.RestService;
  */
 @Path("../api/v1/geofences")
 public interface IGeofencesService extends RestService {
+    @GET
+    public void getGeoFences(MethodCallback<List<ApiGeofence>> callback);
+    
+    @POST
+    public void addGeofence(ApiGeofence apiGeofence, MethodCallback<ApiGeofence> callback);
+    
+    @DELETE
+    @Path("/{id}")
+    public void removeGeofence(@PathParam("id") long id, JsonCallback callback);
+    
     @GET
     @Path("/{id}/share")
     void getGeofenceShare(@PathParam("id") long id, MethodCallback<Set<Long>> callback);

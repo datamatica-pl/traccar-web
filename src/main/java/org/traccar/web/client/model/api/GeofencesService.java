@@ -22,29 +22,54 @@ import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import java.util.List;
 import java.util.Set;
+import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.MethodCallback;
+import pl.datamatica.traccar.model.GeoFence;
 
 /**
  *
  * @author ŁŁ
  */
 public class GeofencesService {
-   public static interface LLongMapper extends ObjectMapper<List<Long>>{}
+    public static interface LLongMapper extends ObjectMapper<List<Long>>{}
+    public static interface GeofenceMapper extends ObjectMapper<ApiGeofence> {}
    
-   private LLongMapper llMapper = GWT.create(LLongMapper.class);
-   private IGeofencesService service = GWT.create(IGeofencesService.class);
+    private LLongMapper llMapper = GWT.create(LLongMapper.class);
+    private GeofenceMapper gMapper = GWT.create(GeofenceMapper.class);
+    private IGeofencesService service = GWT.create(IGeofencesService.class);
     
-   public void getGeofenceShare(long id, MethodCallback<Set<Long>> callback) {
-       service.getGeofenceShare(id, callback);
-   }
+    public void getGeoFences(MethodCallback<List<ApiGeofence>> callback) {
+        service.getGeoFences(callback);
+    }
+    
+    public void addGeofence(ApiGeofence apiGeofence, MethodCallback<ApiGeofence> callback) {
+        service.addGeofence(apiGeofence, callback);
+    }
+    
+    public void updateGeofence(long id, ApiGeofence dto, RequestCallback callback) {
+        RequestBuilder rb = new RequestBuilder(RequestBuilder.PUT, "../api/v1/geofences/"+id);
+        try {
+            rb.sendRequest(gMapper.write(dto), callback);
+        } catch(RequestException e) {
+            callback.onError(null, e);
+        }
+    }
+    
+    public void removeGeofence(long id, JsonCallback callback){
+        service.removeGeofence(id, callback);
+    }
    
-   public void updateGeofenceShare(long id, List<Long> uids, RequestCallback callback){
-       RequestBuilder rb = new RequestBuilder(RequestBuilder.PUT,
-                "../api/v1/geofences/"+id+"/share");
-       try {
-           rb.sendRequest(llMapper.write(uids), callback);
-       } catch (RequestException ex) {
-           callback.onError(null, ex);
-       }
-   }
+    public void getGeofenceShare(long id, MethodCallback<Set<Long>> callback) {
+        service.getGeofenceShare(id, callback);
+    }
+   
+    public void updateGeofenceShare(long id, List<Long> uids, RequestCallback callback){
+        RequestBuilder rb = new RequestBuilder(RequestBuilder.PUT,
+                 "../api/v1/geofences/"+id+"/share");
+        try {
+            rb.sendRequest(llMapper.write(uids), callback);
+        } catch (RequestException ex) {
+            callback.onError(null, ex);
+        }
+    }
 }
