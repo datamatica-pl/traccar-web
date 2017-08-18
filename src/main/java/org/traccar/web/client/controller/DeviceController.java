@@ -431,6 +431,16 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
         report.setPreview(true);
         report.setFormat(ReportFormat.HTML);
         reportHandler.generate(report);
-        Application.getDevicesService().updateAlarmsViewTime(device.getId(), null);
+        Application.getDevicesService().updateAlarmsViewTime(device.getId(), 
+                new RequestCallback() {
+                    @Override
+                    public void onResponseReceived(Request request, Response response) {
+                    }
+
+                    @Override
+                    public void onError(Request request, Throwable exception) {
+                    }
+                    
+                });
     }
 }

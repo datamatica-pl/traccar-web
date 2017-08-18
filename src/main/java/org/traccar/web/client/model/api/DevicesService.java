@@ -59,7 +59,7 @@ public class DevicesService {
         RequestBuilder rb = new MyRequestBuilder("PATCH", "../api/v1/devices/"+id);
         try {
             DateTimeFormat df = DateTimeFormat.getFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-            rb.sendRequest("{\"lastAlarmsCheck\":"+df.format(new Date()), callback);
+            rb.sendRequest("{\"lastAlarmsCheck\":\""+df.format(new Date())+"\"}", callback);
         } catch(RequestException e) {
             callback.onError(null, e);
         }
