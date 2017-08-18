@@ -22,6 +22,7 @@ import com.google.gwt.json.client.JSONValue;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,6 +38,8 @@ import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.PositionIconType;
 import pl.datamatica.traccar.model.RegistrationMaintenance;
 import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserGroup;
+import pl.datamatica.traccar.model.UserPermission;
 import pl.datamatica.traccar.model.UserSettings;
 
 public class Decoder {    
@@ -229,6 +232,9 @@ public class Decoder {
         if(v.containsKey("settings") && v.get("settings").isObject() != null) {
             u.setUserSettings(decodeUserSettings(v.get("settings").isObject()));
         }
+        if(v.containsKey("userGroup") && v.get("userGroup").isObject() != null) {
+            u.setUserGroup(decodeUserGroup(v.get("userGroup").isObject()));
+        }
         return u;
     }
     
@@ -260,6 +266,20 @@ public class Decoder {
         us.setTraceInterval(aShort(v, "traceInterval"));
         us.setZoomLevel(anInt(v, "zoomLevel"));
         return us;
+    }
+    
+    public UserGroup decodeUserGroup(JSONObject v) {
+        UserGroup g = new UserGroup();
+        g.setId(aLong(v, "id"));
+        g.setName(string(v, "name"));
+        
+        Set<UserPermission> p = EnumSet.noneOf(UserPermission.class);
+        JSONArray arr = v.get("permissions").isArray();
+        for(int i=0;i<arr.size();++i)
+            p.add(UserPermission.valueOf(arr.get(i).isString().stringValue()));
+        g.setPermissions(p);
+        
+        return g;
     }
     
     public MaintenanceBase decodeMaintenance(JSONObject v, int i) {
