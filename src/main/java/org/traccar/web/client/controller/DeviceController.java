@@ -17,7 +17,6 @@ package org.traccar.web.client.controller;
 
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.Report;
-import pl.datamatica.traccar.model.Sensor;
 import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.Group;
 import pl.datamatica.traccar.model.Maintenance;
@@ -35,14 +34,15 @@ import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.model.GroupStore;
 import org.traccar.web.client.state.DeviceVisibilityHandler;
 import org.traccar.web.client.view.*;
-import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.http.client.Request;
+import com.google.gwt.http.client.RequestCallback;
+import com.google.gwt.http.client.Response;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.storage.client.Storage;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
@@ -51,8 +51,10 @@ import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
+import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.model.api.DevicesService;
-import org.traccar.web.client.model.api.DevicesService.AddDeviceDto;
+import org.traccar.web.client.model.api.IDevicesService.AddDeviceDto;
+import org.traccar.web.client.model.api.IDevicesService.EditDeviceDto;
 import pl.datamatica.traccar.model.ReportFormat;
 import pl.datamatica.traccar.model.ReportType;
 import pl.datamatica.traccar.model.Route;
@@ -85,7 +87,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
     private Storage localStore = null;
     
     private final ReportsController reportHandler;
-
+    
     public DeviceController(MapController mapController,
                             DeviceView.GeoFenceHandler geoFenceHandler,
                             DeviceView.CommandHandler commandHandler,
@@ -158,9 +160,8 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
         new ImeiDialog(new ImeiDialog.ImeiHandler() {
             @Override
             public void onImei(String imei) {
-                DevicesService devices = GWT.create(DevicesService.class);
                 AddDeviceDto dto = new AddDeviceDto(imei);
-                devices.addDevice(dto, new JsonCallback(){
+                Application.getDevicesService().addDevice(dto, new JsonCallback(){
                     @Override
                     public void onFailure(Method method, Throwable exception) {
                         MessageBox msg = new AlertMessageBox(i18n.error(), i18n.errInvalidImeiNoContact());
@@ -192,31 +193,21 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
         class UpdateHandler implements DeviceDialog.DeviceHandler {
             @Override
             public void onSave(final Device device) {
-                Application.getDataService().updateDevice(device, new BaseAsyncCallback<Device>(i18n) {
-                    @Override
-                    public void onSuccess(Device result) {
-                        onDevicesUpdated(Collections.singletonList(result));
-                    }
+                Application.getDevicesService().updateDevice(device.getId(),
+                        new EditDeviceDto(device), new RequestCallback() {
+                            @Override
+                            public void onResponseReceived(Request request, Response response) {
+                                if(response.getStatusCode() == 400) {
+                                    new AlertMessageBox(i18n.error(), i18n.errNoDeviceNameOrId()).show();
+                                } else
+                                    onDevicesUpdated(Collections.singletonList(device));
+                            }
 
-                    @Override
-                    public void onFailure(Throwable caught) {
-                        MessageBox msg = null;
-                        if (caught instanceof ValidationException) {
-                            msg = new AlertMessageBox(i18n.error(), i18n.errNoDeviceNameOrId());
-                        } else {
-                            msg = new AlertMessageBox(i18n.error(), i18n.errUpdateFailed());
-                        }
-                        if (msg != null) {
-                            msg.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
-                                @Override
-                                public void onDialogHide(DialogHideEvent event) {
-                                    new DeviceDialog(device, deviceStore, groupStore, UpdateHandler.this).show();
-                                }
-                            });
-                            msg.show();
-                        }
-                    }
-                });
+                            @Override
+                            public void onError(Request request, Throwable exception) {
+                                new AlertMessageBox(i18n.error(), i18n.errUpdateFailed()).show();
+                            }
+                        });
             }
 
             @Override
@@ -229,22 +220,41 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
 
     @Override
     public void onShare(final Device device) {
-        Application.getDataService().getDeviceShare(device, new BaseAsyncCallback<Map<User, Boolean>>(i18n) {
+        Application.getDevicesService().getDeviceShare(device.getId(),
+                new MethodCallback<Set<Long>>() {
             @Override
-            public void onSuccess(final Map<User, Boolean> share) {
+            public void onFailure(Method method, Throwable exception) {
+                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+            }
+
+            @Override
+            public void onSuccess(Method method, Set<Long> response) {
+                Map<User, Boolean> share = new HashMap<>();
+                Set<User> users = ApplicationContext.getInstance().getUsers();
+                for(User u : users) 
+                    share.put(u, response.contains(u.getId()));
                 new UserShareDialog(share, new UserShareDialog.UserShareHandler() {
                     @Override
                     public void onSaveShares(Map<User, Boolean> shares, final Window window) {
-                        Application.getDataService().saveDeviceShare(device, shares, new BaseAsyncCallback<Void>(i18n) {
+                        List<Long> uids = new ArrayList<>();
+                        for(Map.Entry<User, Boolean> e : shares.entrySet()) 
+                            if(Boolean.TRUE.equals(e.getValue()))
+                                uids.add(e.getKey().getId());
+                        Application.getDevicesService().updateDeviceShare(device.getId(),
+                                uids, new RequestCallback() {
                             @Override
-                            public void onSuccess(Void result) {
+                            public void onResponseReceived(Request request, Response response) {
                                 window.hide();
                             }
-                        });
+
+                            @Override
+                            public void onError(Request request, Throwable exception) {
+                                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                            }
+                                });
                     }
                 }).show();
-            }
-        });
+            }});
     }
 
     @Override
@@ -254,9 +264,14 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
             @Override
             public void onDialogHide(DialogHideEvent event) {
                 if (event.getHideButton() == PredefinedButton.YES) {
-                    Application.getDataService().removeDevice(device, new BaseAsyncCallback<Device>(i18n) {
+                    Application.getDevicesService().removeDevice(device.getId(), new JsonCallback(){
                         @Override
-                        public void onSuccess(Device result) {
+                        public void onFailure(Method method, Throwable exception) {
+                            new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                        }
+
+                        @Override
+                        public void onSuccess(Method method, JSONValue response) {
                             deviceStore.remove(device);
                         }
                     });
@@ -415,6 +430,16 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
         report.setPreview(true);
         report.setFormat(ReportFormat.HTML);
         reportHandler.generate(report);
-        Application.getDataService().updateAlarmsViewTime(device, null);
+        Application.getDevicesService().updateAlarmsViewTime(device.getId(), 
+                new RequestCallback() {
+                    @Override
+                    public void onResponseReceived(Request request, Response response) {
+                    }
+
+                    @Override
+                    public void onError(Request request, Throwable exception) {
+                    }
+                    
+                });
     }
 }

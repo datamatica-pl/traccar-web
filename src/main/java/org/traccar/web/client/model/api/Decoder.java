@@ -1,7 +1,17 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright 2017 Datamatica (dev@datamatica.pl)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.traccar.web.client.model.api;
 
@@ -19,10 +29,15 @@ import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import pl.datamatica.traccar.model.CommandType;
 import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.DeviceEventType;
 import pl.datamatica.traccar.model.DeviceIconMode;
 import pl.datamatica.traccar.model.Maintenance;
+import pl.datamatica.traccar.model.MaintenanceBase;
 import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.PositionIconType;
+import pl.datamatica.traccar.model.RegistrationMaintenance;
 import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserSettings;
 
 public class Decoder {    
     public List<Device> decodeDevices(JSONObject v) {
@@ -87,20 +102,75 @@ public class Decoder {
         d.setIconMode(DeviceIconMode.ICON);
         
         ApiDeviceModel model = Application.getResources().model(d.getDeviceModelId());
-        if(ApplicationContext.getInstance().getUser().getAdmin())
+        if(ApplicationContext.getInstance().getUser().getAdmin()) {
             d.addSupportedCommand(CommandType.custom);
-        if(model != null)
+            d.addSupportedCommand(CommandType.extendedCustom);
+        }
+        if(model != null) {
             for(ApiCommandType ct : model.getCommandTypes()) {
-                d.addSupportedCommand(CommandType.fromString(ct.getCommandName()));
+                try {
+                    d.addSupportedCommand(CommandType.fromString(ct.getCommandName()));
+                } catch (IllegalArgumentException e) {
+                    // We want to process rest of commands
+                    // It will be thrown only in case of developer mistake.
+                }
             }
+            d.setProtocol(model.getProtocolName());
+        }
+        List<Maintenance> ms = new ArrayList<>();
         if(v.get("maintenances") != null && v.get("maintenances").isArray() != null) {
             JSONArray arr = v.get("maintenances").isArray();
-            List<Maintenance> ms = new ArrayList<>();
-            for(int i=0;i<arr.size();++i)
-                ms.add(decodeMaintenance(arr.get(i).isObject()));
-            d.setMaintenances(ms);
-        }        
+            for(int i=0;i<arr.size();++i) {
+                MaintenanceBase mb = decodeMaintenance(arr.get(i).isObject(), i);
+                if(mb == null)
+                    continue;
+                ms.add((Maintenance)mb);
+            }
+        }
+        d.setMaintenances(ms);
+        
+        List<RegistrationMaintenance> rms = new ArrayList<>();
+        if(v.get("registrations") != null && v.get("registrations").isArray() != null) {
+            JSONArray arr = v.get("registrations").isArray();
+            for(int i=0;i<arr.size();++i) {
+                MaintenanceBase mb = decodeMaintenance(arr.get(i).isObject(), i);
+                if(mb == null)
+                    continue;
+                rms.add((RegistrationMaintenance)mb);
+            }
+        }
+        d.setRegistrations(rms);
+        
+        d.setVehicleInfo(string(v, "vehicleInfo"));
+        d.setAutoUpdateOdometer(bool(v, "autoUpdateOdometer", false));
+        d.setTimeout(anInt(v, "timeout"));
+        d.setTimezoneOffset(anInt(v, "timeZoneOffset"));
+        d.setCommandPassword(string(v, "commandPassword"));
+        d.setShowOdometer(bool(v, "showOdometer"));
+        d.setShowProtocol(bool(v, "showProtocol"));
+        d.setShowName(bool(v, "showName"));
+        Double arrowRadius = aDouble(v, "arrowRadius");
+        if(arrowRadius != null)
+            d.setIconArrowRadius(arrowRadius);
+        d.setIconArrowMovingColor(string(v, "arrowMovingColor"));
+        d.setIconArrowOfflineColor(string(v, "arrowOfflineColor"));
+        d.setIconArrowPausedColor(string(v, "arrowPausedColor"));
+        d.setIconArrowStoppedColor(string(v, "arrowStoppedColor"));
         return d;
+    }
+    
+    public List<Position> decodePositions(Device d, JSONObject obj) {
+        if(obj == null || obj.get("changed") == null 
+                || obj.get("changed").isArray() == null)
+            return Collections.EMPTY_LIST;
+        JSONArray arr = obj.get("changed").isArray();
+        ArrayList<Position> ps = new ArrayList<>();
+        for(int i=0;i<arr.size();++i) {
+            Position p = decodePosition(arr.get(i).isObject());
+            p.setDevice(d);
+            ps.add(p);
+        }
+        return ps;
     }
     
     public Position decodePosition(JSONObject v) {
@@ -138,21 +208,77 @@ public class Decoder {
         u.setExpirationDate(date(v, "expirationDate"));
         u.setMaxNumOfDevices(anInt(v, "maxNumOfDevices"));
         u.setManagedBy(null);
+        u.setManagedById(aLong(v, "managedById"));
         u.setManager(bool(v, "manager"));
         u.setAdmin(bool(v, "admin"));
         u.setArchive(bool(v, "archive"));
         u.setBlocked(bool(v, "blocked"));
+        u.setReadOnly(bool(v, "readOnly"));
+        u.setPassword(string(v, "password"));
+        if(v.get("notificationEvents") != null && v.get("notificationEvents").isArray() != null) {
+            JSONArray ne = v.get("notificationEvents").isArray();
+            Set<DeviceEventType> notificationEvents = new HashSet<>();
+            for(int i=0;i<ne.size();++i)
+                if(ne.get(i).isString() != null)
+                    notificationEvents.add(DeviceEventType.valueOf(ne.get(i)
+                            .isString().stringValue()));
+            u.setNotificationEvents(notificationEvents);
+            u.setTransferNotificationEvents(new HashSet<>(notificationEvents));
+        }
+        u.setPremium(bool(v, "premium"));
+        if(v.containsKey("settings") && v.get("settings").isObject() != null) {
+            u.setUserSettings(decodeUserSettings(v.get("settings").isObject()));
+        }
         return u;
     }
     
-    public Maintenance decodeMaintenance(JSONObject v) {
+    public UserSettings decodeUserSettings(JSONObject v) {
+        UserSettings us = new UserSettings();
+        String markerType = string(v, "archiveMarkerType");
+        if(markerType != null && !markerType.isEmpty()) {
+            us.setArchiveMarkerType(PositionIconType.valueOf(markerType));
+        }
+        us.setCenterLatitude(aDouble(v, "centerLatitude"));
+        us.setCenterLongitude(aDouble(v, "centerLongitude"));
+        us.setFollowedDeviceZoomLevel(aShort(v, "followedDeviceZoomLevel"));
+        us.setHideDuplicates(bool(v, "hideDuplicates"));
+        us.setHideInvalidLocations(bool(v, "hideInvalidLocations"));
+        us.setHideZeroCoordinates(bool(v, "hideZeroCoordinates"));
+        String mapType = string(v, "mapType");
+        if(mapType != null && !mapType.isEmpty())
+            us.setMapType(UserSettings.MapType.valueOf(mapType));
+        us.setMaximizeOverviewMap(bool(v, "maximizeOverviewMap"));
+        us.setMinDistance(aDouble(v, "minDistance"));
+        us.setOverlays(string(v, "overlays"));
+        us.setSpeedForFilter(aDouble(v, "speedForFilter"));
+        us.setSpeedModifier(string(v, "speedModifier"));
+        String speedUnit = string(v, "speedUnit");
+        if(speedUnit != null && !speedUnit.isEmpty())
+            us.setSpeedUnit(UserSettings.SpeedUnit.valueOf(speedUnit));
+        us.setTimePrintInterval(aShort(v, "timePrintInterval"));
+        us.setTimeZoneId(string(v, "timeZoneId"));
+        us.setTraceInterval(aShort(v, "traceInterval"));
+        us.setZoomLevel(anInt(v, "zoomLevel"));
+        return us;
+    }
+    
+    public MaintenanceBase decodeMaintenance(JSONObject v, int i) {
         if(v == null)
             return null;
-        Maintenance m = new Maintenance();
+        MaintenanceBase m;
+        if(aDouble(v, "lastService") != null) {
+            Maintenance mt = new Maintenance();
+            mt.setServiceInterval(aDouble(v, "serviceInterval"));
+            mt.setLastService(aDouble(v, "lastService"));
+            m = mt;
+        } else {
+            RegistrationMaintenance mt = new RegistrationMaintenance();
+            mt.setServiceDate(date(v, "serviceDate"));
+            m = mt;
+        }
         m.setId(aLong(v, "id"));
         m.setName(string(v, "name"));
-        m.setServiceInterval(aDouble(v, "serviceInterval"));
-        m.setLastService(aDouble(v, "lastService"));
+        m.setIndexNo(i);
         return m;
     }
     
@@ -183,6 +309,13 @@ public class Decoder {
         if(val == null)
             return null;
         return (int)val.intValue();
+    }
+    
+    private Short aShort(JSONObject v, String name) {
+        Double value = aDouble(v, name);
+        if(value == null)
+            return null;
+        return value.shortValue();
     }
     
     private Double aDouble(JSONObject v, String name) {

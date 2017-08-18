@@ -115,10 +115,24 @@ public class ApplicationContext {
         return users.get(id);
     }
     
+    public Set<User> getUsers() {
+        Set<User> copy = new HashSet<>();
+        if(user.getManagedById() == null)
+            copy.addAll(users.values());
+        else for(User u : users.values())
+            if(u.getId() != user.getManagedById())
+                copy.add(u);
+        return copy;
+    }
+    
     public void setUsers(Collection<User> users) {
-        users.clear();
+        this.users.clear();
         for(User u : users)
             this.users.put(u.getId(), u);
+    }
+    
+    public void addUser(User u) {
+        users.put(u.getId(), u);
     }
     
     Map<Long, Group> groups = new HashMap<>();

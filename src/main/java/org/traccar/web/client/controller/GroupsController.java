@@ -16,12 +16,15 @@
 package org.traccar.web.client.controller;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.http.client.Request;
+import com.google.gwt.http.client.RequestCallback;
+import com.google.gwt.http.client.Response;
 import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Window;
+import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.*;
 import org.traccar.web.client.view.GroupsDialog;
 import org.traccar.web.client.view.NavView;
 import org.traccar.web.client.view.UserShareDialog;
@@ -29,7 +32,13 @@ import pl.datamatica.traccar.model.Group;
 import pl.datamatica.traccar.model.User;
 
 import java.util.*;
+import org.fusesource.restygwt.client.Method;
+import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.ApplicationContext;
+import org.traccar.web.client.model.GroupStore;
+import org.traccar.web.client.model.api.GroupService;
+import org.traccar.web.client.model.api.IGroupService.AddDeviceGroupDto;
+import org.traccar.web.client.model.api.IGroupService.DeviceGroupDto;
 
 public class GroupsController implements NavView.GroupsHandler, ContentController {
     private static final GroupsDialog.GroupsHandler EMPTY_GROUPS_HANDLER = new GroupsDialog.GroupsHandler() {
@@ -87,7 +96,7 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
 
     @Override
     public void onShowGroups() {
-        final GroupServiceAsync service = GWT.create(GroupService.class);
+        final GroupService service = new GroupService();
         final Map<Group, List<Group>> originalParents = getParents();
         
         GroupsDialog.GroupsHandler handler = EMPTY_GROUPS_HANDLER;
@@ -95,11 +104,17 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
             handler = new GroupsDialog.GroupsHandler() {
             @Override
             public void onAdd(Group parent, Group group, final GroupAddHandler groupsHandler) {
-                service.addGroup(parent, group, new BaseAsyncCallback<Group>(i18n) {
+                service.addGroup(new AddDeviceGroupDto(group), new MethodCallback<DeviceGroupDto>() {
                     @Override
-                    public void onSuccess(Group result) {
-                        groupsHandler.groupAdded(result);
+                    public void onFailure(Method method, Throwable exception) {
+                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                     }
+
+                    @Override
+                    public void onSuccess(Method method, DeviceGroupDto response) {
+                        groupsHandler.groupAdded(response.toGroup());
+                    }
+                    
                 });
             }
 
@@ -115,33 +130,22 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
                     setToSave.add(group);
                 }
 
-                for (Group group : groupStore.getAll()) {
-                    Group originalParent = getOriginalParent(group);
-                    Group newParent = groupStore.getParent(group);
-                    if (!Objects.equals(originalParent, newParent)) {
-                        setToSave.add(group);
-                    }
-                }
-
-                Map<Group, List<Group>> groupsWithParents = new HashMap<>();
-                for (Group group : setToSave) {
-                    Group parent = groupStore.getParent(group);
-                    List<Group> subGroups = groupsWithParents.get(parent);
-                    if (subGroups == null) {
-                        subGroups = new ArrayList<>();
-                        groupsWithParents.put(parent, subGroups);
-                    }
-                    subGroups.add(group);
-                }
-
-                service.updateGroups(groupsWithParents, new BaseAsyncCallback<Void>(i18n) {
+                for(Group g : setToSave)
+                    service.updateGroup(g.getId(), new AddDeviceGroupDto(g),
+                            new RequestCallback() {
                     @Override
-                    public void onSuccess(Void result) {
+                    public void onResponseReceived(Request request, Response response) {
                         syncOriginalParents();
                         groupsHandler.changesSaved();
                         groupStore.commitChanges();
                     }
-                });
+
+                    @Override
+                    public void onError(Request request, Throwable exception) {
+                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                    }
+                                
+                            });
             }
 
             @Override
@@ -149,12 +153,17 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
                 List<Group> toRemove = new ArrayList<>();
                 toRemove.add(group);
                 toRemove.addAll(groupStore.getAllChildren(group));
-                service.removeGroups(toRemove, new BaseAsyncCallback<Void>(i18n) {
+                service.removeGroup(group.getId(), new RequestCallback(){
                     @Override
-                    public void onSuccess(Void result) {
+                    public void onResponseReceived(Request request, Response response) {
                         groupStore.remove(group);
                         syncOriginalParents();
                         removeHandler.groupRemoved(group);
+                    }
+
+                    @Override
+                    public void onError(Request request, Throwable exception) {
+                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                     }
                 });
             }
@@ -177,31 +186,58 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
                         }
                     }
                 }
-                service.removeGroups(newGroups, new BaseAsyncCallback<Void>(i18n) {
+                for(final Group g : newGroups)
+                    service.removeGroup(g.getId(), new RequestCallback(){
                     @Override
-                    public void onSuccess(Void result) {
-                        for (Group group : newGroups) {
-                            groupStore.remove(group);
-                        }
-                        groupStore.rejectChanges();
+                    public void onResponseReceived(Request request, Response response) {
+                        groupStore.remove(g);
                     }
-                });
+
+                    @Override
+                    public void onError(Request request, Throwable exception) {
+                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                    }
+                    });
+                groupStore.rejectChanges();
             }
 
             @Override
             public void onShare(final Group group) {
-                service.getGroupShare(group, new BaseAsyncCallback<Map<User, Boolean>>(i18n) {
+                service.getGroupShare(group.getId(), new MethodCallback<Set<Long>>() {
                     @Override
-                    public void onSuccess(Map<User, Boolean> result) {
+                    public void onFailure(Method method, Throwable exception) {
+                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                    }
+
+                    @Override
+                    public void onSuccess(Method method, Set<Long> response) {
+                        Map<User, Boolean> result = new HashMap<>();
+                        for(User u : ApplicationContext.getInstance().getUsers())
+                            result.put(u, response.contains(u.getId()));
                         new UserShareDialog(result, new UserShareDialog.UserShareHandler() {
                             @Override
-                            public void onSaveShares(Map<User, Boolean> shares, final Window window) {
-                                service.saveGroupShare(group, shares, new BaseAsyncCallback<Void>(i18n) {
+                            public void onSaveShares(final Map<User, Boolean> shares, final Window window) {
+                                List<Long> uids = new ArrayList<>();
+                                for(Map.Entry<User, Boolean> e : shares.entrySet())
+                                    if(Boolean.TRUE.equals(e.getValue()))
+                                        uids.add(e.getKey().getId());
+                                    
+                                service.updateGroupShare(group.getId(), uids, 
+                                        new RequestCallback() {
+
                                     @Override
-                                    public void onSuccess(Void result) {
+                                    public void onResponseReceived(Request request, Response response) {
+                                        User u = ApplicationContext.getInstance().getUser();
+                                        if(!u.getAdmin() && !shares.get(u))
+                                            groupStore.remove(group);
                                         window.hide();
                                     }
-                                });
+
+                                    @Override
+                                    public void onError(Request request, Throwable exception) {
+                                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                                    }
+                                        });
                             }
                         }).show();
                     }
