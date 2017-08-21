@@ -38,6 +38,8 @@ import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.model.api.SessionService;
 import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class NavView {
     private static NavViewUiBinder uiBinder = GWT.create(NavViewUiBinder.class);
@@ -72,7 +74,8 @@ public class NavView {
         void onShowGroups();
     }
 
-    final GroupsHandler groupsHandler;
+    final GroupsHandler dGroupsHandler;
+    final GroupsHandler uGroupsHandler;
 
     @UiField
     ContentPanel contentPanel;
@@ -106,7 +109,10 @@ public class NavView {
     MenuItem showTrackerServerLog;
 
     @UiField
-    TextButton groupsButton;
+    MenuItem dGroupsButton;
+    
+    @UiField
+    MenuItem uGroupsButton;
 
     @UiField
     TextButton importButton;
@@ -128,20 +134,23 @@ public class NavView {
                    ReportsMenu.ReportHandler reportHandler,
                    ImportHandler importHandler,
                    LogHandler logHandler,
-                   GroupsHandler groupsHandler) {
+                   GroupsHandler groupsHandler,
+                   GroupsHandler uGroupsHandler) {
         this.settingsHandler = settingsHandler;
         this.importHandler = importHandler;
         this.logHandler = logHandler;
-        this.groupsHandler = groupsHandler;
+        this.dGroupsHandler = groupsHandler;
+        this.uGroupsHandler = uGroupsHandler;
         
         logo = new Image();
         logo.setUrl("img/logo.png");
 
         uiBinder.createAndBindUi(this);
 
-        boolean readOnly = ApplicationContext.getInstance().getUser().getReadOnly();
-        boolean admin = ApplicationContext.getInstance().getUser().getAdmin();
-        boolean manager = ApplicationContext.getInstance().getUser().getManager();
+        User user = ApplicationContext.getInstance().getUser();
+        boolean readOnly = user.getReadOnly();
+        boolean admin = user.getAdmin();
+        boolean manager = user.getManager();
 
         settingsButton.setVisible(admin || manager);
         settingsAccount.setVisible(!readOnly);
@@ -156,7 +165,8 @@ public class NavView {
                 (!ApplicationContext.getInstance().getApplicationSettings().isDisallowDeviceManagementByUsers()
                     || admin || manager));
 
-        groupsButton.setVisible(!readOnly);
+        dGroupsButton.setVisible(!readOnly);
+        uGroupsButton.setVisible(user.getUserGroup().getPermissions().contains(UserPermission.GROUP_MANAGEMENT));
 
         reportsButton.setMenu(new ReportsMenu(reportListStore, reportHandler, new ReportsMenu.ReportSettingsHandler() {
             @Override
@@ -225,9 +235,14 @@ public class NavView {
         importHandler.onImport();
     }
 
-    @UiHandler("groupsButton")
-    public void onGroupsClicked(SelectEvent event) {
-        groupsHandler.onShowGroups();
+    @UiHandler("dGroupsButton")
+    public void onGroupsClicked(SelectionEvent<Item> event) {
+        dGroupsHandler.onShowGroups();
+    }
+    
+    @UiHandler("uGroupsButton")
+    public void onUserGroupsClicked(SelectionEvent<Item> event) {
+        uGroupsHandler.onShowGroups();
     }
     
     @UiHandler("userGuideButton")

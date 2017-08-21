@@ -40,6 +40,7 @@ import com.google.gwt.http.client.Request;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.Response;
 import com.google.gwt.user.client.ui.RootPanel;
+import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreHandlers;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
@@ -50,6 +51,7 @@ import org.traccar.web.client.model.api.DevicesService;
 import org.traccar.web.client.model.api.IUsersService.EditUserSettingsDto;
 import org.traccar.web.client.model.api.Resources;
 import org.traccar.web.client.model.api.UsersService;
+import pl.datamatica.traccar.model.UserGroup;
 
 public class Application {
 
@@ -89,6 +91,7 @@ public class Application {
     private final LogController logController;
     private final GroupsController groupsController;
     private final VisibilityController visibilityController;
+    private final UserGroupsController userGroupsController;
     
     private final InitialLoader initialLoader;
 
@@ -101,6 +104,10 @@ public class Application {
         final GroupStore groupStore = new GroupStore();
         ReportProperties reportProperties = GWT.create(ReportProperties.class);
         final ListStore<Report> reportStore = new ListStore<>(reportProperties.id());
+        UserGroupProperties uGrpProperties = new UserGroupProperties();
+        final ListStore<UserGroup> userGroups = new ListStore<>(uGrpProperties.id());
+        //TODO remove
+        userGroups.add(ApplicationContext.getInstance().getUser().getUserGroup());
 
         settingsController = new SettingsController(userSettingsHandler);
         visibilityController = new VisibilityController();
@@ -126,9 +133,10 @@ public class Application {
                 reportsController,
                 this);
         groupsController = new GroupsController(groupStore, deviceController);
+        userGroupsController = new UserGroupsController(userGroups);
         importController = new ImportController(deviceController.getDeviceStore());
         logController = new LogController();
-        navController = new NavController(settingsController, reportStore, reportsController, importController, logController, groupsController);
+        navController = new NavController(settingsController, reportStore, reportsController, importController, logController, groupsController, userGroupsController);
         archiveController = new ArchiveController(archiveHandler, userSettingsHandler, deviceController.getDeviceStore(), reportStore, reportsController);
         
         updatesController = new UpdatesController();
