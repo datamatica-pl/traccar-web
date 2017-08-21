@@ -459,12 +459,21 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         }
 
         @Override
-        public void render(Context context, Boolean value, SafeHtmlBuilder sb) {
-            GroupedDevice item = deviceStore.findModelWithKey((String) context.getKey());
-
-            if (item instanceof Device) {
+        public void render(Context context, Boolean value, SafeHtmlBuilder sb) {            
+            if (isDevice(context)) {
                 super.render(context, value, sb);
             }
+        }
+
+        @Override
+        public void onBrowserEvent(Context context, Element parent, Boolean value, NativeEvent event, ValueUpdater<Boolean> valueUpdater) {
+            if(isDevice(context))
+                super.onBrowserEvent(context, parent, value, event, valueUpdater);
+        }
+        
+        private boolean isDevice(Context context) {
+            GroupedDevice item = deviceStore.findModelWithKey((String)context.getKey());
+            return item instanceof Device;
         }
     }
     
