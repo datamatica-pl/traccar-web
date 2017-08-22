@@ -8,6 +8,7 @@ package org.traccar.web.client.model;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
+import org.traccar.web.client.model.api.ApiUserGroup;
 import pl.datamatica.traccar.model.UserGroup;
 import pl.datamatica.traccar.model.UserPermission;
 
@@ -16,24 +17,24 @@ import pl.datamatica.traccar.model.UserPermission;
  * @author ŁŁ
  */
 public class UserGroupProperties {
-    public ModelKeyProvider<UserGroup> id() {
-        return new ModelKeyProvider<UserGroup>() {
+    public ModelKeyProvider<ApiUserGroup> id() {
+        return new ModelKeyProvider<ApiUserGroup>() {
             @Override
-            public String getKey(UserGroup item) {
+            public String getKey(ApiUserGroup item) {
                 return item.getId()+"";
             }
         };
     }
     
-    public ValueProvider<UserGroup, String> name() {
-            return new ValueProvider<UserGroup, String>() {
+    public ValueProvider<ApiUserGroup, String> name() {
+            return new ValueProvider<ApiUserGroup, String>() {
                 @Override
-                public String getValue(UserGroup object) {
+                public String getValue(ApiUserGroup object) {
                     return object.getName();
                 }
 
                 @Override
-                public void setValue(UserGroup object, String value) {
+                public void setValue(ApiUserGroup object, String value) {
                     object.setName(value);
                 }
 
@@ -44,20 +45,20 @@ public class UserGroupProperties {
             };
         }
     
-    public ValueProvider<UserGroup, Boolean> permission(UserPermission permission) {
+    public ValueProvider<ApiUserGroup, Boolean> permission(UserPermission permission) {
         return new PermissionProvider(permission);
     }
     
-    public LabelProvider<UserGroup> label() {
-        return new LabelProvider<UserGroup>() {
+    public LabelProvider<ApiUserGroup> label() {
+        return new LabelProvider<ApiUserGroup>() {
             @Override
-            public String getLabel(UserGroup item) {
+            public String getLabel(ApiUserGroup item) {
                 return item.getName();
             }
         };
     }
     
-    public static class PermissionProvider implements ValueProvider<UserGroup, Boolean> {
+    public static class PermissionProvider implements ValueProvider<ApiUserGroup, Boolean> {
         private final UserPermission permission;
         
         public PermissionProvider(UserPermission permission) {
@@ -65,16 +66,16 @@ public class UserGroupProperties {
         }
         
         @Override
-        public Boolean getValue(UserGroup object) {
-            return object.getPermissions().contains(permission);
+        public Boolean getValue(ApiUserGroup object) {
+            return object.hasPermission(permission);
         }
 
         @Override
-        public void setValue(UserGroup object, Boolean value) {
+        public void setValue(ApiUserGroup object, Boolean value) {
             if(value)
-                object.getPermissions().add(permission);
+                object.grantPermission(permission);
             else
-                object.getPermissions().remove(permission);
+                object.revokePermission(permission);
         }
 
         @Override

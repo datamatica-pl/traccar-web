@@ -24,13 +24,11 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.model.ReportService;
 import org.traccar.web.client.model.ReportServiceAsync;
-import org.traccar.web.client.view.NavView;
 import org.traccar.web.client.view.ReportsDialog;
 import org.traccar.web.client.view.ReportsMenu;
 import pl.datamatica.traccar.model.Device;
@@ -38,9 +36,7 @@ import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.Report;
 
 import java.util.List;
-import org.traccar.web.client.ApplicationContext;
 import pl.datamatica.traccar.model.ReportFormat;
-import pl.datamatica.traccar.model.User;
 
 public class ReportsController implements ContentController, ReportsMenu.ReportHandler {
     private final Messages i18n = GWT.create(Messages.class);

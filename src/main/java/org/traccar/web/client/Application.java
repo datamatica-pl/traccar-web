@@ -104,10 +104,6 @@ public class Application {
         final GroupStore groupStore = new GroupStore();
         ReportProperties reportProperties = GWT.create(ReportProperties.class);
         final ListStore<Report> reportStore = new ListStore<>(reportProperties.id());
-        UserGroupProperties uGrpProperties = new UserGroupProperties();
-        final ListStore<UserGroup> userGroups = new ListStore<>(uGrpProperties.id());
-        //TODO remove
-        userGroups.add(ApplicationContext.getInstance().getUser().getUserGroup());
 
         settingsController = new SettingsController(userSettingsHandler);
         visibilityController = new VisibilityController();
@@ -133,7 +129,7 @@ public class Application {
                 reportsController,
                 this);
         groupsController = new GroupsController(groupStore, deviceController);
-        userGroupsController = new UserGroupsController(userGroups);
+        userGroupsController = new UserGroupsController();
         importController = new ImportController(deviceController.getDeviceStore());
         logController = new LogController();
         navController = new NavController(settingsController, reportStore, reportsController, importController, logController, groupsController, userGroupsController);

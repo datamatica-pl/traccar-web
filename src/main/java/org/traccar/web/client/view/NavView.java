@@ -109,6 +109,9 @@ public class NavView {
     MenuItem showTrackerServerLog;
 
     @UiField
+    TextButton groupsButton;
+    
+    @UiField
     MenuItem dGroupsButton;
     
     @UiField
@@ -165,8 +168,10 @@ public class NavView {
                 (!ApplicationContext.getInstance().getApplicationSettings().isDisallowDeviceManagementByUsers()
                     || admin || manager));
 
+        if(readOnly && !user.hasPermission(UserPermission.GROUP_MANAGEMENT))
+            groupsButton.setVisible(false);
         dGroupsButton.setVisible(!readOnly);
-        uGroupsButton.setVisible(user.getUserGroup().getPermissions().contains(UserPermission.GROUP_MANAGEMENT));
+        uGroupsButton.setVisible(user.hasPermission(UserPermission.GROUP_MANAGEMENT));
 
         reportsButton.setMenu(new ReportsMenu(reportListStore, reportHandler, new ReportsMenu.ReportSettingsHandler() {
             @Override

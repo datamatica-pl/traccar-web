@@ -22,7 +22,7 @@
     <toolbar:ToolBar addStyleNames="theme-background">
       <button:TextButton ui:field="reportsButton" text="{i18n.reports}" />
 
-      <button:TextButton text="{i18n.groups}">
+      <button:TextButton text="{i18n.groups}" ui:field="groupsButton">
         <button:menu>
           <menu:Menu>
             <menu:MenuItem ui:field="dGroupsButton" text="{i18n.deviceGroups}" />

@@ -32,10 +32,10 @@ Uncomment this for XHTML entities
         
         <container:child layoutData="{toolBarRowData}">
           <toolbar:ToolBar>
-            <button:TextButton text="{i18n.add}"/>
-            <button:TextButton text="{i18n.edit}"/>
-            <button:TextButton text="{i18n.remove}" />
-            <button:TextButton text="{i18n.showUsers}" />
+            <button:TextButton text="{i18n.add}" ui:field="addButton"/>
+            <button:TextButton text="{i18n.edit}" ui:field="editButton"/>
+            <button:TextButton text="{i18n.remove}" ui:field="removeButton"/>
+            <button:TextButton text="{i18n.showUsers}" ui:field="showUsersButton"/>
           </toolbar:ToolBar>
         </container:child>
           

@@ -6,22 +6,21 @@
 package org.traccar.web.client.view;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
-import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.cell.core.client.form.ComboBoxCell;
+import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.TextField;
-import java.util.EnumSet;
+import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.UserGroupProperties;
-import pl.datamatica.traccar.model.Group;
-import pl.datamatica.traccar.model.UserGroup;
+import org.traccar.web.client.model.api.ApiUserGroup;
 import pl.datamatica.traccar.model.UserPermission;
 
 /**
@@ -30,9 +29,9 @@ import pl.datamatica.traccar.model.UserPermission;
  */
 public class UserGroupDialog {
     
-    private static UserGroupDilogUiBinder uiBinder = GWT.create(UserGroupDilogUiBinder.class);
+    private static UserGroupDialogUiBinder uiBinder = GWT.create(UserGroupDialogUiBinder.class);
     
-    interface UserGroupDilogUiBinder extends UiBinder<Widget, UserGroupDialog> {
+    interface UserGroupDialogUiBinder extends UiBinder<Widget, UserGroupDialog> {
     }
     
     @UiField
@@ -45,19 +44,28 @@ public class UserGroupDialog {
     FieldLabel srcGroupLbl;
     
     @UiField(provided = true)
-    ComboBox srcUserGroup;
+    ComboBox<ApiUserGroup> srcUserGroup;
     
-    private UserGroup group;
+    @UiField(provided = true)
+    Messages i18n = GWT.create(Messages.class);
+    
+    private ApiUserGroup group;
     private UserGroupHandler handler;
+    private boolean editing;
     
-    public UserGroupDialog(UserGroup group, ListStore<UserGroup> groups, UserGroupHandler handler) {
+    public UserGroupDialog(ApiUserGroup group, ListStore<ApiUserGroup> groups, UserGroupHandler handler) {
         this.handler = handler;
         this.group = group;
         if(groups != null) {
-            srcUserGroup.setVisible(true);
+            editing = false;
             UserGroupProperties ugProps = new UserGroupProperties();
-            this.srcUserGroup = new ComboBox<>(groups, ugProps.label());
-            group.setPermissions(EnumSet.noneOf(UserPermission.class));
+            ListStore<ApiUserGroup> groupsCopy = new ListStore<>(ugProps.id());
+            groupsCopy.addAll(groups.getAll());
+            this.srcUserGroup = new ComboBox<>(groupsCopy, ugProps.label());
+            srcUserGroup.setForceSelection(true);
+            srcUserGroup.setTriggerAction(TriggerAction.ALL);
+        } else {
+            editing = true;
         }
         uiBinder.createAndBindUi(this);
         if(groups == null)
@@ -76,10 +84,13 @@ public class UserGroupDialog {
     @UiHandler("saveButton")
     public void onSaveClicked(SelectEvent event) {
         group.setName(name.getText());
-        for(UserPermission p : ((UserGroup)srcUserGroup.getValue()).getPermissions())
-            group.getPermissions().add(p);
+        if(!editing) {
+            group.clearPermissions();
+            for(UserPermission p : ((ApiUserGroup)srcUserGroup.getValue()).permissions)
+                group.grantPermission(p);
+        }
+        window.hide();
         handler.onSave(group);
-        
     }
     
     @UiHandler("cancelButton")
@@ -88,6 +99,6 @@ public class UserGroupDialog {
     }
     
     public interface UserGroupHandler {
-        void onSave(UserGroup group);
+        void onSave(ApiUserGroup group);
     }
 }
