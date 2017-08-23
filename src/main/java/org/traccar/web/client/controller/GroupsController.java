@@ -211,24 +211,16 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
 
                     @Override
                     public void onSuccess(Method method, Set<Long> response) {
-                        Map<User, Boolean> result = new HashMap<>();
-                        for(User u : ApplicationContext.getInstance().getUsers())
-                            result.put(u, response.contains(u.getId()));
-                        new UserShareDialog(result, new UserShareDialog.UserShareHandler() {
+                        new UserShareDialog(response, new UserShareDialog.UserShareHandler() {
                             @Override
-                            public void onSaveShares(final Map<User, Boolean> shares, final Window window) {
-                                List<Long> uids = new ArrayList<>();
-                                for(Map.Entry<User, Boolean> e : shares.entrySet())
-                                    if(Boolean.TRUE.equals(e.getValue()))
-                                        uids.add(e.getKey().getId());
-                                    
+                            public void onSaveShares(final List<Long> uids, final Window window) {
                                 service.updateGroupShare(group.getId(), uids, 
                                         new RequestCallback() {
 
                                     @Override
                                     public void onResponseReceived(Request request, Response response) {
                                         User u = ApplicationContext.getInstance().getUser();
-                                        if(!u.getAdmin() && !shares.get(u))
+                                        if(!u.getAdmin() && !uids.contains(u.getId()))
                                             groupStore.remove(group);
                                         window.hide();
                                     }

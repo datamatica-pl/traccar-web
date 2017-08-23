@@ -229,17 +229,9 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
 
             @Override
             public void onSuccess(Method method, Set<Long> response) {
-                Map<User, Boolean> share = new HashMap<>();
-                Set<User> users = ApplicationContext.getInstance().getUsers();
-                for(User u : users) 
-                    share.put(u, response.contains(u.getId()));
-                new UserShareDialog(share, new UserShareDialog.UserShareHandler() {
+                new UserShareDialog(response, new UserShareDialog.UserShareHandler() {
                     @Override
-                    public void onSaveShares(Map<User, Boolean> shares, final Window window) {
-                        List<Long> uids = new ArrayList<>();
-                        for(Map.Entry<User, Boolean> e : shares.entrySet()) 
-                            if(Boolean.TRUE.equals(e.getValue()))
-                                uids.add(e.getKey().getId());
+                    public void onSaveShares(List<Long> uids, final Window window) {
                         Application.getDevicesService().updateDeviceShare(device.getId(),
                                 uids, new RequestCallback() {
                             @Override

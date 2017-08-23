@@ -21,6 +21,7 @@ import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import java.util.List;
+import java.util.Set;
 import org.fusesource.restygwt.client.MethodCallback;
 
 /**
@@ -56,7 +57,7 @@ public class UserGroupsService {
         service.removeGroup(id, callback);
     }
     
-    public void getGroupUsers(long id, MethodCallback<List<Long>> callback) {
+    public void getGroupUsers(long id, MethodCallback<Set<Long>> callback) {
         service.getGroupUsers(id, callback);
     }
     

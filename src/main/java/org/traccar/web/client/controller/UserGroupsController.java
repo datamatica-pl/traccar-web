@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.ApplicationContext;
@@ -129,26 +130,18 @@ public class UserGroupsController implements NavView.GroupsHandler,
     
     @Override
     public void onShowUsers(final ApiUserGroup group) {
-        service.getGroupUsers(group.getId(), new MethodCallback<List<Long>>() {
+        service.getGroupUsers(group.getId(), new MethodCallback<Set<Long>>() {
             @Override
             public void onFailure(Method method, Throwable exception) {
                 new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
             }
 
             @Override
-            public void onSuccess(Method method, List<Long> response) {
+            public void onSuccess(Method method, Set<Long> response) {
                 UserProperties up = GWT.create(UserProperties.class);
-                ListStore<User> users = new ListStore<>(up.id());
-                Map<User, Boolean> userMap = new HashMap<>();
-                for(User user : ApplicationContext.getInstance().getUsers())
-                    userMap.put(user, response.contains(user.getId()));
-                new UserShareDialog(userMap, new UserShareHandler() {
+                new UserShareDialog(response, new UserShareHandler() {
                     @Override
-                    public void onSaveShares(Map<User, Boolean> shares, Window window) {
-                        List<Long> uids = new ArrayList<>();
-                        for(Map.Entry<User, Boolean> e : shares.entrySet()) 
-                            if(Boolean.TRUE.equals(e.getValue()))
-                                uids.add(e.getKey().getId());
+                    public void onSaveShares(List<Long> uids, Window window) {
                         service.updateGroupUsers(group.getId(), uids, new RequestCallback(){
                             @Override
                             public void onResponseReceived(Request request, Response response) {

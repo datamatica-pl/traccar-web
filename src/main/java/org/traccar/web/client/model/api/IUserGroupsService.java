@@ -16,6 +16,7 @@
 package org.traccar.web.client.model.api;
 
 import java.util.List;
+import java.util.Set;
 import javax.ws.rs.*;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.fusesource.restygwt.client.RestService;
@@ -38,5 +39,5 @@ public interface IUserGroupsService extends RestService{
     
     @GET
     @Path("/{id}/users")
-    void getGroupUsers(@PathParam("id") long id, MethodCallback<List<Long>> callback);
+    void getGroupUsers(@PathParam("id") long id, MethodCallback<Set<Long>> callback);
 }
