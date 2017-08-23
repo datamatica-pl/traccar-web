@@ -241,7 +241,7 @@ public class NavView {
     }
 
     @UiHandler("dGroupsButton")
-    public void onGroupsClicked(SelectionEvent<Item> event) {
+    public void onDeviceGroupsClicked(SelectionEvent<Item> event) {
         dGroupsHandler.onShowGroups();
     }
     

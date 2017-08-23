@@ -29,9 +29,11 @@ import org.fusesource.restygwt.client.MethodCallback;
  */
 public class UserGroupsService {
     public static interface ApiUserGroupMapper extends ObjectMapper<ApiUserGroup> {}
+    public static interface LLongMapper extends ObjectMapper<List<Long>> {}
     
     private final IUserGroupsService service = GWT.create(IUserGroupsService.class);
     private final ApiUserGroupMapper mapper = GWT.create(ApiUserGroupMapper.class);
+    private final LLongMapper llMapper = GWT.create(LLongMapper.class);
     
     public void getGroups(MethodCallback<List<ApiUserGroup>> callback) {
         service.getGroups(callback);
@@ -56,5 +58,15 @@ public class UserGroupsService {
     
     public void getGroupUsers(long id, MethodCallback<List<Long>> callback) {
         service.getGroupUsers(id, callback);
+    }
+    
+    public void updateGroupUsers(long id, List<Long> uids, RequestCallback callback) {
+        RequestBuilder rb = new RequestBuilder(RequestBuilder.PUT, 
+                "../api/v1/usergroups/"+id+"/users");
+        try {
+            rb.sendRequest(llMapper.write(uids), callback);
+        } catch(RequestException e) {
+            callback.onError(null, e);
+        }
     }
 }

@@ -21,8 +21,12 @@ import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.Response;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.Store;
+import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.ApplicationContext;
@@ -34,8 +38,8 @@ import org.traccar.web.client.view.NavView;
 import org.traccar.web.client.view.UserGroupDialog;
 import org.traccar.web.client.view.UserGroupsDialog;
 import org.traccar.web.client.model.api.ApiUserGroup;
-import org.traccar.web.client.view.UserGroupUsersDialog;
-import org.traccar.web.client.view.UserGroupUsersDialog.UserGroupUsersHandler;
+import org.traccar.web.client.view.UserShareDialog;
+import org.traccar.web.client.view.UserShareDialog.UserShareHandler;
 import pl.datamatica.traccar.model.User;
 
 /**
@@ -135,14 +139,29 @@ public class UserGroupsController implements NavView.GroupsHandler,
             public void onSuccess(Method method, List<Long> response) {
                 UserProperties up = GWT.create(UserProperties.class);
                 ListStore<User> users = new ListStore<>(up.id());
-                for(long id : response)
-                    users.add(ApplicationContext.getInstance().getUser(id));
-                new UserGroupUsersDialog(group.getName(), users,
-                        new UserGroupUsersHandler() {
+                Map<User, Boolean> userMap = new HashMap<>();
+                for(User user : ApplicationContext.getInstance().getUsers())
+                    userMap.put(user, response.contains(user.getId()));
+                new UserShareDialog(userMap, new UserShareHandler() {
+                    @Override
+                    public void onSaveShares(Map<User, Boolean> shares, Window window) {
+                        List<Long> uids = new ArrayList<>();
+                        for(Map.Entry<User, Boolean> e : shares.entrySet()) 
+                            if(Boolean.TRUE.equals(e.getValue()))
+                                uids.add(e.getKey().getId());
+                        service.updateGroupUsers(group.getId(), uids, new RequestCallback(){
                             @Override
-                            public void onUserRemovedFromGroup(User u) {
-                                //todo 2017-08-23
-                            }    
+                            public void onResponseReceived(Request request, Response response) {
+                                //do nothing
+                            }
+
+                            @Override
+                            public void onError(Request request, Throwable exception) {
+                                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                            }
+                            
+                        });
+                    }
                 }).show();
             }
         });
