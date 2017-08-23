@@ -50,11 +50,11 @@ import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 import java.util.*;
 import org.traccar.web.client.ApplicationContext;
 
-public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandler<Group> {
+public class DeviceGroupsDialog implements SelectionChangedEvent.SelectionChangedHandler<Group> {
 
-    private static GroupsDialogUiBinder uiBinder = GWT.create(GroupsDialogUiBinder.class);
+    private static DeviceGroupsDialogUiBinder uiBinder = GWT.create(DeviceGroupsDialogUiBinder.class);
 
-    interface GroupsDialogUiBinder extends UiBinder<Widget, GroupsDialog> {
+    interface DeviceGroupsDialogUiBinder extends UiBinder<Widget, DeviceGroupsDialog> {
     }
 
     public interface GroupsHandler {
@@ -148,7 +148,7 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
 
     GroupProperties groupProperties = GWT.create(GroupProperties.class);
 
-    public GroupsDialog(final GroupStore groupStore, final GroupsHandler groupsHandler) {        
+    public DeviceGroupsDialog(final GroupStore groupStore, final GroupsHandler groupsHandler) {        
         this.groupStore = groupStore;
         this.groupsHandler = groupsHandler;
         this.newGroups = new ArrayList<>();
