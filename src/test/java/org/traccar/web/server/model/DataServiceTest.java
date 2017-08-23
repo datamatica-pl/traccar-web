@@ -103,6 +103,7 @@ public class DataServiceTest {
         runInTransaction(new Callable<Object>() {
             @Override
             public Object call() throws Exception {
+                injector.getInstance(DBMigrations.CreateUserGroups.class).migrate(injector.getInstance(EntityManager.class));
                 injector.getInstance(DBMigrations.CreateAdmin.class).migrate(injector.getInstance(EntityManager.class));
                 return null;
             }
