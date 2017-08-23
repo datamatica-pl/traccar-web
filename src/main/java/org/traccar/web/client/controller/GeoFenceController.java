@@ -265,16 +265,9 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
 
             @Override
             public void onSuccess(Method method, Set<Long> response) {
-                Map<User, Boolean> share = new HashMap<>();
-                for(User u : ApplicationContext.getInstance().getUsers())
-                    share.put(u, response.contains(u.getId()));
-                new UserShareDialog(share, new UserShareDialog.UserShareHandler() {
+                new UserShareDialog(response, new UserShareDialog.UserShareHandler() {
                     @Override
-                    public void onSaveShares(Map<User, Boolean> shares, final Window window) {
-                        List<Long> uids = new ArrayList<>();
-                        for(Map.Entry<User, Boolean> e : shares.entrySet())
-                            if(e.getValue())
-                                uids.add(e.getKey().getId());
+                    public void onSaveShares(List<Long> uids, final Window window) {
                         service.updateGeofenceShare(geoFence.getId(), uids,
                                 new RequestCallback() {
                             @Override
