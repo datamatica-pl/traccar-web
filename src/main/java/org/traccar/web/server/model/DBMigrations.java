@@ -205,7 +205,7 @@ public class DBMigrations {
             UserGroup admins = adminsGroups.get(0);
             UserGroup users = usersGroups.get(0);
             
-            em.createQuery("UPDATE " + User.class.getSimpleName() + " U SET U.userGroup = :group WHERE U.userGroup IS NULL AND admin = :isAdmin")
+            em.createQuery("UPDATE " + User.class.getSimpleName() + " U SET U.userGroup = :group WHERE U.userGroup IS NULL AND (admin = :isAdmin OR admin IS NULL)")
                     .setParameter("group", users).setParameter("isAdmin", false)
                     .executeUpdate();
             em.createQuery("UPDATE " + User.class.getSimpleName() + " U SET U.userGroup = :group WHERE U.userGroup IS NULL AND admin = :isAdmin")
