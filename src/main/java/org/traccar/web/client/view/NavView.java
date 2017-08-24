@@ -168,10 +168,10 @@ public class NavView {
                 (!ApplicationContext.getInstance().getApplicationSettings().isDisallowDeviceManagementByUsers()
                     || admin || manager));
 
-        if(readOnly && !user.hasPermission(UserPermission.GROUP_MANAGEMENT))
+        if(readOnly && !user.hasPermission(UserPermission.USER_GROUP_MANAGEMENT))
             groupsButton.setVisible(false);
         dGroupsButton.setVisible(!readOnly);
-        uGroupsButton.setVisible(user.hasPermission(UserPermission.GROUP_MANAGEMENT));
+        uGroupsButton.setVisible(user.hasPermission(UserPermission.USER_GROUP_MANAGEMENT));
 
         reportsButton.setMenu(new ReportsMenu(reportListStore, reportHandler, new ReportsMenu.ReportSettingsHandler() {
             @Override
