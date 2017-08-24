@@ -122,7 +122,7 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
         defaultHashImplementation.setForceSelection(true);
         defaultHashImplementation.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
         
-        boolean canManageGroups = ApplicationContext.getInstance().getUser().hasPermission(UserPermission.GROUP_MANAGEMENT);
+        boolean canManageGroups = ApplicationContext.getInstance().getUser().hasPermission(UserPermission.USER_GROUP_MANAGEMENT);
         if(canManageGroups) {
             prepareDefaultGroupCBox(userGroups, applicationSettings);
         }

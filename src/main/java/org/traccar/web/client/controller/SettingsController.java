@@ -259,7 +259,7 @@ public class SettingsController implements NavView.SettingsHandler {
                             });
                 }
             };
-        if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.GROUP_MANAGEMENT)) {
+        if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.USER_GROUP_MANAGEMENT)) {
             userGroups.getGroups(new MethodCallback<List<ApiUserGroup>>() {
                 @Override
                 public void onFailure(Method method, Throwable exception) {
