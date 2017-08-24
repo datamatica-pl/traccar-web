@@ -55,6 +55,7 @@ import org.traccar.web.client.model.api.IUsersService.AddUserDto;
 import org.traccar.web.client.model.api.IUsersService.EditUserDto;
 import org.traccar.web.client.model.api.UserGroupsService;
 import org.traccar.web.client.model.api.UsersService;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class SettingsController implements NavView.SettingsHandler {
 
@@ -240,38 +241,45 @@ public class SettingsController implements NavView.SettingsHandler {
     public void onApplicationSelected() {
         final ApplicationSettingsService appSettings = GWT.create(ApplicationSettingsService.class);
         UserGroupsService userGroups = new UserGroupsService();
-        userGroups.getGroups(new MethodCallback<List<ApiUserGroup>>() {
-            @Override
-            public void onFailure(Method method, Throwable exception) {
-                if(method.getResponse().getStatusCode() == 403)
-                    new AlertMessageBox(i18n.error(), i18n.errAccessDenied()).show();
-                else
-                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-            }
+        final ApplicationSettingsDialog.ApplicationSettingsHandler handler = 
+            new ApplicationSettingsDialog.ApplicationSettingsHandler() {
+                @Override
+                public void onSave(final ApplicationSettings applicationSettings) {
+                    appSettings.update(ApplicationSettingsDto.create(applicationSettings), 
+                            new JsonCallback() {
+                        @Override
+                        public void onFailure(Method method, Throwable exception) {
+                            new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                        }
 
-            @Override
-            public void onSuccess(Method method, List<ApiUserGroup> response) {
-                new ApplicationSettingsDialog(
-                ApplicationContext.getInstance().getApplicationSettings(),
-                new ApplicationSettingsDialog.ApplicationSettingsHandler() {
-                    @Override
-                    public void onSave(final ApplicationSettings applicationSettings) {
-                        appSettings.update(ApplicationSettingsDto.create(applicationSettings), 
-                                new JsonCallback() {
-                            @Override
-                            public void onFailure(Method method, Throwable exception) {
-                                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                            }
+                        @Override
+                        public void onSuccess(Method method, JSONValue response) {
+                            ApplicationContext.getInstance().setApplicationSettings(applicationSettings);
+                        }
+                            });
+                }
+            };
+        if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.GROUP_MANAGEMENT)) {
+            userGroups.getGroups(new MethodCallback<List<ApiUserGroup>>() {
+                @Override
+                public void onFailure(Method method, Throwable exception) {
+                    if(method.getResponse().getStatusCode() == 403)
+                        new AlertMessageBox(i18n.error(), i18n.errAccessDenied()).show();
+                    else
+                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                }
 
-                            @Override
-                            public void onSuccess(Method method, JSONValue response) {
-                                ApplicationContext.getInstance().setApplicationSettings(applicationSettings);
-                            }
-                                });
-                    }
-                }, response).show();
-            }
-        });
+                @Override
+                public void onSuccess(Method method, List<ApiUserGroup> response) {
+                    new ApplicationSettingsDialog(
+                    ApplicationContext.getInstance().getApplicationSettings(),
+                            handler, response).show();
+                }
+            });
+        } else {
+            new ApplicationSettingsDialog(ApplicationContext.getInstance().getApplicationSettings(),
+                handler, null).show();
+        }
     }
 
     @Override
