@@ -48,6 +48,7 @@ public interface ApplicationSettingsService extends RestService{
         String bingMapsKey;
         String matchServiceURL;
         boolean allowCommandsOnlyForAdmins;
+        Long defaultUserGroupId;
         
         public ApplicationSettings toApplicationSettings() {
             ApplicationSettings as = new ApplicationSettings();
@@ -61,6 +62,8 @@ public interface ApplicationSettingsService extends RestService{
             as.setBingMapsKey(bingMapsKey);
             as.setMatchServiceURL(matchServiceURL);
             as.setAllowCommandsOnlyForAdmins(allowCommandsOnlyForAdmins);
+            if(defaultUserGroupId != null)
+                as.setDefaultGroupId(defaultUserGroupId);
             return as;
         }
         
@@ -76,6 +79,7 @@ public interface ApplicationSettingsService extends RestService{
             dto.bingMapsKey = as.getBingMapsKey();
             dto.matchServiceURL = as.getMatchServiceURL();
             dto.allowCommandsOnlyForAdmins = as.isAllowCommandsOnlyForAdmins();
+            dto.defaultUserGroupId = as.getDefaultGroupId();
             return dto;
         }
     }

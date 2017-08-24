@@ -71,4 +71,12 @@ public class ApiUserGroup {
     public void revokePermission(UserPermission p) {
         permissions.remove(p);
     }
+
+    public UserGroup toUserGroup() {
+        UserGroup ug = new UserGroup();
+        ug.setId(id);
+        ug.setName(name);
+        ug.setPermissions(EnumSet.copyOf(permissions));
+        return ug;
+    }
 }

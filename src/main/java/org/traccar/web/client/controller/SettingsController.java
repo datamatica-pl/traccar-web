@@ -47,10 +47,13 @@ import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
+import org.fusesource.restygwt.client.MethodCallback;
+import org.traccar.web.client.model.api.ApiUserGroup;
 import org.traccar.web.client.model.api.ApplicationSettingsService;
 import org.traccar.web.client.model.api.ApplicationSettingsService.ApplicationSettingsDto;
 import org.traccar.web.client.model.api.IUsersService.AddUserDto;
 import org.traccar.web.client.model.api.IUsersService.EditUserDto;
+import org.traccar.web.client.model.api.UserGroupsService;
 import org.traccar.web.client.model.api.UsersService;
 
 public class SettingsController implements NavView.SettingsHandler {
@@ -236,7 +239,19 @@ public class SettingsController implements NavView.SettingsHandler {
     @Override
     public void onApplicationSelected() {
         final ApplicationSettingsService appSettings = GWT.create(ApplicationSettingsService.class);
-        new ApplicationSettingsDialog(
+        UserGroupsService userGroups = new UserGroupsService();
+        userGroups.getGroups(new MethodCallback<List<ApiUserGroup>>() {
+            @Override
+            public void onFailure(Method method, Throwable exception) {
+                if(method.getResponse().getStatusCode() == 403)
+                    new AlertMessageBox(i18n.error(), i18n.errAccessDenied()).show();
+                else
+                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+            }
+
+            @Override
+            public void onSuccess(Method method, List<ApiUserGroup> response) {
+                new ApplicationSettingsDialog(
                 ApplicationContext.getInstance().getApplicationSettings(),
                 new ApplicationSettingsDialog.ApplicationSettingsHandler() {
                     @Override
@@ -254,7 +269,9 @@ public class SettingsController implements NavView.SettingsHandler {
                             }
                                 });
                     }
-                }).show();
+                }, response).show();
+            }
+        });
     }
 
     @Override

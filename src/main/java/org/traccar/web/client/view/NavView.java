@@ -159,7 +159,7 @@ public class NavView {
         settingsAccount.setVisible(!readOnly);
         settingsPreferences.setVisible(!readOnly);
 
-        settingsGlobal.setVisible(!readOnly && admin);
+        settingsGlobal.setVisible(user.hasPermission(UserPermission.SERVER_MANAGEMENT));
         logsButton.setVisible(admin);
         showTrackerServerLog.setVisible(admin);
         settingsUsers.setVisible(!readOnly && (admin || manager));

@@ -16,6 +16,8 @@
 package org.traccar.web.client.view;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -23,6 +25,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.core.client.ValueProvider;
+import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
@@ -103,8 +106,26 @@ public class UserShareDialog {
     
     @UiField(provided = true)
     StoreFilterField<UserShared> userFilter;
+    
+    /**
+     * Read-only user share dialog
+     * @param shares
+     */
+    public UserShareDialog(Set<Long> shares) {
+        this(shares, new UserShareHandler(){
+            @Override
+            public void onSaveShares(List<Long> shares, Window window) {
+                //empty
+            }
+        }, false);
+    }
 
     public UserShareDialog(Set<Long> shares, UserShareHandler shareHandler) {
+        this(shares, shareHandler, true);
+    }
+
+    private UserShareDialog(Set<Long> shares, UserShareHandler shareHandler, 
+            final boolean editable) {
         this.shareHandler = shareHandler;
 
         List<User> users = new ArrayList<>(ApplicationContext.getInstance().getUsers());
@@ -134,7 +155,50 @@ public class UserShareDialog {
         columnConfigList.add(new ColumnConfig<>(userSharedProperties.name(), 25, i18n.name()));
 
         ColumnConfig<UserShared, Boolean> colManager = new ColumnConfig<>(userSharedProperties.shared(), 25, i18n.share());
-        colManager.setCell(new CheckBoxCell());
+        colManager.setCell(new CheckBoxCell() {
+            @Override
+            public CheckBoxCell.CheckBoxAppearance getAppearance() {
+                final CheckBoxCell.CheckBoxAppearance sa = super.getAppearance();
+                return new CheckBoxCell.CheckBoxAppearance() {
+                    @Override
+                    public void render(SafeHtmlBuilder sb, Boolean value, CheckBoxCell.CheckBoxCellOptions opts) {
+                        opts.setDisabled(!editable);
+                        sa.render(sb, value, opts);
+                    }
+
+                    @Override
+                    public void setBoxLabel(String boxLabel, XElement parent) {
+                        sa.setBoxLabel(boxLabel, parent);
+                    }
+
+                    @Override
+                    public XElement getInputElement(Element parent) {
+                        return sa.getInputElement(parent);
+                    }
+
+                    @Override
+                    public void onEmpty(Element parent, boolean empty) {
+                        sa.onEmpty(parent, empty);
+                    }
+
+                    @Override
+                    public void onFocus(Element parent, boolean focus) {
+                        sa.onFocus(parent, focus);
+                    }
+
+                    @Override
+                    public void onValid(Element parent, boolean valid) {
+                        sa.onValid(parent, valid);
+                    }
+
+                    @Override
+                    public void setReadOnly(Element parent, boolean readonly) {
+                        sa.setReadOnly(parent, readonly);
+                    }
+                };
+            }
+            
+        });
         columnConfigList.add(colManager);
 
         columnModel = new ColumnModel<>(columnConfigList);
@@ -143,7 +207,7 @@ public class UserShareDialog {
 
         grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
     }
-
+    
     public void show() {
         window.show();
     }
