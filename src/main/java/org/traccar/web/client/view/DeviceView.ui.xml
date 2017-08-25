@@ -35,7 +35,7 @@
         <toolbar:ToolBar ui:field="toolbar">
           <button:TextButton ui:field="addButton" text="{i18n.add}" />
           <button:TextButton ui:field="editButton" text="{i18n.edit}" enabled="false" />
-          <button:TextButton ui:field="shareButton" text="{i18n.share}" enabled="false" visible="false" />
+          <button:TextButton ui:field="shareButton" text="{i18n.share}" enabled="false" />
           <button:TextButton ui:field="removeButton" text="{i18n.remove}" enabled="false" />
           <button:TextButton ui:field="commandButton" text="{i18n.command}" enabled="false" />
         </toolbar:ToolBar>
@@ -44,7 +44,7 @@
       <container:child layoutData="{layoutData}">
         <gxt:TabPanel ui:field="objectsTabs">
           <gxt:child config="{devicesTabConfig}">
-            <container:VerticalLayoutContainer>
+            <container:VerticalLayoutContainer ui:field="deviceList">
               <container:child layoutData="{toolBarRowData}">
                 <form:StoreFilterField ui:field="deviceFilter" emptyText="{i18n.filter}..."/>
               </container:child>
