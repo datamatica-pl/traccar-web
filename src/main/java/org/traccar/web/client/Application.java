@@ -51,7 +51,9 @@ import org.traccar.web.client.model.api.DevicesService;
 import org.traccar.web.client.model.api.IUsersService.EditUserSettingsDto;
 import org.traccar.web.client.model.api.Resources;
 import org.traccar.web.client.model.api.UsersService;
+import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UserGroup;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class Application {
 
@@ -150,11 +152,13 @@ public class Application {
         initialLoader.load(new LoadFinishedListener() {
             @Override
             public void onLoadFinished() {
+                User user = ApplicationContext.getInstance().getUser();
                 navController.run();
                 deviceController.run();
                 mapController.run();
                 archiveController.run();
-                geoFenceController.run();
+                if(user.hasPermission(UserPermission.GEOFENCE_READ))
+                    geoFenceController.run();
                 commandController.run();
                 groupsController.run();
                 visibilityController.run();
