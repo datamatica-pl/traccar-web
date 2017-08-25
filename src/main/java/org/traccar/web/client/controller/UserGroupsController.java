@@ -23,10 +23,7 @@ import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
@@ -41,7 +38,6 @@ import org.traccar.web.client.view.UserGroupsDialog;
 import org.traccar.web.client.model.api.ApiUserGroup;
 import org.traccar.web.client.view.UserShareDialog;
 import org.traccar.web.client.view.UserShareDialog.UserShareHandler;
-import pl.datamatica.traccar.model.User;
 
 /**
  *
@@ -139,23 +135,27 @@ public class UserGroupsController implements NavView.GroupsHandler,
             @Override
             public void onSuccess(Method method, Set<Long> response) {
                 UserProperties up = GWT.create(UserProperties.class);
-                new UserShareDialog(response, new UserShareHandler() {
-                    @Override
-                    public void onSaveShares(List<Long> uids, Window window) {
-                        service.updateGroupUsers(group.getId(), uids, new RequestCallback(){
-                            @Override
-                            public void onResponseReceived(Request request, Response response) {
-                                //do nothing
-                            }
+                if(group.getId() == ApplicationContext.getInstance().getApplicationSettings().getDefaultGroupId())
+                    new UserShareDialog(response).show();
+                else {
+                    new UserShareDialog(response, new UserShareHandler() {
+                        @Override
+                        public void onSaveShares(List<Long> uids, Window window) {
+                            service.updateGroupUsers(group.getId(), uids, new RequestCallback(){
+                                @Override
+                                public void onResponseReceived(Request request, Response response) {
+                                    //do nothing
+                                }
 
-                            @Override
-                            public void onError(Request request, Throwable exception) {
-                                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                            }
-                            
-                        });
-                    }
-                }).show();
+                                @Override
+                                public void onError(Request request, Throwable exception) {
+                                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                                }
+
+                            });
+                        }
+                    }).show();
+                }
             }
         });
     }

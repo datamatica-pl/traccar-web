@@ -37,6 +37,7 @@ import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
 import java.util.ArrayList;
 import java.util.List;
+import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.UserGroupProperties;
 import org.traccar.web.client.model.api.ApiUserGroup;
@@ -128,7 +129,11 @@ public class UserGroupsDialog {
     public void onSelectionChanged(ApiUserGroup group) {
         boolean anythingSelected = group != null;
         editButton.setEnabled(anythingSelected);
-        removeButton.setEnabled(anythingSelected);
+        if(anythingSelected) {
+            removeButton.setEnabled(group.getId() != ApplicationContext.getInstance().getApplicationSettings().getDefaultGroupId());
+        } else {
+            removeButton.setEnabled(false);
+        }
         showUsersButton.setEnabled(anythingSelected);
     }
     
