@@ -91,6 +91,8 @@ import org.traccar.web.client.state.DeviceVisibilityHandler;
 
 import java.util.*;
 import pl.datamatica.traccar.model.Route;
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDoubleClickEvent.CellDoubleClickHandler {
 
@@ -917,6 +919,11 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         objectsTabs = new TabPanel();
 
         uiBinder.createAndBindUi(this);
+        
+        User user = ApplicationContext.getInstance().getUser();
+        if(!user.hasPermission(UserPermission.GEOFENCE_READ)) {
+            objectsTabs.remove(geoFenceList);
+        }
         
         grid.getSelectionModel().addSelectionChangedHandler(deviceSelectionHandler);
         grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
