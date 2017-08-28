@@ -65,6 +65,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import pl.datamatica.traccar.model.UserPermission;
 
 @Singleton
 public class NotificationServiceImpl extends RemoteServiceServlet implements NotificationService {
@@ -196,6 +197,8 @@ public class NotificationServiceImpl extends RemoteServiceServlet implements Not
         }
 
         private void addEvent(Map<User, Set<DeviceEvent>> events, User user, DeviceEvent event) {
+            if(!user.hasPermission(UserPermission.NOTIFICATIONS))
+                return;
             // check whether user wants to receive such notification events
             if (!user.getNotificationEvents().contains(event.getType())) {
                 return;

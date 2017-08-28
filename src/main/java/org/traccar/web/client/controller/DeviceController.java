@@ -150,8 +150,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
     @Override
     public void onAdd() {
         User user = ApplicationContext.getInstance().getUser();
-        if (!user.getAdmin() &&
-                user.getMaxNumOfDevices() != null &&
+        if (user.getMaxNumOfDevices() != null &&
                 deviceStore.size() >= user.getMaxNumOfDevices()) {
             new AlertMessageBox(i18n.error(), i18n.errMaxNumberDevicesReached(user.getMaxNumOfDevices().toString())).show();
             return;

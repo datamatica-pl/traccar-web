@@ -47,7 +47,6 @@
           </menu:Menu>
         </button:menu>
       </button:TextButton>
-      <button:TextButton text="{i18n.importData}" ui:field="importButton" />
       <toolbar:FillToolItem/>
       <image:Image ui:field="logo" addStyleNames="{style.logo}"/>
       <toolbar:FillToolItem/>

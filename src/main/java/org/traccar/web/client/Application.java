@@ -40,7 +40,6 @@ import com.google.gwt.http.client.Request;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.Response;
 import com.google.gwt.user.client.ui.RootPanel;
-import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreHandlers;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
@@ -52,7 +51,6 @@ import org.traccar.web.client.model.api.IUsersService.EditUserSettingsDto;
 import org.traccar.web.client.model.api.Resources;
 import org.traccar.web.client.model.api.UsersService;
 import pl.datamatica.traccar.model.User;
-import pl.datamatica.traccar.model.UserGroup;
 import pl.datamatica.traccar.model.UserPermission;
 
 public class Application {
@@ -81,7 +79,6 @@ public class Application {
 
     private final SettingsController settingsController;
     private final NavController navController;
-    private final ImportController importController;
     private final DeviceController deviceController;
     private final RouteController routeController;
     private final CommandController commandController;
@@ -132,9 +129,8 @@ public class Application {
                 this);
         groupsController = new GroupsController(groupStore, deviceController);
         userGroupsController = new UserGroupsController();
-        importController = new ImportController(deviceController.getDeviceStore());
         logController = new LogController();
-        navController = new NavController(settingsController, reportStore, reportsController, importController, logController, groupsController, userGroupsController);
+        navController = new NavController(settingsController, reportStore, reportsController, logController, groupsController, userGroupsController);
         archiveController = new ArchiveController(archiveHandler, userSettingsHandler, deviceController.getDeviceStore(), reportStore, reportsController);
         
         updatesController = new UpdatesController();
@@ -156,15 +152,20 @@ public class Application {
                 navController.run();
                 deviceController.run();
                 mapController.run();
-                archiveController.run();
+                if(user.hasPermission(UserPermission.HISTORY_READ))
+                    archiveController.run();
                 if(user.hasPermission(UserPermission.GEOFENCE_READ))
                     geoFenceController.run();
-                commandController.run();
-                groupsController.run();
+                if(user.hasPermission(UserPermission.COMMAND_TCP))
+                    commandController.run();
+                if(user.hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT))
+                    groupsController.run();
                 visibilityController.run();
-                reportsController.run();
+                if(user.hasPermission(UserPermission.REPORTS))
+                    reportsController.run();
                 updatesController.run();
-                routeController.run();
+                if(user.hasPermission(UserPermission.TRACK_READ))
+                    routeController.run();
                 setupTimeZone();
                 updatesController.devicesLoaded(deviceController.getDeviceStore().getAll());
             }

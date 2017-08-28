@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import pl.datamatica.traccar.model.Group;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class ApplicationContext {
 
@@ -116,6 +117,8 @@ public class ApplicationContext {
     }
     
     public Set<User> getUsers() {
+        if(user.hasPermission(UserPermission.ALL_USERS))
+            return new HashSet<>(users.values());
         Set<User> copy = new HashSet<>();
         if(user.getManagedById() == null)
             copy.addAll(users.values());

@@ -520,7 +520,8 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         @Override
         public void bindIcons(SafeHtmlBuilder sb) {
-            appendIfExists(sb, alarms, i18n.alarmIconHint(), "alarms");
+            if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.ALERTS_READ))
+                appendIfExists(sb, alarms, i18n.alarmIconHint(), "alarms");
             appendIfExists(sb, ignition, i18n.ignition(), "ignition");
         }
         
@@ -1261,18 +1262,19 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             });
             menu.add(command);
         }
-
-        MenuItem report = new MenuItem(i18n.report());
-        report.setSubMenu(new ReportsMenu(reportStore, reportHandler, new ReportsMenu.ReportSettingsHandler() {
-            @Override
-            public void setSettings(ReportsDialog dialog) {
-                GroupedDevice node = grid.getSelectionModel().getSelectedItem();
-                if (deviceStore.isDevice(node)) {
-                    dialog.selectDevice((Device) node);
+        if(user.hasPermission(UserPermission.REPORTS)) {
+            MenuItem report = new MenuItem(i18n.report());
+            report.setSubMenu(new ReportsMenu(reportStore, reportHandler, new ReportsMenu.ReportSettingsHandler() {
+                @Override
+                public void setSettings(ReportsDialog dialog) {
+                    GroupedDevice node = grid.getSelectionModel().getSelectedItem();
+                    if (deviceStore.isDevice(node)) {
+                        dialog.selectDevice((Device) node);
+                    }
                 }
-            }
-        }));
-        menu.add(report);
+            }));
+            menu.add(report);
+        }
 
         return menu;
     }

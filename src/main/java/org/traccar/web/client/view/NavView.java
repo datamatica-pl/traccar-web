@@ -57,12 +57,6 @@ public class NavView {
 
     private final SettingsHandler settingsHandler;
 
-    public interface ImportHandler {
-        void onImport();
-    }
-
-    private final ImportHandler importHandler;
-
     public interface LogHandler {
         void onShowTrackerServerLog();
         void onShowWrapperLog();
@@ -118,9 +112,6 @@ public class NavView {
     MenuItem uGroupsButton;
 
     @UiField
-    TextButton importButton;
-
-    @UiField
     TextButton reportsButton;
     
     @UiField
@@ -135,12 +126,10 @@ public class NavView {
     public NavView(SettingsHandler settingsHandler,
                    ListStore<Report> reportListStore,
                    ReportsMenu.ReportHandler reportHandler,
-                   ImportHandler importHandler,
                    LogHandler logHandler,
                    GroupsHandler groupsHandler,
                    GroupsHandler uGroupsHandler) {
         this.settingsHandler = settingsHandler;
-        this.importHandler = importHandler;
         this.logHandler = logHandler;
         this.dGroupsHandler = groupsHandler;
         this.uGroupsHandler = uGroupsHandler;
@@ -151,26 +140,21 @@ public class NavView {
         uiBinder.createAndBindUi(this);
 
         User user = ApplicationContext.getInstance().getUser();
-        boolean readOnly = user.getReadOnly();
-        boolean admin = user.getAdmin();
-        boolean manager = user.getManager();
 
-        settingsButton.setVisible(admin || manager);
-        settingsAccount.setVisible(!readOnly);
-        settingsPreferences.setVisible(!readOnly);
+        settingsButton.setVisible(user.hasPermission(UserPermission.SERVER_MANAGEMENT)
+            || user.hasPermission(UserPermission.USER_MANAGEMENT));
+        settingsAccount.setVisible(true);
 
         settingsGlobal.setVisible(user.hasPermission(UserPermission.SERVER_MANAGEMENT));
-        logsButton.setVisible(admin);
-        showTrackerServerLog.setVisible(admin);
-        settingsUsers.setVisible(!readOnly && (admin || manager));
-        settingsNotifications.setVisible(!readOnly && (admin || manager));
-        importButton.setVisible(!readOnly &&
-                (!ApplicationContext.getInstance().getApplicationSettings().isDisallowDeviceManagementByUsers()
-                    || admin || manager));
+        logsButton.setVisible(user.hasPermission(UserPermission.LOGS_ACCESS));
+        showTrackerServerLog.setVisible(user.hasPermission(UserPermission.LOGS_ACCESS));
+        settingsUsers.setVisible(user.hasPermission(UserPermission.USER_MANAGEMENT));
+        settingsNotifications.setVisible(user.hasPermission(UserPermission.SERVER_MANAGEMENT));
 
-        if(readOnly && !user.hasPermission(UserPermission.USER_GROUP_MANAGEMENT))
+        if(!user.hasPermission(UserPermission.USER_GROUP_MANAGEMENT) 
+                && !user.hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT))
             groupsButton.setVisible(false);
-        dGroupsButton.setVisible(!readOnly);
+        dGroupsButton.setVisible(user.hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT));
         uGroupsButton.setVisible(user.hasPermission(UserPermission.USER_GROUP_MANAGEMENT));
 
         reportsButton.setMenu(new ReportsMenu(reportListStore, reportHandler, new ReportsMenu.ReportSettingsHandler() {
@@ -178,6 +162,7 @@ public class NavView {
             public void setSettings(ReportsDialog dialog) {
             }
         }));
+        reportsButton.setVisible(user.hasPermission(UserPermission.REPORTS));
     }
 
     @UiHandler("settingsAccount")
@@ -233,11 +218,6 @@ public class NavView {
     @UiHandler("showWrapperLog")
     public void onShowWrapperLog(SelectionEvent<Item> event) {
         logHandler.onShowWrapperLog();
-    }
-
-    @UiHandler("importButton")
-    public void onImportClicked(SelectEvent event) {
-        importHandler.onImport();
     }
 
     @UiHandler("dGroupsButton")

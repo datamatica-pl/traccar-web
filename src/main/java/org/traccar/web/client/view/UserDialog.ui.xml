@@ -109,7 +109,7 @@
         </form:FieldLabel>
       </container:child>
       <container:child layoutData="{verticalLayoutData}">
-        <form:FieldLabel text="{i18n.notifications}" labelWidth="160">
+        <form:FieldLabel text="{i18n.notifications}" labelWidth="160" ui:field="gridLbl">
           <form:widget>
             <grid:Grid ui:field="grid" store="{notificationEventStore}" cm="{columnModel}" view="{view}" />
           </form:widget>
