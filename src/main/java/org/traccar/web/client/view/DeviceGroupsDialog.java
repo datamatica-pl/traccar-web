@@ -49,6 +49,7 @@ import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 
 import java.util.*;
 import org.traccar.web.client.ApplicationContext;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class DeviceGroupsDialog implements SelectionChangedEvent.SelectionChangedHandler<Group> {
 
@@ -155,7 +156,8 @@ public class DeviceGroupsDialog implements SelectionChangedEvent.SelectionChange
         groupStore.addFilter(new StoreFilter<Group>() {
             @Override
             public boolean select(Store<Group> store, Group parent, Group item) {
-                return ApplicationContext.getInstance().getUser().getAdmin() || item.isShared();
+                return ApplicationContext.getInstance().getUser().hasPermission(UserPermission.ALL_DEVICES) 
+                        || item.isShared();
             }
         });
         groupStore.setEnableFilters(true);
@@ -200,7 +202,7 @@ public class DeviceGroupsDialog implements SelectionChangedEvent.SelectionChange
                  @Override
                  public void startEditing(Grid.GridCell cell) {
                      if(grid.getStore().get(cell.getRow()).isShared()
-                             || ApplicationContext.getInstance().getUser().getAdmin())
+                             || ApplicationContext.getInstance().getUser().hasPermission(UserPermission.ALL_DEVICES))
                         super.startEditing(cell);
                  }
                  

@@ -27,12 +27,11 @@ public class NavController implements ContentController {
     public NavController(NavView.SettingsHandler settingsHandler,
                          ListStore<Report> reportStore,
                          ReportsMenu.ReportHandler reportsHandler,
-                         NavView.ImportHandler importHandler,
                          NavView.LogHandler logHandler,
                          NavView.GroupsHandler groupsHandler,
                          NavView.GroupsHandler uGroupsHandler) {
         navView = new NavView(settingsHandler, reportStore, reportsHandler, 
-                importHandler, logHandler, groupsHandler, uGroupsHandler);
+                logHandler, groupsHandler, uGroupsHandler);
     }
 
     @Override

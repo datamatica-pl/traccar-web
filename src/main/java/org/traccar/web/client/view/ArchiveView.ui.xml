@@ -51,14 +51,6 @@
                     <button:TextButton ui:field="clearButton" text="{i18n.clear}" />
                     <toolbar:FillToolItem />
                     <button:TextButton ui:field="reportButton" text="{i18n.report}" />
-                    <button:TextButton text="{i18n.exportData}">
-                        <button:menu>
-                            <menu:Menu>
-                                <menu:MenuItem ui:field="csvButton" text="{i18n.exportToCSV}"/>
-                                <menu:MenuItem ui:field="gpxButton" text="{i18n.exportToGPX}"/>
-                            </menu:Menu>
-                        </button:menu>
-                    </button:TextButton>
                 </toolbar:ToolBar>
             </container:child>
             <container:child layoutData="{layoutData}">

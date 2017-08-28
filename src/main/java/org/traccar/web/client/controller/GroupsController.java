@@ -39,6 +39,7 @@ import org.traccar.web.client.model.GroupStore;
 import org.traccar.web.client.model.api.GroupService;
 import org.traccar.web.client.model.api.IGroupService.AddDeviceGroupDto;
 import org.traccar.web.client.model.api.IGroupService.DeviceGroupDto;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class GroupsController implements NavView.GroupsHandler, ContentController {
     private static final DeviceGroupsDialog.GroupsHandler EMPTY_GROUPS_HANDLER = new DeviceGroupsDialog.GroupsHandler() {
@@ -220,7 +221,8 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
                                     @Override
                                     public void onResponseReceived(Request request, Response response) {
                                         User u = ApplicationContext.getInstance().getUser();
-                                        if(!u.getAdmin() && !uids.contains(u.getId()))
+                                        if(!u.hasPermission(UserPermission.ALL_DEVICES)
+                                                && !uids.contains(u.getId()))
                                             groupStore.remove(group);
                                         window.hide();
                                     }

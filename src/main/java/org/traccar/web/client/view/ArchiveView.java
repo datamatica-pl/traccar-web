@@ -52,6 +52,8 @@ import com.sencha.gxt.data.shared.event.StoreHandlers;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandler<Position> {
 
@@ -161,6 +163,8 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
 
         periodCombo.init(fromDate, fromTime, toDate, toTime);
 
+        User user = ApplicationContext.getInstance().getUser();
+        reportButton.setVisible(user.hasPermission(UserPermission.REPORTS));
         reportButton.setMenu(new ReportsMenu(reportStore, reportHandler, new ReportsMenu.ReportSettingsHandler() {
             @Override
             public void setSettings(ReportsDialog dialog) {
@@ -204,39 +208,6 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
             devicesTabs.remove(entry.getValue().getContentPanel());
         }
         archivePanels.clear();
-    }
-
-    @UiHandler("csvButton")
-    public void onCSVClicked(SelectionEvent<Item> event) {
-        if (deviceCombo.getValue() == null) {
-            new AlertMessageBox(i18n.error(), i18n.errFillFields()).show();
-        } else {
-            DateTimeFormat jsonTimeFormat = ApplicationContext.getInstance().getFormatterUtil().getRequestTimeFormat();
-
-            Window.open("traccar/export/csv" +
-                            "?deviceId=" + (deviceCombo.getValue() == null ? null : deviceCombo.getValue().getId()) +
-                            "&from=" + jsonTimeFormat.format(getCombineDate(fromDate, fromTime)).replaceFirst("\\+", "%2B") +
-                            "&to=" + jsonTimeFormat.format(getCombineDate(toDate, toTime)).replaceFirst("\\+", "%2B") +
-                            "&filter=" + true +
-                            "&locale=" + LocaleInfo.getCurrentLocale().getLocaleName(),
-                    "_blank", null);
-        }
-    }
-
-    @UiHandler("gpxButton")
-    public void onGPXClicked(SelectionEvent<Item> event) {
-        if (deviceCombo.getValue() == null) {
-            new AlertMessageBox(i18n.error(), i18n.errFillFields()).show();
-        } else {
-            DateTimeFormat jsonTimeFormat = ApplicationContext.getInstance().getFormatterUtil().getRequestTimeFormat();
-
-            Window.open("traccar/export/gpx" +
-                            "?deviceId=" + (deviceCombo.getValue() == null ? null : deviceCombo.getValue().getId()) +
-                            "&from=" + jsonTimeFormat.format(getCombineDate(fromDate, fromTime)).replaceFirst("\\+", "%2B") +
-                            "&to=" + jsonTimeFormat.format(getCombineDate(toDate, toTime)).replaceFirst("\\+", "%2B") +
-                            "&filter=" + true,
-                    "_blank", null);
-        }
     }
 
     @UiHandler("filterButton")

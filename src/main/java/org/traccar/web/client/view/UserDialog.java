@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class UserDialog implements Editor<User> {
 
@@ -83,15 +84,6 @@ public class UserDialog implements Editor<User> {
     TextField phoneNumber;
 
     @UiField
-    CheckBox admin;
-
-    @UiField
-    CheckBox manager;
-
-    @UiField
-    CheckBox readOnly;
-
-    @UiField
     DateField expirationDate;
 
     @UiField(provided = true)
@@ -103,6 +95,9 @@ public class UserDialog implements Editor<User> {
     @UiField
     TextField email;
 
+    @UiField
+    FieldLabel gridLbl;
+    
     @UiField
     Grid<DeviceEventType> grid;
 
@@ -144,26 +139,22 @@ public class UserDialog implements Editor<User> {
         notificationEventStore.addAll(Arrays.asList(DeviceEventType.values()));
 
         uiBinder.createAndBindUi(this);
-
+        
+        gridLbl.setVisible(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.NOTIFICATIONS));
         grid.setSelectionModel(selectionModel);
         grid.getView().setForceFit(true);
         grid.getView().setAutoFill(true);
         for (DeviceEventType deviceEventType : user.getTransferNotificationEvents()) {
             grid.getSelectionModel().select(deviceEventType, true);
         }
-
+        
         User currentUser = ApplicationContext.getInstance().getUser();
-        if (currentUser.getAdmin() || currentUser.getManager()) {
-            admin.setEnabled(currentUser.getAdmin());
-            manager.setEnabled(true);
-            readOnly.setEnabled(true);
+        if ((currentUser.hasPermission(UserPermission.ALL_USERS) || !currentUser.equals(user))
+                && currentUser.hasPermission(UserPermission.USER_MANAGEMENT)) {
             expirationDate.setEnabled(true);
             maxNumOfDevices.setEnabled(true);
         }
         else {
-            manager.setEnabled(false);
-            admin.setEnabled(false);
-            readOnly.setEnabled(false);
             expirationDate.setEnabled(false);
             maxNumOfDevices.setEnabled(false);
         }
