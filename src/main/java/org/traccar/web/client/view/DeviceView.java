@@ -59,6 +59,7 @@ import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.TabItemConfig;
 import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.button.TextButton;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.CellDoubleClickEvent;
 import com.sencha.gxt.widget.core.client.event.HeaderClickEvent;
 import com.sencha.gxt.widget.core.client.event.HeaderClickEvent.HeaderClickHandler;
@@ -569,6 +570,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
     @UiField(provided = true)
     TabPanel objectsTabs;
+    
+    @UiField
+    VerticalLayoutContainer deviceList;
 
     ColumnModel<GroupedDevice> columnModel;
 
@@ -924,6 +928,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         if(!user.hasPermission(UserPermission.GEOFENCE_READ)) {
             objectsTabs.remove(geoFenceList);
         }
+        if(!user.hasPermission(UserPermission.TRACK_READ)) {
+            objectsTabs.remove(routeGrid);
+        }
         
         grid.getSelectionModel().addSelectionChangedHandler(deviceSelectionHandler);
         grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
@@ -967,15 +974,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         view.setShowDirtyCells(false);
         editing.addEditor(colFollow, new CheckBox());
         editing.addEditor(colRecordTrace, new CheckBox());
-
-        boolean readOnly = ApplicationContext.getInstance().getUser().getReadOnly();
-
-        shareButton.setVisible(allowDeviceSharing());
-
-        addButton.setVisible(!readOnly);
-        editButton.setVisible(!readOnly);
-        removeButton.setVisible(!readOnly);
-        commandButton.setVisible(allowCommandsSending());
+        
         toggleManagementButtons(null);
     }
 
@@ -1149,6 +1148,10 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         routeHandler.onSelected(null);
         toggleManagementButtons(null);
     }
+    
+    private boolean editingDevices() {
+        return objectsTabs.getActiveWidget() == deviceList;
+    }
 
     private boolean editingGeoFences() {
         return objectsTabs.getActiveWidget() == geoFenceList;
@@ -1162,44 +1165,22 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         if (selection instanceof Group) {
             selection = null;
         }
-
-        addButton.setEnabled(allowDeviceManagement() || editingGeoFences()
-                || editingRoutes());
-        editButton.setEnabled(selection != null && (allowDeviceManagement() || editingGeoFences()
-                || editingRoutes()));
-        removeButton.setEnabled(selection != null && (allowDeviceManagement() || editingGeoFences()
-                || editingRoutes()));
-        commandButton.setEnabled(selection != null && !editingGeoFences() && !editingRoutes()
-                && allowCommandsSending() && allowDeviceManagement());
-        shareButton.setEnabled(selection != null && !editingRoutes());
-    }
-
-    private boolean allowDeviceManagement() {
-        boolean readOnly = ApplicationContext.getInstance().getUser().getReadOnly();
-        if (!readOnly) {
-            boolean admin = ApplicationContext.getInstance().getUser().getAdmin();
-            boolean manager = ApplicationContext.getInstance().getUser().getManager();
-            return admin || manager || !ApplicationContext.getInstance().getApplicationSettings().isDisallowDeviceManagementByUsers();
-        }
-        return false;
-    }
-
-    private boolean allowCommandsSending() {
-        boolean readOnly = ApplicationContext.getInstance().getUser().getReadOnly();
-        if (!readOnly) {
-            boolean admin = ApplicationContext.getInstance().getUser().getAdmin();
-            return admin || !ApplicationContext.getInstance().getApplicationSettings().isAllowCommandsOnlyForAdmins();
-        }
-        return false;
-    }
-
-    private boolean allowDeviceSharing() {
-        boolean readOnly = ApplicationContext.getInstance().getUser().getReadOnly();
-        if (!readOnly) {
-            return ApplicationContext.getInstance().getUser().getAdmin()
-                    || ApplicationContext.getInstance().getUser().getManager();
-        }
-        return false;
+        
+        User user = ApplicationContext.getInstance().getUser();
+        addButton.setEnabled((editingDevices() && user.hasPermission(UserPermission.DEVICE_EDIT))|| 
+                (editingGeoFences() && user.hasPermission(UserPermission.GEOFENCE_EDIT)) || 
+                (editingRoutes() && user.hasPermission(UserPermission.TRACK_EDIT)));
+        editButton.setEnabled(selection != null && (
+                (editingDevices() && user.hasPermission(UserPermission.DEVICE_EDIT)) || 
+                (editingGeoFences() && user.hasPermission(UserPermission.GEOFENCE_EDIT)) || 
+                (editingRoutes() && user.hasPermission(UserPermission.TRACK_EDIT))));
+        removeButton.setEnabled(editButton.isEnabled());
+        commandButton.setEnabled(selection != null && editingDevices() &&
+                user.hasPermission(UserPermission.COMMAND_TCP));
+        shareButton.setEnabled(selection != null && (
+                (editingDevices() && user.hasPermission(UserPermission.DEVICE_SHARE)) ||
+                (editingGeoFences() && user.hasPermission(UserPermission.GEOFENCE_SHARE)) ||
+                (editingRoutes() && user.hasPermission(UserPermission.TRACK_SHARE))));
     }
 
     interface HeaderIconTemplate extends XTemplates {
@@ -1239,7 +1220,8 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     private Menu createDeviceGridContextMenu(final ListStore<Report> reportStore,
                                              final ReportsMenu.ReportHandler reportHandler) {
         Menu menu = new Menu();
-        if (allowDeviceManagement()) {
+        User user = ApplicationContext.getInstance().getUser();
+        if (user.hasPermission(UserPermission.DEVICE_EDIT)) {
             MenuItem edit = new MenuItem(i18n.edit());
             edit.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override
@@ -1249,7 +1231,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             });
             menu.add(edit);
         }
-        if (allowDeviceSharing()) {
+        if (user.hasPermission(UserPermission.DEVICE_SHARE)) {
             MenuItem share = new MenuItem(i18n.share());
             share.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override
@@ -1259,7 +1241,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             });
             menu.add(share);
         }
-        if (allowDeviceManagement()) {
+        if (user.hasPermission(UserPermission.DEVICE_EDIT)) {
             MenuItem remove = new MenuItem(i18n.remove());
             remove.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override
@@ -1269,7 +1251,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             });
             menu.add(remove);
         }
-        if (allowCommandsSending()) {
+        if (user.hasPermission(UserPermission.COMMAND_TCP)) {
             MenuItem command = new MenuItem(i18n.command());
             command.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override
