@@ -134,28 +134,25 @@ public class UserGroupsController implements NavView.GroupsHandler,
 
             @Override
             public void onSuccess(Method method, Set<Long> response) {
+                boolean isDefault = group.getId() == ApplicationContext.getInstance().getApplicationSettings().getDefaultGroupId();
                 UserProperties up = GWT.create(UserProperties.class);
-                if(group.getId() == ApplicationContext.getInstance().getApplicationSettings().getDefaultGroupId())
-                    new UserShareDialog(response).show();
-                else {
-                    new UserShareDialog(response, new UserShareHandler() {
-                        @Override
-                        public void onSaveShares(List<Long> uids, Window window) {
-                            service.updateGroupUsers(group.getId(), uids, new RequestCallback(){
-                                @Override
-                                public void onResponseReceived(Request request, Response response) {
-                                    //do nothing
-                                }
+                new UserShareDialog(response, new UserShareHandler() {
+                    @Override
+                    public void onSaveShares(List<Long> uids, Window window) {
+                        service.updateGroupUsers(group.getId(), uids, new RequestCallback(){
+                            @Override
+                            public void onResponseReceived(Request request, Response response) {
+                                //do nothing
+                            }
 
-                                @Override
-                                public void onError(Request request, Throwable exception) {
-                                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                                }
+                            @Override
+                            public void onError(Request request, Throwable exception) {
+                                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                            }
 
-                            });
-                        }
-                    }).show();
-                }
+                        });
+                    }
+                }, !isDefault).show();
             }
         });
     }

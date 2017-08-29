@@ -15,6 +15,7 @@
  */
 package org.traccar.web.client.view;
 
+import com.google.gwt.cell.client.Cell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
@@ -106,25 +107,12 @@ public class UserShareDialog {
     
     @UiField(provided = true)
     StoreFilterField<UserShared> userFilter;
-    
-    /**
-     * Read-only user share dialog
-     * @param shares
-     */
-    public UserShareDialog(Set<Long> shares) {
-        this(shares, new UserShareHandler(){
-            @Override
-            public void onSaveShares(List<Long> shares, Window window) {
-                //empty
-            }
-        }, false);
-    }
 
     public UserShareDialog(Set<Long> shares, UserShareHandler shareHandler) {
         this(shares, shareHandler, true);
     }
 
-    private UserShareDialog(Set<Long> shares, UserShareHandler shareHandler, 
+    public UserShareDialog(Set<Long> shares, UserShareHandler shareHandler, 
             final boolean editable) {
         this.shareHandler = shareHandler;
 
@@ -157,47 +145,16 @@ public class UserShareDialog {
         ColumnConfig<UserShared, Boolean> colManager = new ColumnConfig<>(userSharedProperties.shared(), 25, i18n.share());
         colManager.setCell(new CheckBoxCell() {
             @Override
-            public CheckBoxCell.CheckBoxAppearance getAppearance() {
-                final CheckBoxCell.CheckBoxAppearance sa = super.getAppearance();
-                return new CheckBoxCell.CheckBoxAppearance() {
-                    @Override
-                    public void render(SafeHtmlBuilder sb, Boolean value, CheckBoxCell.CheckBoxCellOptions opts) {
-                        opts.setDisabled(!editable);
-                        sa.render(sb, value, opts);
-                    }
-
-                    @Override
-                    public void setBoxLabel(String boxLabel, XElement parent) {
-                        sa.setBoxLabel(boxLabel, parent);
-                    }
-
-                    @Override
-                    public XElement getInputElement(Element parent) {
-                        return sa.getInputElement(parent);
-                    }
-
-                    @Override
-                    public void onEmpty(Element parent, boolean empty) {
-                        sa.onEmpty(parent, empty);
-                    }
-
-                    @Override
-                    public void onFocus(Element parent, boolean focus) {
-                        sa.onFocus(parent, focus);
-                    }
-
-                    @Override
-                    public void onValid(Element parent, boolean valid) {
-                        sa.onValid(parent, valid);
-                    }
-
-                    @Override
-                    public void setReadOnly(Element parent, boolean readonly) {
-                        sa.setReadOnly(parent, readonly);
-                    }
-                };
+            public void render(Cell.Context context, Boolean value, SafeHtmlBuilder sb) {
+                if(editable || !value 
+                        || shareStore.getRecord(shareStore.get(context.getIndex())).isDirty())
+                    super.render(context, value, sb);
+                else {
+                    CheckBoxCellOptions opts = new CheckBoxCellOptions();
+                    opts.setDisabled(true);
+                    getAppearance().render(sb, value, opts);
+                }
             }
-            
         });
         columnConfigList.add(colManager);
 
