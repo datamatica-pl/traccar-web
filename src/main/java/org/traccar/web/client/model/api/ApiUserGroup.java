@@ -28,6 +28,7 @@ public class ApiUserGroup {
     public long id;
     public String name;
     public Set<UserPermission> permissions;
+    private boolean changed = false;
     
     
     public ApiUserGroup() {
@@ -37,7 +38,10 @@ public class ApiUserGroup {
     public ApiUserGroup(ApiUserGroup copy) {
         this.id = copy.id;
         this.name = copy.name;
-        this.permissions = EnumSet.copyOf(copy.permissions);
+        if(copy.permissions.isEmpty())
+            this.permissions = EnumSet.noneOf(UserPermission.class);
+        else
+            this.permissions = EnumSet.copyOf(copy.permissions);
     }
     
     public long getId() {
@@ -70,6 +74,14 @@ public class ApiUserGroup {
     
     public void revokePermission(UserPermission p) {
         permissions.remove(p);
+    }
+    
+    public boolean isChanged() {
+        return changed;
+    }
+    
+    public void setChanged(boolean changed) {
+        this.changed = changed;
     }
 
     public UserGroup toUserGroup() {

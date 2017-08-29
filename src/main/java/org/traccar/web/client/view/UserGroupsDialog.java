@@ -15,7 +15,12 @@
  */
 package org.traccar.web.client.view;
 
+import com.google.gwt.cell.client.Cell;
+import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.BrowserEvents;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -25,6 +30,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
 import com.sencha.gxt.core.client.Style;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
@@ -36,7 +42,12 @@ import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.UserGroupProperties;
@@ -105,11 +116,40 @@ public class UserGroupsDialog {
         cName.setFixed(true);
         cName.setHideable(false);
         ccList.add(cName);
-        for(UserPermission p : UserPermission.values()) {
+        for(final UserPermission p : UserPermission.values()) {
             ColumnConfig<ApiUserGroup, Boolean> cc = new ColumnConfig<>(ugp.permission(p), 
                     9*p.name().length(), p.name());
-            //cc.setToolTip();
-            cc.setCell(new CheckBoxCell());
+            cc.setCell(new CheckBoxCell() {
+                @Override
+                public void onBrowserEvent(Cell.Context context, Element parent, Boolean value, NativeEvent event, ValueUpdater<Boolean> valueUpdater) {
+                    super.onBrowserEvent(context, parent, value, event, valueUpdater);
+                    if(!event.getType().equals(BrowserEvents.MOUSEUP))
+                        return;
+                    
+                    ApiUserGroup grp = grid.getStore().get(context.getIndex());
+                    Store<ApiUserGroup>.Record record = grid.getStore().getRecord(grp);
+                    PermissionManager pm = new PermissionManager();
+                    ApiUserGroup before = record.getModel();
+                    ApiUserGroup after = new ApiUserGroup(before);
+                    for(Store.Change<ApiUserGroup, ?> c : record.getChanges())
+                        c.modify(after);
+                    if(after.hasPermission(p))
+                        after.revokePermission(p);
+                    else
+                        after.grantPermission(p);
+
+                    if(after.hasPermission(p) && !before.hasPermission(p))
+                        for(UserPermission up : pm.getRequiredPermissions(p))
+                            if(!after.hasPermission(up))
+                                after.grantPermission(up);
+                    if(!after.hasPermission(p) && before.hasPermission(p))
+                        for(UserPermission up: pm.getRequiringPermissions(p))
+                            if(after.hasPermission(up))
+                                after.revokePermission(up);
+                    after.setChanged(true);
+                    grid.getStore().update(after);
+                } 
+            });
             cc.setFixed(true);
             cc.setResizable(false);
             cc.setHideable(false);
@@ -117,7 +157,7 @@ public class UserGroupsDialog {
         }
         return new ColumnModel<>(ccList);
     }
-    
+
     public void show() {
         window.show();
     }
@@ -192,5 +232,65 @@ public class UserGroupsDialog {
         void onRemove(ApiUserGroup group);
         void onSave();
         void onShowUsers(ApiUserGroup group);
+    }
+    
+        public static class PermissionManager {
+        private final Map<UserPermission, Set<UserPermission>> required;
+        private final Map<UserPermission, Set<UserPermission>> requiring;
+        private static final PermissionManager INSTANCE = new PermissionManager();
+        
+        public static PermissionManager get() {
+            return INSTANCE;
+        }
+        
+        public PermissionManager() {
+            required = new EnumMap<>(UserPermission.class);
+            requiring = new EnumMap<>(UserPermission.class);
+            
+            required.put(UserPermission.DEVICE_EDIT, Collections.EMPTY_SET);
+            required.put(UserPermission.DEVICE_SHARE, EnumSet.of(UserPermission.USER_MANAGEMENT));
+            required.put(UserPermission.GEOFENCE_READ, Collections.EMPTY_SET);
+            required.put(UserPermission.GEOFENCE_EDIT, EnumSet.of(UserPermission.GEOFENCE_READ));
+            required.put(UserPermission.GEOFENCE_SHARE, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.USER_MANAGEMENT));
+            required.put(UserPermission.TRACK_READ, EnumSet.of(UserPermission.GEOFENCE_READ));
+            required.put(UserPermission.TRACK_EDIT, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.GEOFENCE_EDIT, UserPermission.TRACK_READ));
+            required.put(UserPermission.TRACK_SHARE, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.TRACK_READ, UserPermission.GEOFENCE_SHARE));
+            required.put(UserPermission.HISTORY_READ, Collections.EMPTY_SET);
+            required.put(UserPermission.COMMAND_TCP, Collections.EMPTY_SET);
+            required.put(UserPermission.COMMAND_SMS, Collections.EMPTY_SET);
+            required.put(UserPermission.COMMAND_CUSTOM, EnumSet.of(UserPermission.COMMAND_TCP));
+            required.put(UserPermission.DEVICE_STATS, EnumSet.of(UserPermission.HISTORY_READ));
+            required.put(UserPermission.REPORTS, EnumSet.of(UserPermission.HISTORY_READ));
+            required.put(UserPermission.ALERTS_READ, EnumSet.of(UserPermission.HISTORY_READ));
+            required.put(UserPermission.NOTIFICATIONS, EnumSet.of(UserPermission.HISTORY_READ, UserPermission.ALERTS_READ));
+            required.put(UserPermission.DEVICE_GROUP_MANAGEMENT, EnumSet.of(UserPermission.DEVICE_EDIT, UserPermission.DEVICE_SHARE, UserPermission.USER_MANAGEMENT));
+            required.put(UserPermission.ALL_DEVICES, EnumSet.of(UserPermission.DEVICE_EDIT, UserPermission.DEVICE_SHARE, UserPermission.HISTORY_READ, UserPermission.COMMAND_TCP, UserPermission.COMMAND_SMS, UserPermission.DEVICE_STATS, UserPermission.REPORTS, UserPermission.ALERTS_READ, UserPermission.DEVICE_GROUP_MANAGEMENT, UserPermission.USER_MANAGEMENT));
+            required.put(UserPermission.ALL_GEOFENCES, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.GEOFENCE_EDIT, UserPermission.GEOFENCE_SHARE, UserPermission.USER_MANAGEMENT));
+            required.put(UserPermission.ALL_TRACKS, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.GEOFENCE_EDIT, UserPermission.TRACK_READ, UserPermission.TRACK_EDIT, UserPermission.TRACK_SHARE, UserPermission.USER_MANAGEMENT));
+            required.put(UserPermission.USER_MANAGEMENT, Collections.EMPTY_SET);
+            required.put(UserPermission.ALL_USERS, EnumSet.of(UserPermission.USER_MANAGEMENT));
+            required.put(UserPermission.USER_GROUP_MANAGEMENT, EnumSet.of(UserPermission.USER_MANAGEMENT, UserPermission.ALL_USERS, UserPermission.SERVER_MANAGEMENT));
+            required.put(UserPermission.RESOURCE_MANAGEMENT, Collections.EMPTY_SET);
+            required.put(UserPermission.LOGS_ACCESS, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.TRACK_READ, UserPermission.HISTORY_READ));
+            required.put(UserPermission.AUDIT_ACCESS, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.TRACK_READ, UserPermission.HISTORY_READ, UserPermission.LOGS_ACCESS));
+            required.put(UserPermission.SERVER_MANAGEMENT, Collections.EMPTY_SET);
+            required.put(UserPermission.ALLOW_MOBILE, Collections.EMPTY_SET);
+            
+            for(UserPermission up : UserPermission.values()) {
+                EnumSet<UserPermission> requiringSet = EnumSet.noneOf(UserPermission.class);
+                for(UserPermission perm : required.keySet())
+                    if(required.get(perm).contains(up))
+                        requiringSet.add(perm);
+                requiring.put(up, requiringSet);
+            }
+        }
+        
+        public Set<UserPermission> getRequiredPermissions(UserPermission up) {
+            return required.get(up);
+        }
+        
+        public Set<UserPermission> getRequiringPermissions(UserPermission up) {
+            return requiring.get(up);
+        }
     }
 }
