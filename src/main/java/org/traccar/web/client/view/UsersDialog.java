@@ -36,6 +36,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.Style.SelectionMode;
+import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.widget.core.client.Window;
@@ -47,6 +48,7 @@ import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 import java.util.ArrayList;
+import pl.datamatica.traccar.model.UserGroup;
 import pl.datamatica.traccar.model.UserPermission;
 
 public class UsersDialog implements SelectionChangedEvent.SelectionChangedHandler<User> {
@@ -123,6 +125,11 @@ public class UsersDialog implements SelectionChangedEvent.SelectionChangedHandle
     private ColumnModel<User> prepareColumnModel(UserProperties userProperties) {
         List<ColumnConfig<User, ?>> columnConfigList = new ArrayList<>();
         columnConfigList.add(new ColumnConfig<>(userProperties.login(), 25, i18n.name()));
+        
+        ColumnConfig<User, String> colGroup = new ColumnConfig<>(userProperties.userGroupName(), 100, i18n.group());
+        colGroup.setFixed(true);
+        colGroup.setResizable(false);
+        columnConfigList.add(colGroup);
         
         ColumnConfig<User, Boolean> colBlocked = new ColumnConfig<>(userProperties.blocked(), 75, i18n.blocked());
         colBlocked.setCell(new CheckBoxCell());
