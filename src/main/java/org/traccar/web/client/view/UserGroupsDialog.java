@@ -15,13 +15,14 @@
  */
 package org.traccar.web.client.view;
 
+import com.google.gwt.cell.client.Cell;
+import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.dom.client.BrowserEvents;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -33,21 +34,13 @@ import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
-import com.sencha.gxt.widget.core.client.event.CompleteEditEvent;
-import com.sencha.gxt.widget.core.client.event.CompleteEditEvent.CompleteEditHandler;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent.DialogHideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.form.CheckBox;
-import com.sencha.gxt.widget.core.client.form.TextField;
-import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
-import com.sencha.gxt.widget.core.client.grid.Grid.GridCell;
 import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
-import com.sencha.gxt.widget.core.client.grid.editing.GridEditing;
-import com.sencha.gxt.widget.core.client.grid.editing.GridInlineEditing;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -59,7 +52,6 @@ import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.UserGroupProperties;
 import org.traccar.web.client.model.api.ApiUserGroup;
-import pl.datamatica.traccar.model.Group;
 import pl.datamatica.traccar.model.UserPermission;
 
 /**
@@ -114,7 +106,6 @@ public class UserGroupsDialog {
         });
         onSelectionChanged(null);
         grid.setSelectionModel(selModel);
-        prepareEditing(grid);
     }
     
     private ColumnModel<ApiUserGroup> prepareColumnModel() {
@@ -125,48 +116,46 @@ public class UserGroupsDialog {
         cName.setFixed(true);
         cName.setHideable(false);
         ccList.add(cName);
-        for(UserPermission p : UserPermission.values()) {
+        for(final UserPermission p : UserPermission.values()) {
             ColumnConfig<ApiUserGroup, Boolean> cc = new ColumnConfig<>(ugp.permission(p), 
                     9*p.name().length(), p.name());
+            cc.setCell(new CheckBoxCell() {
+                @Override
+                public void onBrowserEvent(Cell.Context context, Element parent, Boolean value, NativeEvent event, ValueUpdater<Boolean> valueUpdater) {
+                    super.onBrowserEvent(context, parent, value, event, valueUpdater);
+                    if(!event.getType().equals(BrowserEvents.MOUSEUP))
+                        return;
+                    
+                    ApiUserGroup grp = grid.getStore().get(context.getIndex());
+                    Store<ApiUserGroup>.Record record = grid.getStore().getRecord(grp);
+                    PermissionManager pm = new PermissionManager();
+                    ApiUserGroup before = record.getModel();
+                    ApiUserGroup after = new ApiUserGroup(before);
+                    for(Store.Change<ApiUserGroup, ?> c : record.getChanges())
+                        c.modify(after);
+                    if(after.hasPermission(p))
+                        after.revokePermission(p);
+                    else
+                        after.grantPermission(p);
+
+                    if(after.hasPermission(p) && !before.hasPermission(p))
+                        for(UserPermission up : pm.getRequiredPermissions(p))
+                            if(!after.hasPermission(up))
+                                after.grantPermission(up);
+                    if(!after.hasPermission(p) && before.hasPermission(p))
+                        for(UserPermission up: pm.getRequiringPermissions(p))
+                            if(after.hasPermission(up))
+                                after.revokePermission(up);
+                    after.setChanged(true);
+                    grid.getStore().update(after);
+                } 
+            });
             cc.setFixed(true);
             cc.setResizable(false);
             cc.setHideable(false);
             ccList.add(cc);
         }
         return new ColumnModel<>(ccList);
-    }
-    
-    private GridEditing<ApiUserGroup> prepareEditing(final Grid<ApiUserGroup> grid) {
-        final UserGroupProperties ugp = new UserGroupProperties();
-        GridInlineEditing<ApiUserGroup> editing = new GridInlineEditing<>(grid);
-        for(int i=1;i<grid.getColumnModel().getColumnCount();++i) {
-            ColumnConfig<ApiUserGroup, Boolean> cc = grid.getColumnModel().getColumn(i);
-            editing.addEditor(cc, new CheckBox());
-        }
-        editing.addCompleteEditHandler(new CompleteEditHandler<ApiUserGroup>() {
-            @Override
-            public void onCompleteEdit(CompleteEditEvent<ApiUserGroup> event) {
-                GridCell cell = event.getEditCell();
-                UserPermission p = UserPermission.values()[cell.getCol()-1];
-                Store<ApiUserGroup>.Record record = grid.getStore().getRecord(grid.getSelectionModel().getSelectedItem());
-                PermissionManager pm = new PermissionManager();
-                ApiUserGroup before = record.getModel();
-                ApiUserGroup after = new ApiUserGroup(before);
-                for(Store.Change<ApiUserGroup, ?> c : record.getChanges())
-                    c.modify(after);
-                
-                if(after.hasPermission(p) && !before.hasPermission(p))
-                    for(UserPermission up : pm.getRequiredPermissions(p))
-                        if(!after.hasPermission(up))
-                            after.grantPermission(up);
-                if(!after.hasPermission(p) && before.hasPermission(p))
-                    for(UserPermission up: pm.getRequiringPermissions(p))
-                        if(after.hasPermission(up))
-                            after.revokePermission(up);
-                grid.getStore().update(after);
-            }
-        });
-        return editing;
     }
 
     public void show() {

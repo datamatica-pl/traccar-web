@@ -164,15 +164,16 @@ public class UserGroupsController implements NavView.GroupsHandler,
     public void onSave() {
         userGroups.commitChanges();
         for(ApiUserGroup grp : userGroups.getAll())
-            service.updateGroup(grp.getId(), grp, new RequestCallback() {
-                @Override
-                public void onResponseReceived(Request request, Response response) {
-                }
+            if(grp.isChanged())
+                service.updateGroup(grp.getId(), grp, new RequestCallback() {
+                    @Override
+                    public void onResponseReceived(Request request, Response response) {
+                    }
 
-                @Override
-                public void onError(Request request, Throwable exception) {
-                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                }
-            });
+                    @Override
+                    public void onError(Request request, Throwable exception) {
+                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                    }
+                });
     }
 }
