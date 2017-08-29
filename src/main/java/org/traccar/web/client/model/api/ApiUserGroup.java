@@ -37,7 +37,10 @@ public class ApiUserGroup {
     public ApiUserGroup(ApiUserGroup copy) {
         this.id = copy.id;
         this.name = copy.name;
-        this.permissions = EnumSet.copyOf(copy.permissions);
+        if(copy.permissions.isEmpty())
+            this.permissions = EnumSet.noneOf(UserPermission.class);
+        else
+            this.permissions = EnumSet.copyOf(copy.permissions);
     }
     
     public long getId() {

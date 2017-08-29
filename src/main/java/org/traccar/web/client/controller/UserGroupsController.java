@@ -162,15 +162,11 @@ public class UserGroupsController implements NavView.GroupsHandler,
 
     @Override
     public void onSave() {
-        List<ApiUserGroup> changed;
-        for(final Store<ApiUserGroup>.Record r : userGroups.getModifiedRecords()) {
-            ApiUserGroup grp = new ApiUserGroup(r.getModel());
-            for(Store.Change<ApiUserGroup, ?> c: r.getChanges())
-                c.modify(grp);
+        userGroups.commitChanges();
+        for(ApiUserGroup grp : userGroups.getAll())
             service.updateGroup(grp.getId(), grp, new RequestCallback() {
                 @Override
                 public void onResponseReceived(Request request, Response response) {
-                    r.commit(false);
                 }
 
                 @Override
@@ -178,6 +174,5 @@ public class UserGroupsController implements NavView.GroupsHandler,
                     new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                 }
             });
-        }
     }
 }

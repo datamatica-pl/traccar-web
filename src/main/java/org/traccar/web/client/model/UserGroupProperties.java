@@ -18,6 +18,7 @@ package org.traccar.web.client.model;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
+import com.sencha.gxt.data.shared.Store;
 import org.traccar.web.client.model.api.ApiUserGroup;
 import pl.datamatica.traccar.model.UserPermission;
 
@@ -81,15 +82,20 @@ public class UserGroupProperties {
 
         @Override
         public void setValue(ApiUserGroup object, Boolean value) {
-            if(value)
+            if(value) {
                 object.grantPermission(permission);
-            else
+            } else {
                 object.revokePermission(permission);
+            }
         }
 
         @Override
         public String getPath() {
             return permission.name();
+        }
+        
+        public UserPermission getPermission() {
+            return permission;
         }
     }
 }
