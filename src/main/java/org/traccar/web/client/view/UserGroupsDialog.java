@@ -263,9 +263,10 @@ public class UserGroupsDialog {
             required.put(UserPermission.REPORTS, EnumSet.of(UserPermission.HISTORY_READ));
             required.put(UserPermission.ALERTS_READ, EnumSet.of(UserPermission.HISTORY_READ));
             required.put(UserPermission.NOTIFICATIONS, EnumSet.of(UserPermission.HISTORY_READ, UserPermission.ALERTS_READ));
-            required.put(UserPermission.DEVICE_GROUP_MANAGEMENT, EnumSet.of(UserPermission.DEVICE_EDIT, UserPermission.DEVICE_SHARE));
-            required.put(UserPermission.ALL_DEVICES, EnumSet.of(UserPermission.DEVICE_EDIT, UserPermission.DEVICE_SHARE, UserPermission.HISTORY_READ, UserPermission.COMMAND_TCP, UserPermission.COMMAND_SMS, UserPermission.DEVICE_STATS, UserPermission.REPORTS, UserPermission.ALERTS_READ, UserPermission.DEVICE_GROUP_MANAGEMENT));
-            required.put(UserPermission.ALL_TRACKS, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.GEOFENCE_EDIT, UserPermission.TRACK_READ, UserPermission.TRACK_EDIT, UserPermission.TRACK_SHARE));
+            required.put(UserPermission.DEVICE_GROUP_MANAGEMENT, EnumSet.of(UserPermission.DEVICE_EDIT, UserPermission.DEVICE_SHARE, UserPermission.USER_MANAGEMENT));
+            required.put(UserPermission.ALL_DEVICES, EnumSet.of(UserPermission.DEVICE_EDIT, UserPermission.DEVICE_SHARE, UserPermission.HISTORY_READ, UserPermission.COMMAND_TCP, UserPermission.COMMAND_SMS, UserPermission.DEVICE_STATS, UserPermission.REPORTS, UserPermission.ALERTS_READ, UserPermission.DEVICE_GROUP_MANAGEMENT, UserPermission.USER_MANAGEMENT));
+            required.put(UserPermission.ALL_GEOFENCES, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.GEOFENCE_EDIT, UserPermission.GEOFENCE_SHARE, UserPermission.USER_MANAGEMENT));
+            required.put(UserPermission.ALL_TRACKS, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.GEOFENCE_EDIT, UserPermission.TRACK_READ, UserPermission.TRACK_EDIT, UserPermission.TRACK_SHARE, UserPermission.USER_MANAGEMENT));
             required.put(UserPermission.USER_MANAGEMENT, Collections.EMPTY_SET);
             required.put(UserPermission.ALL_USERS, EnumSet.of(UserPermission.USER_MANAGEMENT));
             required.put(UserPermission.USER_GROUP_MANAGEMENT, EnumSet.of(UserPermission.USER_MANAGEMENT, UserPermission.ALL_USERS, UserPermission.SERVER_MANAGEMENT));
