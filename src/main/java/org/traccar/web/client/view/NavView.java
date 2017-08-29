@@ -101,6 +101,9 @@ public class NavView {
 
     @UiField
     MenuItem showTrackerServerLog;
+    
+    @UiField
+    MenuItem showAuditLog;
 
     @UiField
     TextButton groupsButton;
@@ -148,6 +151,7 @@ public class NavView {
         settingsGlobal.setVisible(user.hasPermission(UserPermission.SERVER_MANAGEMENT));
         logsButton.setVisible(user.hasPermission(UserPermission.LOGS_ACCESS));
         showTrackerServerLog.setVisible(user.hasPermission(UserPermission.LOGS_ACCESS));
+        showAuditLog.setVisible(user.hasPermission(UserPermission.AUDIT_ACCESS));
         settingsUsers.setVisible(user.hasPermission(UserPermission.USER_MANAGEMENT));
         settingsNotifications.setVisible(user.hasPermission(UserPermission.SERVER_MANAGEMENT));
 
@@ -218,6 +222,11 @@ public class NavView {
     @UiHandler("showWrapperLog")
     public void onShowWrapperLog(SelectionEvent<Item> event) {
         logHandler.onShowWrapperLog();
+    }
+    
+    @UiHandler("showAuditLog")
+    public void onShowAuditLog(SelectionEvent<Item> event) {
+        // todo
     }
 
     @UiHandler("dGroupsButton")
