@@ -235,6 +235,7 @@ public class Decoder {
         if(v.containsKey("userGroup") && v.get("userGroup").isObject() != null) {
             u.setUserGroup(decodeUserGroup(v.get("userGroup").isObject()));
         }
+        u.setUserGroupName(string(v, "userGroupName"));
         return u;
     }
     
