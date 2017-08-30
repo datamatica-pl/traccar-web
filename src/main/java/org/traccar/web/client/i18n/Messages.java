@@ -674,4 +674,9 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String defaultGroup();
     
     String auditLog();
+    String auditLogEvent();
+    String auditLogAgent();
+    String show();
+    String auditInfo();
+    String showLogFrom();
 }

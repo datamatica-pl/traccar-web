@@ -12,40 +12,81 @@ Uncomment this for XHTML entities
   	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
     xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu">
     
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="smallMargins">
+    <ui:attributes top="4" right="4" bottom="4" left="4" />
+  </ui:with>
+    
   <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" 
            field="vWrapContent">
-    <ui:attributes width="1" height="-1" />
+    <ui:attributes width="1" height="-1" margins="{smallMargins}" />
   </ui:with>
   
   <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" 
            field="vMatchParent">
-    <ui:attributes width="1" height="1" />
+    <ui:attributes width="1" height="1" margins="{smallMargins}" />
   </ui:with>
   
-  <gxt:Window ui:field="window" pixelSize="950, 480" modal="true" headingText="{i18n.users}">
+  <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+           field="v28Px">
+      <ui:attributes width="1" height="28" margins="{smallMargins}" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="textMargin">
+      <ui:attributes top="4" right="6" bottom="0" left="6" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="textLayout">
+      <ui:attributes width="-1" height="1" margins="{textMargin}" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="text1Margin">
+      <ui:attributes left="0" top="4" right="6" bottom ="0" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="text1Layout">
+      <ui:attributes width="-1" height="1" margins="{text1Margin}" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="btnMargin">
+      <ui:attributes left="6" top="0" right="0" bottom="0" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="buttonLayout">
+      <ui:attributes width="-1" height="1" margins="{btnMargin}" />
+  </ui:with>
+  
+  <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
+  
+  <gxt:Window ui:field="window" pixelSize="640, 480" modal="true" headingText="{i18n.auditLog}">
     <container:VerticalLayoutContainer>
       <container:child layoutData="{vWrapContent}">
-        <g:Label text="Audit log contains data about security and permission relates changes to system" />
+        <g:Label text="{i18n.auditInfo}" />
       </container:child>
-      <container:child layoutData="{vWrapContent}">
+      <container:child layoutData="{v28Px}">
         <container:HorizontalLayoutContainer>
-            <g:Label text="Show log from" />
-            <g:Label text="Date picker" />
-            <g:Label text="to" />
-            <g:Label text="Date picker" />
-            <button:TextButton text="SHOW" />
+            <container:child layoutData="{text1Layout}">
+                <g:Label text="{i18n.showLogFrom}" />
+            </container:child>
+            <container:child>
+                <form:DateField ui:field="fromDate"/>
+            </container:child>
+            <container:child layoutData="{textLayout}">
+                <g:Label text="{i18n.to}" />
+            </container:child>
+            <container:child>
+                <form:DateField ui:field="toDate"/>
+            </container:child>
+            <container:child layoutData="{buttonLayout}">
+                <button:TextButton text="{i18n.show}" ui:field="show"/>
+            </container:child>
         </container:HorizontalLayoutContainer>
       </container:child>
       <container:child layoutData="{vMatchParent}">
-          <grid:Grid ui:field="grid" />
+          <grid:Grid ui:field="logGrid"/>
       </container:child>
     </container:VerticalLayoutContainer>
-
-    <gxt:button>
-        <button:TextButton ui:field="saveButton" text="{i18n.save}" />
-    </gxt:button>
-    <gxt:button>
-        <button:TextButton ui:field="cancelButton" text="{i18n.cancel}" />
-    </gxt:button>
   </gxt:Window>
 </ui:UiBinder>

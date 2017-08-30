@@ -60,6 +60,7 @@ public class NavView {
     public interface LogHandler {
         void onShowTrackerServerLog();
         void onShowWrapperLog();
+        void onShowAuditLog();
     }
 
     final LogHandler logHandler;
@@ -226,7 +227,7 @@ public class NavView {
     
     @UiHandler("showAuditLog")
     public void onShowAuditLog(SelectionEvent<Item> event) {
-        // todo
+        logHandler.onShowAuditLog();
     }
 
     @UiHandler("dGroupsButton")
