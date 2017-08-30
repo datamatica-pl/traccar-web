@@ -244,45 +244,8 @@ public class UserGroupsDialog {
         }
         
         public PermissionManager() {
-            required = new EnumMap<>(UserPermission.class);
-            requiring = new EnumMap<>(UserPermission.class);
-            
-            required.put(UserPermission.DEVICE_EDIT, Collections.EMPTY_SET);
-            required.put(UserPermission.DEVICE_SHARE, EnumSet.of(UserPermission.USER_MANAGEMENT));
-            required.put(UserPermission.GEOFENCE_READ, Collections.EMPTY_SET);
-            required.put(UserPermission.GEOFENCE_EDIT, EnumSet.of(UserPermission.GEOFENCE_READ));
-            required.put(UserPermission.GEOFENCE_SHARE, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.USER_MANAGEMENT));
-            required.put(UserPermission.TRACK_READ, EnumSet.of(UserPermission.GEOFENCE_READ));
-            required.put(UserPermission.TRACK_EDIT, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.GEOFENCE_EDIT, UserPermission.TRACK_READ));
-            required.put(UserPermission.TRACK_SHARE, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.TRACK_READ, UserPermission.GEOFENCE_SHARE));
-            required.put(UserPermission.HISTORY_READ, Collections.EMPTY_SET);
-            required.put(UserPermission.COMMAND_TCP, Collections.EMPTY_SET);
-            required.put(UserPermission.COMMAND_SMS, Collections.EMPTY_SET);
-            required.put(UserPermission.COMMAND_CUSTOM, EnumSet.of(UserPermission.COMMAND_TCP));
-            required.put(UserPermission.DEVICE_STATS, EnumSet.of(UserPermission.HISTORY_READ));
-            required.put(UserPermission.REPORTS, EnumSet.of(UserPermission.HISTORY_READ));
-            required.put(UserPermission.ALERTS_READ, EnumSet.of(UserPermission.HISTORY_READ));
-            required.put(UserPermission.NOTIFICATIONS, EnumSet.of(UserPermission.HISTORY_READ, UserPermission.ALERTS_READ));
-            required.put(UserPermission.DEVICE_GROUP_MANAGEMENT, EnumSet.of(UserPermission.DEVICE_EDIT, UserPermission.DEVICE_SHARE, UserPermission.USER_MANAGEMENT));
-            required.put(UserPermission.ALL_DEVICES, EnumSet.of(UserPermission.DEVICE_EDIT, UserPermission.DEVICE_SHARE, UserPermission.HISTORY_READ, UserPermission.COMMAND_TCP, UserPermission.COMMAND_SMS, UserPermission.DEVICE_STATS, UserPermission.REPORTS, UserPermission.ALERTS_READ, UserPermission.DEVICE_GROUP_MANAGEMENT, UserPermission.USER_MANAGEMENT));
-            required.put(UserPermission.ALL_GEOFENCES, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.GEOFENCE_EDIT, UserPermission.GEOFENCE_SHARE, UserPermission.USER_MANAGEMENT));
-            required.put(UserPermission.ALL_TRACKS, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.GEOFENCE_EDIT, UserPermission.TRACK_READ, UserPermission.TRACK_EDIT, UserPermission.TRACK_SHARE, UserPermission.USER_MANAGEMENT));
-            required.put(UserPermission.USER_MANAGEMENT, Collections.EMPTY_SET);
-            required.put(UserPermission.ALL_USERS, EnumSet.of(UserPermission.USER_MANAGEMENT));
-            required.put(UserPermission.USER_GROUP_MANAGEMENT, EnumSet.of(UserPermission.USER_MANAGEMENT, UserPermission.ALL_USERS, UserPermission.SERVER_MANAGEMENT));
-            required.put(UserPermission.RESOURCE_MANAGEMENT, Collections.EMPTY_SET);
-            required.put(UserPermission.LOGS_ACCESS, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.TRACK_READ, UserPermission.HISTORY_READ));
-            required.put(UserPermission.AUDIT_ACCESS, EnumSet.of(UserPermission.GEOFENCE_READ, UserPermission.TRACK_READ, UserPermission.HISTORY_READ, UserPermission.LOGS_ACCESS));
-            required.put(UserPermission.SERVER_MANAGEMENT, Collections.EMPTY_SET);
-            required.put(UserPermission.ALLOW_MOBILE, Collections.EMPTY_SET);
-            
-            for(UserPermission up : UserPermission.values()) {
-                EnumSet<UserPermission> requiringSet = EnumSet.noneOf(UserPermission.class);
-                for(UserPermission perm : required.keySet())
-                    if(required.get(perm).contains(up))
-                        requiringSet.add(perm);
-                requiring.put(up, requiringSet);
-            }
+            required = UserPermission.getRequiredPermissions();
+            requiring = UserPermission.getRequiringPermissions();
         }
         
         public Set<UserPermission> getRequiredPermissions(UserPermission up) {
