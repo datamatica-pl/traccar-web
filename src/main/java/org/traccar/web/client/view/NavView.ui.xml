@@ -44,6 +44,7 @@
           <menu:Menu>
             <menu:MenuItem text="{i18n.trackerServerLog}" ui:field="showTrackerServerLog" />
             <menu:MenuItem text="{i18n.wrapperLog}" ui:field="showWrapperLog" />
+            <menu:MenuItem text="{i18n.auditLog}" ui:field="showAuditLog" />
           </menu:Menu>
         </button:menu>
       </button:TextButton>
