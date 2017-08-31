@@ -101,7 +101,7 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
         final Map<Group, List<Group>> originalParents = getParents();
         
         DeviceGroupsDialog.GroupsHandler handler = EMPTY_GROUPS_HANDLER;
-        if(ApplicationContext.getInstance().getUser().isAdminOrManager())
+        if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT))
             handler = new DeviceGroupsDialog.GroupsHandler() {
             @Override
             public void onAdd(Group parent, Group group, final GroupAddHandler groupsHandler) {

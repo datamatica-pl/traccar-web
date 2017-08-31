@@ -102,11 +102,11 @@ public interface IUsersService extends RestService{
             this.phoneNumber = u.getPhoneNumber();
             this.expirationDate = u.getExpirationDate();
             this.maxNumOfDevices = u.getMaxNumOfDevices();
-            this.manager = u.getManager();
-            this.admin = u.getAdmin();
-            this.archive = u.isArchive();
+            this.manager = true;
+            this.admin = false;
+            this.archive = true;
+            this.readOnly = false;
             this.blocked = u.isBlocked();
-            this.readOnly = u.getReadOnly();
             this.password = u.getPassword();
             this.notificationEvents = new ArrayList<>();
             if(u.getTransferNotificationEvents() != null)

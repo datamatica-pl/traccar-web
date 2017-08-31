@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import pl.datamatica.traccar.model.UserPermission;
 
 @Singleton
 public class ReportServiceImpl extends RemoteServiceServlet implements ReportService {
@@ -46,7 +47,7 @@ public class ReportServiceImpl extends RemoteServiceServlet implements ReportSer
     public List<Report> getReports() {
         List<Report> reports;
 
-        if (sessionUser.get().getAdmin()) {
+        if (sessionUser.get().hasPermission(UserPermission.ALL_DEVICES)) {
             reports = entityManager.get().createQuery("SELECT x FROM Report x", Report.class).getResultList();
         } else {
             reports = new ArrayList<>(sessionUser.get().getAllAvailableReports());

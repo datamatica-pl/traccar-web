@@ -194,7 +194,7 @@ public class DeviceGroupsDialog implements SelectionChangedEvent.SelectionChange
 
         uiBinder.createAndBindUi(this);
         
-         if(ApplicationContext.getInstance().getUser().isAdminOrManager()) {
+         if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT)) {
              grid.getSelectionModel().addSelectionChangedHandler(this);
              grid.getSelectionModel().setSelectionMode(Style.SelectionMode.SINGLE);
              
