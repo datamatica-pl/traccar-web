@@ -25,7 +25,8 @@ public class MaxDeviceNumberReachedException extends TraccarException {
 
     public MaxDeviceNumberReachedException(User reachedLimit) {
         this.reachedLimit = new User();
-        this.reachedLimit.setAdmin(reachedLimit.getAdmin());
+        this.reachedLimit.setAdmin(false);
+        this.reachedLimit.setManager(true);
         this.reachedLimit.setMaxNumOfDevices(reachedLimit.getMaxNumOfDevices());
         this.reachedLimit.setCompanyName(reachedLimit.getCompanyName());
         this.reachedLimit.setEmail(reachedLimit.getEmail());
@@ -34,7 +35,6 @@ public class MaxDeviceNumberReachedException extends TraccarException {
         this.reachedLimit.setLogin(reachedLimit.getLogin());
         this.reachedLimit.setFirstName(reachedLimit.getFirstName());
         this.reachedLimit.setLastName(reachedLimit.getLastName());
-        this.reachedLimit.setManager(reachedLimit.getManager());
         this.reachedLimit.setPhoneNumber(reachedLimit.getPhoneNumber());
     }
 

@@ -73,11 +73,8 @@ public class GuiceServletConfig extends GuiceServletContextListener {
                 serve("/traccar/picturesService").with(PicturesServiceImpl.class);
                 serve("/traccar/reportService").with(ReportServiceImpl.class);
                 serve("/traccar/logService").with(LogServiceImpl.class);
-                serve("/traccar/groupService").with(GroupServiceImpl.class);
 
                 serve("/traccar/rest/*").with(RESTApiServlet.class);
-                serve("/traccar/export/*").with(ExportServlet.class);
-                serve("/traccar/import/*").with(ImportServlet.class);
                 serve("/traccar/report*").with(ReportServlet.class);
                 serve("/traccar/s/login").with(LoginServlet.class);
                 serve("/" + Picture.URL_PREFIX + "*").with(PicturesServlet.class);

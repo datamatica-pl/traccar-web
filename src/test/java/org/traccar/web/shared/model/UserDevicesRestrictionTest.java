@@ -25,6 +25,8 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import pl.datamatica.traccar.model.UserGroup;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class UserDevicesRestrictionTest {
     User u1;
@@ -208,10 +210,13 @@ public class UserDevicesRestrictionTest {
         assertEquals("Allowed devices for user 8", du8, u8.getNumberOfDevicesToAdd());
         assertEquals("Allowed devices for user 9", du9, u9.getNumberOfDevicesToAdd());
     }
-
+    
     private User m(String name, Integer maxNumOfDevices, User... managedUsers) {
+        UserGroup ug = new UserGroup();
+        ug.setPermissions(UserPermission.getUsersPermissions());
+        
         User manager = new User(name);
-        manager.setManager(true);
+        manager.setUserGroup(ug);
         manager.setManagedUsers(new HashSet<>(Arrays.asList(managedUsers)));
         manager.setMaxNumOfDevices(maxNumOfDevices);
         for (User managedUser : managedUsers) {
@@ -221,7 +226,11 @@ public class UserDevicesRestrictionTest {
     }
 
     private User u(String name, Integer maxNumOfDevices) {
+        UserGroup ug = new UserGroup();
+        ug.setPermissions(UserPermission.getUsersPermissions());
+        
         User user = new User(name);
+        user.setUserGroup(ug);
         user.setMaxNumOfDevices(maxNumOfDevices);
         user.setManagedUsers(Collections.<User>emptySet());
         return user;

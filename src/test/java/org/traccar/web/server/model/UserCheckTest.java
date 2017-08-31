@@ -94,27 +94,6 @@ public class UserCheckTest {
     }
 
     @Test
-    public void testRequireWriteReadOnlyUser() {
-        user().setReadOnly(true);
-        thrown.expect(SecurityException.class);
-        injector.getInstance(RequireWriteObject.class).requireWrite();
-    }
-
-    @Test
-    public void testRequireWriteReadOnlyAdmin() {
-        admin().setReadOnly(true);
-        thrown.expect(SecurityException.class);
-        injector.getInstance(RequireWriteObject.class).requireWrite();
-    }
-
-    @Test
-    public void testRequireWriteReadOnlyManager() {
-        manager().setReadOnly(true);
-        thrown.expect(SecurityException.class);
-        injector.getInstance(RequireWriteObject.class).requireWrite();
-    }
-
-    @Test
     public void testRequireWriteOrdinaryUser() {
         user();
         injector.getInstance(RequireWriteObject.class).requireWrite();
@@ -143,20 +122,6 @@ public class UserCheckTest {
         settingsProvider.settings.setDisallowDeviceManagementByUsers(true);
         user();
         thrown.expect(SecurityException.class);
-        injector.getInstance(ManagesDevicesObject.class).manageDevices();
-    }
-
-    @Test
-    public void testManagesDevicesRestrictedAdmin() {
-        settingsProvider.settings.setDisallowDeviceManagementByUsers(true);
-        admin();
-        injector.getInstance(ManagesDevicesObject.class).manageDevices();
-    }
-
-    @Test
-    public void testManagesDevicesRestrictedManager() {
-        settingsProvider.settings.setDisallowDeviceManagementByUsers(true);
-        manager();
         injector.getInstance(ManagesDevicesObject.class).manageDevices();
     }
 
@@ -284,13 +249,6 @@ public class UserCheckTest {
     @Test
     public void testMultipleAnnotationsAdmin() {
         admin();
-        injector.getInstance(MultipleAnnotationsObject.class).someMethod();
-    }
-
-    @Test
-    public void testMultipleAnnotationsReadOnlyAdmin() {
-        admin().setReadOnly(true);
-        thrown.expect(SecurityException.class);
         injector.getInstance(MultipleAnnotationsObject.class).someMethod();
     }
 

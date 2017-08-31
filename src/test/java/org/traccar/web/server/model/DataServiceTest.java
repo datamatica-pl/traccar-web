@@ -54,6 +54,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
+import pl.datamatica.traccar.model.UserGroup;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class DataServiceTest {
     static Long currentUserId;
@@ -194,27 +196,6 @@ public class DataServiceTest {
         user = dataService.updateUser(user);
 
         dataService.removeUser(user);
-
-        assertEquals("test1", user.getPassword());
-    }
-
-    @Test
-    public void testResetPasswordByManager() throws TraccarException {
-        User manager = new User("manager", "manager");
-        manager.setManager(Boolean.TRUE);
-        manager = dataService.addUser(manager);
-
-        currentUserId = manager.getId();
-
-        User user = new User("test", "test");
-        user = dataService.addUser(user);
-
-        user.setPassword("test1");
-        user = dataService.updateUser(user);
-
-        currentUserId = null;
-        dataService.removeUser(user);
-        dataService.removeUser(manager);
 
         assertEquals("test1", user.getPassword());
     }
