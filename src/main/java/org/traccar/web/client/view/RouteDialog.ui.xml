@@ -39,6 +39,34 @@
            field="halfWindow">
       <ui:attributes width="0.5" height="1" margins="{halfWindowMargins}" />
   </ui:with>
+  
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="ltMargin">
+      <ui:attributes left="4" top="4" right="0" bottom="0" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="rtMargin">
+      <ui:attributes left="0" top="4" right="4" bottom="0" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="hWrapContent">
+      <ui:attributes width="-1" height="-1" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="hltWrapContent">
+      <ui:attributes width="-1" height="-1" margins="{ltMargin}" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="htrWrapContent">
+      <ui:attributes width="-1" height="1" margins="{rtMargin}" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" 
+           field="v24px">
+      <ui:attributes width="1" height="24" />
+  </ui:with>
 
   <ui:style>
     .tabBody {
@@ -93,6 +121,22 @@
                     <form:ComboBox ui:field="selectDevice" />
                 </form:widget>
             </form:FieldLabel>
+        </container:child>
+        
+        <container:child layoutData="{v24px}">
+            <container:HorizontalLayoutContainer>
+                <container:child layoutData="{htrWrapContent}">
+                    <form:CheckBox ui:field="createCorridor" boxLabel="{i18n.createCorridor}" />
+                </container:child>
+                
+                <container:child layoutData="{hWrapContent}">
+                    <form:NumberField ui:field="corridorWidth" enabled="false"/>
+                </container:child>
+                
+                <container:child layoutData="{hltWrapContent}">
+                    <g:Label text="m" />
+                </container:child>
+            </container:HorizontalLayoutContainer>
         </container:child>
         
       </container:VerticalLayoutContainer>

@@ -88,7 +88,7 @@
           </gxt:child>
 
           <gxt:child config="{devicesTabConfig}">
-              <container:VerticalLayoutContainer>
+              <container:VerticalLayoutContainer ui:field="devicesTab">
                   <container:child layoutData="{verticalLayoutData}">
                       <button:TextButton ui:field="selectAllButton" text="{i18n.selectAll}" />
                   </container:child>

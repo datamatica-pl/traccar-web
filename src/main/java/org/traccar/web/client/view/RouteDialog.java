@@ -46,8 +46,6 @@ import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
 import com.sencha.gxt.data.shared.event.StoreSortEvent;
 import com.sencha.gxt.data.shared.event.StoreUpdateEvent;
 import com.sencha.gxt.dnd.core.client.DND;
-import com.sencha.gxt.dnd.core.client.DndDropEvent;
-import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
 import com.sencha.gxt.dnd.core.client.GridDragSource;
 import com.sencha.gxt.dnd.core.client.GridDropTarget;
 import com.sencha.gxt.widget.core.client.Window;
@@ -126,6 +124,11 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     @UiField
     TextButton addButton;
     
+    @UiField
+    CheckBox createCorridor;
+    @UiField(provided = true)
+    NumberField<Integer> corridorWidth;
+    
     Messages i18n = GWT.create(Messages.class);
     
     private final Route route;
@@ -170,6 +173,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 return item.getName();
             }
         });
+        corridorWidth = new NumberField<>(new NumberPropertyEditor.IntegerPropertyEditor());
+        corridorWidth.addValidator(new MaxNumberValidator<>(1000));
+        corridorWidth.addValidator(new MinNumberValidator<>(20));
         uiBinder.createAndBindUi(this);
         
         connect.setValue(true);
@@ -186,8 +192,18 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 trackNameLabel.setEnabled(event.getValue());
                 selectDeviceLabel.setEnabled(event.getValue());
                 drawPolyline();
+                createCorridor.setEnabled(event.getValue());
+                createCorridor.setValue(false);
+                if(!event.getValue())
+                    corridorWidth.setEnabled(false);
             }
             
+        });
+        createCorridor.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+            @Override
+            public void onValueChange(ValueChangeEvent<Boolean> event) {
+                corridorWidth.setEnabled(event.getValue());
+            }
         });
         
         name.setValue(route.getName());
@@ -437,6 +453,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             if(!gf.points().isEmpty())
                 gfRenderer.drawGeoFence(gf, true);
         }
+        if(route.getCorridor() != null)
+            gfRenderer.drawGeoFence(route.getCorridor(), false);
         routeDrawer.onResult(lineString);
     }
     
@@ -523,6 +541,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         for(RoutePointWrapper rp : store.getAll())
             route.getRoutePoints().add(rp.getRoutePoint());
         if(connect.getValue()) {
+            if(createCorridor.getValue() && !corridorWidth.validate())
+                return;
+            
             route.setName(name.getValue());
             route.setDevice(selectDevice.getCurrentValue());
             pl.datamatica.traccar.model.GeoFence.LonLat[] gll = 
@@ -531,6 +552,17 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 gll[i] = new pl.datamatica.traccar.model.GeoFence.LonLat(lineString[i].lon(),
                     lineString[i].lat());
             route.setLinePoints(gll);
+            
+            if(createCorridor.getValue()) {
+                GeoFence corridor = new GeoFence();
+                corridor.setName(name.getValue()+"_c");
+                corridor.setColor("ff0000");
+                corridor.setDescription("Corridor of "+name.getValue()+" route");
+                corridor.setType(GeoFenceType.LINE);
+                corridor.points(gll);
+                corridor.setRadius(corridorWidth.getValue().floatValue());
+                route.setCorridor(corridor);
+            }
         }
         
         if(validate(route, connect.getValue())) {
