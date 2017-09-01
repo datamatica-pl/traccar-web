@@ -31,6 +31,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.cell.core.client.form.ComboBoxCell;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ListStore;
@@ -72,6 +73,7 @@ import com.sencha.gxt.widget.core.client.grid.editing.GridInlineEditing;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -173,6 +175,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 return item.getName();
             }
         });
+        selectDevice.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
         corridorWidth = new NumberField<>(new NumberPropertyEditor.IntegerPropertyEditor());
         corridorWidth.addValidator(new MaxNumberValidator<>(1000));
         corridorWidth.addValidator(new MinNumberValidator<>(20));
@@ -213,6 +216,11 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         store.addAll(pts);
         if(route.getDevice() != null)
             selectDevice.setValue(route.getDevice());
+        if(route.getCorridor() != null) {
+            createCorridor.setValue(true);
+            corridorWidth.setValue((int)route.getCorridor().getRadius());
+            corridorWidth.setEnabled(true);
+        }
         
         prepareMap();
         bindStoreWithMap(route);
@@ -537,6 +545,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     @UiHandler("saveButton")
     public void save(SelectEvent selectEvent) {
         store.commitChanges();
+        if(!validate())
+            return;
+        
         route.getRoutePoints().clear();
         for(RoutePointWrapper rp : store.getAll())
             route.getRoutePoints().add(rp.getRoutePoint());
@@ -554,30 +565,45 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             route.setLinePoints(gll);
             
             if(createCorridor.getValue()) {
-                GeoFence corridor = new GeoFence();
+                GeoFence corridor;
+                if(route.getCorridor() != null) {
+                    corridor = route.getCorridor();
+                } else {
+                    corridor = new GeoFence();
+                }
                 corridor.setName(name.getValue()+"_c");
-                corridor.setColor("ff0000");
-                corridor.setDescription("Corridor of "+name.getValue()+" route");
+                corridor.setDescription(i18n.corridorOfRoute(name.getValue()));
                 corridor.setType(GeoFenceType.LINE);
                 corridor.points(gll);
                 corridor.setRadius(corridorWidth.getValue().floatValue());
+                corridor.setTransferDevices(new HashSet<Device>());
+                if(route.getDevice() != null)
+                    corridor.getTransferDevices().add(route.getDevice());
                 route.setCorridor(corridor);
+            } else {
+                route.setCorridor(null);
             }
         }
         
-        if(validate(route, connect.getValue())) {
-            routeHandler.onSave(route, connect.getValue());
-            window.hide();
-        }
+        routeHandler.onSave(route, connect.getValue());
+        window.hide();
     }
     
-    private boolean validate(Route r, boolean connect) {
-        if(connect && r.getRoutePoints().size() < 2) {
-            new AlertMessageBox(i18n.error(), "You have to include at least 2 points").show();
-            return false;
-        }
-        if(r.getRoutePoints().size() < 1) {
-            new AlertMessageBox(i18n.error(), "You have to include at least 1 point").show();
+    private boolean validate() {
+        if(connect.getValue()) {
+            if(name.getValue() == null || name.getValue().isEmpty()) {
+                new AlertMessageBox(i18n.error(), i18n.errNoRouteName()).show();
+                return false;
+            }
+            if(store.size() < 2) {
+                new AlertMessageBox(i18n.error(), i18n.errNotEnoughRoutePoints()).show();
+                return false;
+            }
+            if(createCorridor.getValue() && corridorWidth.getValue() == null) {
+                new AlertMessageBox(i18n.error(), i18n.errNoCorridorRadius()).show();
+            }
+        } else if(store.size() < 1) {
+            new AlertMessageBox(i18n.error(), i18n.errNoGeoFences()).show();
             return false;
         }
         return true;

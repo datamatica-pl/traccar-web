@@ -133,6 +133,7 @@ public class GeoFenceWindow implements Editor<GeoFence> {
     Grid<Device> grid;
     
     @UiField
+    @Editor.Ignore
     TextButton clearButton;
     
     @UiField
@@ -368,6 +369,9 @@ public class GeoFenceWindow implements Editor<GeoFence> {
     }
 
     private void edit() {
+        if(type.getCurrentValue() == GeoFenceType.LINE)
+            return;
+        
         if (modifyFeature == null) {
             // add editing feature
             ModifyFeatureOptions options = new ModifyFeatureOptions();
