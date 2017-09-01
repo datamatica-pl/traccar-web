@@ -16,14 +16,12 @@
 package org.traccar.web.client.model;
 
 import pl.datamatica.traccar.model.User;
-import pl.datamatica.traccar.model.UserSettings;
 import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.ApplicationSettings;
 import pl.datamatica.traccar.model.Device;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.traccar.web.shared.model.*;
 
@@ -35,63 +33,18 @@ import pl.datamatica.traccar.model.Route;
 public interface DataService extends RemoteService {
   
     User authenticated();
-
     User login(String login, String password, boolean passwordHashed) throws TraccarException;
-
     User login(String login, String password) throws TraccarException;
-
     boolean logout();
-
-    List<User> getUsers();
-
-    User addUser(User user) throws InvalidMaxDeviceNumberForUserException;
-
-    User updateUser(User user) throws AccessDeniedException;
-
-    UserSettings updateUserSettings(UserSettings userSettings) throws AccessDeniedException;
-
-    User removeUser(User user) throws AccessDeniedException;
-
-    List<Device> getDevices();
-
-    Device addDevice(Device device) throws TraccarException;
-
-    Device updateDevice(Device device) throws TraccarException;
-
-    Device removeDevice(Device device) throws AccessDeniedException;
-
-    Map<User, Boolean> getDeviceShare(Device device);
-
-    void saveDeviceShare(Device device, Map<User, Boolean> share);
-
-    List<Position> getPositions(Device device, Date from, Date to, boolean filter) throws AccessDeniedException;
-
-    List<Position> getLatestPositions();
-
-    ApplicationSettings getApplicationSettings();
-
-    void updateApplicationSettings(ApplicationSettings applicationSettings);
-
-    void saveRoles(List<User> users) throws InvalidMaxDeviceNumberForUserException;
-
-    List<GeoFence> getGeoFences();
-
-    GeoFence addGeoFence(GeoFence geoFence) throws TraccarException;
-
-    GeoFence updateGeoFence(GeoFence geoFence) throws TraccarException;
-
-    GeoFence removeGeoFence(GeoFence geoFence);
-
-    Map<User, Boolean> getGeoFenceShare(GeoFence geoFence);
-
-    void saveGeoFenceShare(GeoFence geoFence, Map<User, Boolean> share);
-
-    String sendCommand(Command command) throws AccessDeniedException;
     
-    void updateAlarmsViewTime(Device device);
+    List<Device> getDevices();
+    List<Position> getPositions(Device device, Date from, Date to, boolean filter) throws AccessDeniedException;
+    List<GeoFence> getGeoFences();
     
     List<Route> getRoutes();
     Route addRoute(Route route, boolean connect) throws TraccarException;
     Route updateRoute(Route updated) throws TraccarException;
     Route removeRoute(Route route);
+    
+    ApplicationSettings getApplicationSettings();
 }
