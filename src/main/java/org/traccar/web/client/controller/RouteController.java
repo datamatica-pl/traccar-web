@@ -78,7 +78,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     }
     
     @Override
-    public void onEdit(Route selectedItem) {
+    public void onEdit(final Route selectedItem) {
         new RouteDialog(selectedItem, new RouteDialog.RouteHandler() {
             @Override
             public void onSave(final Route route, boolean connect) {
@@ -86,6 +86,8 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                         new BaseAsyncCallback<Route>(i18n) {
                             @Override
                             public void onSuccess(final Route updated) {
+                                if(selectedItem.getCorridor() != null)
+                                    geoFenceStore.remove(selectedItem.getCorridor());
                                 updateGeofences(updated);
                                 routeStore.update(updated);
                             }
@@ -96,14 +98,16 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     }
     
     private void updateGeofences(final Route addedRoute) {
-                        for(RoutePoint pt : addedRoute.getRoutePoints()) {
-                            String key = Long.toString(pt.getGeofence().getId());
-                            if(geoFenceStore.findModelWithKey(key) == null) {
-                                geoFenceStore.add(pt.getGeofence());
-                            }
-                        }
-                        geoFenceStore.applySort(false);
-                    }
+        for(RoutePoint pt : addedRoute.getRoutePoints()) {
+            String key = Long.toString(pt.getGeofence().getId());
+            if(geoFenceStore.findModelWithKey(key) == null) {
+                geoFenceStore.add(pt.getGeofence());
+            }
+        }
+        if(addedRoute.getCorridor() != null)
+            geoFenceStore.add(addedRoute.getCorridor());
+        geoFenceStore.applySort(false);
+    }
 
     
     @Override

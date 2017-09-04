@@ -90,6 +90,7 @@ import org.traccar.web.client.state.DeviceVisibilityChangeHandler;
 import org.traccar.web.client.state.DeviceVisibilityHandler;
 
 import java.util.*;
+import pl.datamatica.traccar.model.GeoFenceType;
 import pl.datamatica.traccar.model.Route;
 
 public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDoubleClickEvent.CellDoubleClickHandler {
@@ -1167,13 +1168,16 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
         addButton.setEnabled(allowDeviceManagement() || editingGeoFences()
                 || editingRoutes());
-        editButton.setEnabled(selection != null && (allowDeviceManagement() || editingGeoFences()
+        editButton.setEnabled(selection != null && (allowDeviceManagement() 
+                || editingGeoFences()
                 || editingRoutes()));
-        removeButton.setEnabled(selection != null && (allowDeviceManagement() || editingGeoFences()
+        removeButton.setEnabled(selection != null && (allowDeviceManagement() 
+                || (editingGeoFences() && ((GeoFence)selection).getType() != GeoFenceType.LINE)
                 || editingRoutes()));
         commandButton.setEnabled(selection != null && !editingGeoFences() && !editingRoutes()
                 && allowCommandsSending() && allowDeviceManagement());
-        shareButton.setEnabled(selection != null && !editingRoutes());
+        shareButton.setEnabled(selection != null && !editingRoutes()
+                && !(editingGeoFences() && ((GeoFence)selection).getType() == GeoFenceType.LINE));
     }
 
     private boolean allowDeviceManagement() {
