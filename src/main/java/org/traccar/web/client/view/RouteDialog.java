@@ -177,7 +177,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         });
         selectDevice.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
         corridorWidth = new NumberField<>(new NumberPropertyEditor.IntegerPropertyEditor());
-        corridorWidth.addValidator(new MaxNumberValidator<>(1000));
+        corridorWidth.addValidator(new MaxNumberValidator<>(5000));
         corridorWidth.addValidator(new MinNumberValidator<>(20));
         uiBinder.createAndBindUi(this);
         
