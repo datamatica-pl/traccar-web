@@ -33,6 +33,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.datepicker.client.CalendarUtil;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell;
 import com.sencha.gxt.core.client.Style;
 import com.sencha.gxt.data.shared.ListStore;
@@ -40,6 +41,7 @@ import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.Window;
+import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
@@ -296,6 +298,11 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
         Report report = driver.flush();
         report.setFormat(format);
         report.setPreview(isPreview);
+        
+        if(CalendarUtil.getDaysBetween(report.getFromDate(), report.getToDate()) > 31) {
+            new AlertMessageBox(i18n.error(), i18n.errReportMax31Days()).show();
+            return;
+        }
 
         if (!driver.hasErrors()) {
             reportHandler.onGenerate(report);
