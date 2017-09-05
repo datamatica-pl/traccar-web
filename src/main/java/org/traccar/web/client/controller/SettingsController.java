@@ -146,6 +146,7 @@ public class SettingsController implements NavView.SettingsHandler {
                                         new RequestCallback() {
                                     @Override
                                     public void onResponseReceived(Request request, Response response) {
+                                        userStore.update(user);
                                     }
 
                                     @Override
@@ -213,7 +214,6 @@ public class SettingsController implements NavView.SettingsHandler {
                             @Override
                             public void onDialogHide(DialogHideEvent event) {
                                 if (event.getHideButton() == PredefinedButton.OK) {
-                                    final String oldPassword = user.getPassword();
                                     user.setPassword(passwordInput.getValue());
                                     users.updateUser(user.getId(), new EditUserDto(user),
                                             new RequestCallback() {
