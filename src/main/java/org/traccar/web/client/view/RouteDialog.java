@@ -177,8 +177,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         });
         selectDevice.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
         corridorWidth = new NumberField<>(new NumberPropertyEditor.IntegerPropertyEditor());
-        corridorWidth.addValidator(new MaxNumberValidator<>(1000));
-        corridorWidth.addValidator(new MinNumberValidator<>(20));
+        corridorWidth.addValidator(new MaxNumberValidator<>(20));
+        corridorWidth.addValidator(new MinNumberValidator<>(1));
         uiBinder.createAndBindUi(this);
         
         connect.setValue(true);
@@ -218,7 +218,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             selectDevice.setValue(route.getDevice());
         if(route.getCorridor() != null) {
             createCorridor.setValue(true);
-            corridorWidth.setValue((int)route.getCorridor().getRadius());
+            corridorWidth.setValue((int)(route.getCorridor().getRadius()/1000));
             corridorWidth.setEnabled(true);
         }
         
@@ -575,7 +575,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 corridor.setDescription(i18n.corridorOfRoute(name.getValue()));
                 corridor.setType(GeoFenceType.LINE);
                 corridor.points(gll);
-                corridor.setRadius(corridorWidth.getValue().floatValue());
+                corridor.setRadius(corridorWidth.getValue().floatValue()*1000);
                 corridor.setTransferDevices(new HashSet<Device>());
                 if(route.getDevice() != null)
                     corridor.getTransferDevices().add(route.getDevice());
