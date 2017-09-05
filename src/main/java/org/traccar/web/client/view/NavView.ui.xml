@@ -21,7 +21,15 @@
   <gxt:ContentPanel ui:field="contentPanel" headerVisible="false">
     <toolbar:ToolBar addStyleNames="theme-background">
       <button:TextButton ui:field="reportsButton" text="{i18n.reports}" />
-      <button:TextButton ui:field="groupsButton" text="{i18n.groups}" />
+
+      <button:TextButton text="{i18n.groups}" ui:field="groupsButton">
+        <button:menu>
+          <menu:Menu>
+            <menu:MenuItem ui:field="dGroupsButton" text="{i18n.deviceGroups}" />
+            <menu:MenuItem ui:field="uGroupsButton" text="{i18n.userGroups}" />
+          </menu:Menu>
+        </button:menu>
+      </button:TextButton>
       <button:TextButton text="{i18n.settings}" ui:field="settingsButton">
         <button:menu>
           <menu:Menu>
@@ -36,10 +44,10 @@
           <menu:Menu>
             <menu:MenuItem text="{i18n.trackerServerLog}" ui:field="showTrackerServerLog" />
             <menu:MenuItem text="{i18n.wrapperLog}" ui:field="showWrapperLog" />
+            <menu:MenuItem text="{i18n.auditLog}" ui:field="showAuditLog" />
           </menu:Menu>
         </button:menu>
       </button:TextButton>
-      <button:TextButton text="{i18n.importData}" ui:field="importButton" />
       <toolbar:FillToolItem/>
       <image:Image ui:field="logo" addStyleNames="{style.logo}"/>
       <toolbar:FillToolItem/>

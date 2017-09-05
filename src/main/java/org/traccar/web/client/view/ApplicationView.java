@@ -28,6 +28,7 @@ import com.sencha.gxt.widget.core.client.button.ToolButton;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import org.traccar.web.client.ApplicationContext;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class ApplicationView extends Composite {
 
@@ -120,7 +121,7 @@ public class ApplicationView extends Composite {
 
         initWidget(uiBinder.createAndBindUi(this));
 
-        if (!ApplicationContext.getInstance().getUser().isArchive()) {
+        if (!ApplicationContext.getInstance().getUser().hasPermission(UserPermission.HISTORY_READ)) {
             archivePanel.removeFromParent();
         }
 

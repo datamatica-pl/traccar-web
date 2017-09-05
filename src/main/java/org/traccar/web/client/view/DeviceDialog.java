@@ -48,6 +48,7 @@ import com.sencha.gxt.widget.core.client.form.TextField;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.model.api.ApiDeviceModel;
 import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class DeviceDialog implements Editor<Device> {
 
@@ -220,7 +221,7 @@ public class DeviceDialog implements Editor<Device> {
         fuelCapacity.addValidator(new MinNumberValidator<>(1.));
 
         User currentUser = ApplicationContext.getInstance().getUser();
-        if (currentUser.getAdmin()) {
+        if (currentUser.hasPermission(UserPermission.ALL_DEVICES)) {
             validTo.setEnabled(true);
             historyLength.setEnabled(true);
         } else {

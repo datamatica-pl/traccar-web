@@ -99,6 +99,14 @@
                 </form:widget>
             </form:FieldLabel>
         </container:child>
+        
+        <container:child layoutData="{verticalLayoutData}">
+            <form:FieldLabel text="{i18n.defaultGroup}" labelWidth="230" ui:field="defaultGroupLbl">
+                <form:widget>
+                    <form:ComboBox ui:field="defaultGroup"/>
+                </form:widget>
+            </form:FieldLabel>
+        </container:child>
 
     </container:VerticalLayoutContainer>
       

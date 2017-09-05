@@ -22,6 +22,7 @@ import pl.datamatica.traccar.model.User;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class UserCheck implements MethodInterceptor {
     @Inject
@@ -101,7 +102,7 @@ public class UserCheck implements MethodInterceptor {
         if (user == null) {
             throw new SecurityException("Not logged in");
         }
-        if (!user.getAdmin() && !user.getManager()) {
+        if (!user.hasPermission(UserPermission.DEVICE_EDIT)) {
             if (applicationSettings.get().isDisallowDeviceManagementByUsers()) {
                 throw new SecurityException("Users are not allowed to manage devices");
             }
@@ -118,9 +119,7 @@ public class UserCheck implements MethodInterceptor {
         if (user == null) {
             throw new SecurityException("Not logged in");
         }
-        if (user.getReadOnly()) {
-            throw new SecurityException("User is not allowed to make any changes");
-        }
+
         checkedRequireWrite.set(Boolean.TRUE);
     }
 

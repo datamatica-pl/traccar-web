@@ -51,6 +51,8 @@ import org.traccar.web.client.model.api.IUsersService.EditUserSettingsDto;
 import org.traccar.web.client.model.api.Resources;
 import org.traccar.web.client.model.api.UsersService;
 import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class Application {
 
@@ -78,7 +80,6 @@ public class Application {
 
     private final SettingsController settingsController;
     private final NavController navController;
-    private final ImportController importController;
     private final DeviceController deviceController;
     private final RouteController routeController;
     private final CommandController commandController;
@@ -90,6 +91,7 @@ public class Application {
     private final LogController logController;
     private final GroupsController groupsController;
     private final VisibilityController visibilityController;
+    private final UserGroupsController userGroupsController;
     
     private final InitialLoader initialLoader;
 
@@ -127,9 +129,9 @@ public class Application {
                 reportsController,
                 this);
         groupsController = new GroupsController(groupStore, deviceController);
-        importController = new ImportController(deviceController.getDeviceStore());
+        userGroupsController = new UserGroupsController();
         logController = new LogController();
-        navController = new NavController(settingsController, reportStore, reportsController, importController, logController, groupsController);
+        navController = new NavController(settingsController, reportStore, reportsController, logController, groupsController, userGroupsController);
         archiveController = new ArchiveController(archiveHandler, userSettingsHandler, deviceController.getDeviceStore(), reportStore, reportsController);
         
         updatesController = new UpdatesController();
@@ -147,18 +149,24 @@ public class Application {
         initialLoader.load(new LoadFinishedListener() {
             @Override
             public void onLoadFinished() {
+                User user = ApplicationContext.getInstance().getUser();
                 navController.run();
                 deviceController.run();
                 mapController.run();
-                archiveController.run();
-                geoFenceController.run();
-                commandController.run();
-                groupsController.run();
+                if(user.hasPermission(UserPermission.HISTORY_READ))
+                    archiveController.run();
+                if(user.hasPermission(UserPermission.GEOFENCE_READ))
+                    geoFenceController.run();
+                if(user.hasPermission(UserPermission.COMMAND_TCP))
+                    commandController.run();
+                if(user.hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT))
+                    groupsController.run();
                 visibilityController.run();
-                reportsController.run();
-                routeController.run();
+                if(user.hasPermission(UserPermission.REPORTS))
+                    reportsController.run();
                 updatesController.run();
-                routeController.run();
+                if(user.hasPermission(UserPermission.TRACK_READ))
+                    routeController.run();
                 setupTimeZone();
                 updatesController.devicesLoaded(deviceController.getDeviceStore().getAll());
             }

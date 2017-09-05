@@ -19,12 +19,9 @@ import com.google.gwt.core.client.GWT;
 import com.sencha.gxt.state.client.StateManager;
 import org.traccar.web.client.controller.LoginController;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.state.UIStateProvider;
-import pl.datamatica.traccar.model.ApplicationSettings;
 
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.event.shared.UmbrellaException;
 import org.fusesource.restygwt.client.Defaults;
 import org.traccar.web.client.model.api.Dispatcher;
 
@@ -33,8 +30,7 @@ public class Traccar implements EntryPoint, LoginController.LoginHandler {
 
     @Override
     public void onModuleLoad() {
-        new LoginController().login(Traccar.this);
-
+        new LoginController().login(this);
         StateManager.get().setProvider(new UIStateProvider());
         
         Defaults.setDispatcher(new Dispatcher());

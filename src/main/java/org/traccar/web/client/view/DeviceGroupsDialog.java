@@ -49,12 +49,13 @@ import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 
 import java.util.*;
 import org.traccar.web.client.ApplicationContext;
+import pl.datamatica.traccar.model.UserPermission;
 
-public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandler<Group> {
+public class DeviceGroupsDialog implements SelectionChangedEvent.SelectionChangedHandler<Group> {
 
-    private static GroupsDialogUiBinder uiBinder = GWT.create(GroupsDialogUiBinder.class);
+    private static DeviceGroupsDialogUiBinder uiBinder = GWT.create(DeviceGroupsDialogUiBinder.class);
 
-    interface GroupsDialogUiBinder extends UiBinder<Widget, GroupsDialog> {
+    interface DeviceGroupsDialogUiBinder extends UiBinder<Widget, DeviceGroupsDialog> {
     }
 
     public interface GroupsHandler {
@@ -148,14 +149,15 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
 
     GroupProperties groupProperties = GWT.create(GroupProperties.class);
 
-    public GroupsDialog(final GroupStore groupStore, final GroupsHandler groupsHandler) {        
+    public DeviceGroupsDialog(final GroupStore groupStore, final GroupsHandler groupsHandler) {        
         this.groupStore = groupStore;
         this.groupsHandler = groupsHandler;
         this.newGroups = new ArrayList<>();
         groupStore.addFilter(new StoreFilter<Group>() {
             @Override
             public boolean select(Store<Group> store, Group parent, Group item) {
-                return ApplicationContext.getInstance().getUser().getAdmin() || item.isShared();
+                return ApplicationContext.getInstance().getUser().hasPermission(UserPermission.ALL_DEVICES) 
+                        || item.isShared();
             }
         });
         groupStore.setEnableFilters(true);
@@ -192,7 +194,7 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
 
         uiBinder.createAndBindUi(this);
         
-         if(ApplicationContext.getInstance().getUser().isAdminOrManager()) {
+         if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT)) {
              grid.getSelectionModel().addSelectionChangedHandler(this);
              grid.getSelectionModel().setSelectionMode(Style.SelectionMode.SINGLE);
              
@@ -200,7 +202,7 @@ public class GroupsDialog implements SelectionChangedEvent.SelectionChangedHandl
                  @Override
                  public void startEditing(Grid.GridCell cell) {
                      if(grid.getStore().get(cell.getRow()).isShared()
-                             || ApplicationContext.getInstance().getUser().getAdmin())
+                             || ApplicationContext.getInstance().getUser().hasPermission(UserPermission.ALL_DEVICES))
                         super.startEditing(cell);
                  }
                  

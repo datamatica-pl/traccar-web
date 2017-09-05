@@ -103,8 +103,7 @@ public class CommandController implements ContentController, DeviceView.CommandH
                         new JSONString(extendedAttributes.get(CommandType.KEY_SOS_NUMBER).toString()));
                 break;
             case positionPeriodicAlt:
-                attrs.put(CommandType.KEY_FREQUENCY, 
-                        new JSONString(extendedAttributes.get(CommandType.KEY_FREQUENCY).toString()));
+                attrs.put(CommandType.KEY_FREQUENCY, new JSONString(Integer.toString(frequency)));
                 break;
             case setCenterNumber:
                 attrs.put(CommandType.KEY_CENTER_NUMBER,

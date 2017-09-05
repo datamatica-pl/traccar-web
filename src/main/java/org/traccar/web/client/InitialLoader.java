@@ -38,6 +38,7 @@ import pl.datamatica.traccar.model.Group;
 import pl.datamatica.traccar.model.User;
 import org.traccar.web.client.model.api.IUsersService;
 import org.traccar.web.client.model.api.GroupService;
+import pl.datamatica.traccar.model.UserPermission;
 
 /**
  *
@@ -65,6 +66,7 @@ public class InitialLoader {
         ResourcesService res = GWT.create(ResourcesService.class);
         IUsersService users = GWT.create(IUsersService.class);
         ApplicationSettingsService settings = GWT.create(ApplicationSettingsService.class);
+        User user = ApplicationContext.getInstance().getUser();
         
         settings.get(new MethodCallback<ApplicationSettingsDto>() {
             @Override
@@ -117,37 +119,44 @@ public class InitialLoader {
             }
         });
         
-        final GroupService service = new GroupService();
-        service.getGroups(new MethodCallback<List<DeviceGroupDto>>() {
-            @Override
-            public void onFailure(Method method, Throwable exception) {
-                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-            }
+        if(user.hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT)) {
+            final GroupService service = new GroupService();
+            service.getGroups(new MethodCallback<List<DeviceGroupDto>>() {
+                @Override
+                public void onFailure(Method method, Throwable exception) {
+                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                }
 
-            @Override
-            public void onSuccess(Method method, List<DeviceGroupDto> response) {
-                onRequestAnswered();
-                List<Group> groups = new ArrayList<>();
-                for(DeviceGroupDto dto : response)
-                    groups.add(dto.toGroup());
-                ApplicationContext.getInstance().setGroups(groups);
-                groupStore.add(groups);
-            }
-        });
+                @Override
+                public void onSuccess(Method method, List<DeviceGroupDto> response) {
+                    onRequestAnswered();
+                    List<Group> groups = new ArrayList<>();
+                    for(DeviceGroupDto dto : response)
+                        groups.add(dto.toGroup());
+                    ApplicationContext.getInstance().setGroups(groups);
+                    groupStore.add(groups);
+                }
+            });
+        } else
+            --unansweredRequests;
         
-        users.getUsers(new JsonCallback() {
-            @Override
-            public void onFailure(Method method, Throwable exception) {
-                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-            }
+        if(user.hasPermission(UserPermission.USER_MANAGEMENT)) {
+            users.getUsers(new JsonCallback() {
+                @Override
+                public void onFailure(Method method, Throwable exception) {
+                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                }
 
-            @Override
-            public void onSuccess(Method method, JSONValue response) {
-                onRequestAnswered();
-                List<User> users = Application.getDecoder().decodeUsers(response.isArray());
-                ApplicationContext.getInstance().setUsers(users);
-            }
-        });
+                @Override
+                public void onSuccess(Method method, JSONValue response) {
+                    onRequestAnswered();
+                    List<User> users = Application.getDecoder().decodeUsers(response.isArray());
+                    ApplicationContext.getInstance().setUsers(users);
+                }
+            });
+        } else {
+            --unansweredRequests;
+        }
     }
     
     private void onRequestAnswered() {

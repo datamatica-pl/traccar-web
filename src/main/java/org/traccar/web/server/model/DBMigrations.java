@@ -19,7 +19,6 @@ import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UIStateEntry;
 import pl.datamatica.traccar.model.UserSettings;
 import pl.datamatica.traccar.model.Report;
-import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.DeviceEventType;
 import pl.datamatica.traccar.model.ApplicationSettings;
 import pl.datamatica.traccar.model.DeviceEvent;
@@ -32,17 +31,19 @@ import static pl.datamatica.traccar.model.Device.DEFAULT_PAUSED_ARROW_COLOR;
 import static pl.datamatica.traccar.model.Device.DEFAULT_STOPPED_ARROW_COLOR;
 import static pl.datamatica.traccar.model.Device.DEFAULT_OFFLINE_ARROW_COLOR;
 
-import org.traccar.web.shared.model.*;
-
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import pl.datamatica.traccar.model.UserGroup;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class DBMigrations {
     public void migrate(EntityManager em) throws Exception {
         for (Migration migration : new Migration[] {
+                new CreateApplicationSettings(),
                 new SetUpdateInterval(),
                 new SetTimePrintInterval(),
                 new SetDefaultFilteringSettings(),
@@ -62,7 +63,9 @@ public class DBMigrations {
                 new SetDefaultEventRecordingEnabled(),
                 new SetDefaultLanguage(),
                 new SetDefaultMapType(),
+                new CreateUserGroups(),
                 new CreateAdmin(),
+                new UpdateUsersUserGroups(),
                 new SetDefaultDeviceIconType(),
                 new SetDefaultDeviceIconModeAndRotation(),
                 new SetDefaultArrowIconSettings(),
@@ -76,7 +79,8 @@ public class DBMigrations {
                 new SetDefaultNotificationExpirationPeriod(),
                 new SetDefaultExpiredFlagForEvents(),
                 new SetDefaultMatchServiceURL(),
-                new SetDefaultAllowCommandsOnlyForAdmins()
+                new SetDefaultAllowCommandsOnlyForAdmins(),
+                new SetDefaultUserGroups()
         }) {
             em.getTransaction().begin();
             try {
@@ -94,6 +98,30 @@ public class DBMigrations {
     }
 
     /**
+     * Create user Groups
+     * Set Default User Group
+     * Update User Groups of all Users
+     */
+    static class CreateUserGroups implements Migration {
+        @Override
+        public void migrate(EntityManager em) throws Exception {
+            TypedQuery<UserGroup> query = em.createQuery("SELECT x FROM UserGroup x", UserGroup.class);
+            List<UserGroup> results = query.getResultList();
+            if (results.isEmpty()) {
+                UserGroup users = new UserGroup();
+                users.setName("users");
+                users.setPermissions(UserPermission.getUsersPermissions());
+                em.persist(users);
+                
+                UserGroup admins = new UserGroup();
+                admins.setName("admins");
+                admins.setPermissions(UserPermission.getAdminsPermissions());
+                em.persist(admins);
+            }
+        }
+    }
+    
+    /**
      * Create Administrator account
      */
     static class CreateAdmin implements Migration {
@@ -108,6 +136,13 @@ public class DBMigrations {
                 user.setPasswordHashMethod(PasswordHashMethod.PLAIN);
                 user.setAdmin(true);
                 user.setManager(false);
+                
+                List<UserGroup> userGroups = em.createQuery("SELECT u FROM UserGroup u", UserGroup.class).getResultList();
+                if (!userGroups.isEmpty()) {
+                    UserGroup ug = userGroups.stream().filter(g -> "admins".equals(g.getName())).collect(Collectors.toList()).get(0);
+                    user.setUserGroup(ug);
+                }
+                
                 em.persist(user);
             } else if (results.size() == 1) {
                 User singleAdmin = results.get(0);
@@ -120,6 +155,65 @@ public class DBMigrations {
         }
     }
 
+    /**
+     * Create initial Application Settings
+     */
+    static class CreateApplicationSettings implements Migration {
+        @Override
+        public void migrate(EntityManager em) throws Exception {
+            TypedQuery<ApplicationSettings> query = em.createQuery("SELECT x FROM ApplicationSettings x", ApplicationSettings.class);
+            List<ApplicationSettings> results = query.getResultList();
+            if (results.isEmpty()) {
+                ApplicationSettings as = new ApplicationSettings();
+                // another migrations will prepare this object
+                em.persist(as);
+            }
+        }
+    }
+    
+    /**
+     * Set default user group in application settings
+     */
+    static class SetDefaultUserGroups implements Migration {
+        @Override
+        public void migrate(EntityManager em) throws Exception {
+            List<UserGroup> userGroups = em.createQuery("SELECT u FROM UserGroup u", UserGroup.class).getResultList();
+            List<UserGroup> userGroup = userGroups.stream().filter(g -> "users".equals(g.getName())).collect(Collectors.toList());
+                
+            if (userGroup.isEmpty())
+                return;     
+            UserGroup defaultGroup = userGroup.get(0);
+            
+            em.createQuery("UPDATE " + ApplicationSettings.class.getSimpleName() + " S SET S.defaultGroup = :group WHERE S.defaultGroup IS NULL")
+                    .setParameter("group", defaultGroup)
+                    .executeUpdate();
+        }
+    }
+    
+    /**
+     * Sets UserGroups for all users without it 
+     */
+    static class UpdateUsersUserGroups implements Migration {
+        @Override
+        public void migrate(EntityManager em) throws Exception {
+            List<UserGroup> userGroups = em.createQuery("SELECT u FROM UserGroup u", UserGroup.class).getResultList();
+            List<UserGroup> adminsGroups = userGroups.stream().filter(g -> "admins".equals(g.getName())).collect(Collectors.toList());
+            List<UserGroup> usersGroups = userGroups.stream().filter(g -> "users".equals(g.getName())).collect(Collectors.toList());
+            
+            if (adminsGroups.isEmpty() || usersGroups.isEmpty())
+                return;
+            UserGroup admins = adminsGroups.get(0);
+            UserGroup users = usersGroups.get(0);
+            
+            em.createQuery("UPDATE " + User.class.getSimpleName() + " U SET U.userGroup = :group WHERE U.userGroup IS NULL AND (admin = :isAdmin OR admin IS NULL)")
+                    .setParameter("group", users).setParameter("isAdmin", false)
+                    .executeUpdate();
+            em.createQuery("UPDATE " + User.class.getSimpleName() + " U SET U.userGroup = :group WHERE U.userGroup IS NULL AND admin = :isAdmin")
+                    .setParameter("group", admins).setParameter("isAdmin", true)
+                    .executeUpdate();
+        }
+    }
+            
     /**
      * Set up update interval in application settings
      */

@@ -25,7 +25,7 @@ import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.view.GroupsDialog;
+import org.traccar.web.client.view.DeviceGroupsDialog;
 import org.traccar.web.client.view.NavView;
 import org.traccar.web.client.view.UserShareDialog;
 import pl.datamatica.traccar.model.Group;
@@ -39,9 +39,10 @@ import org.traccar.web.client.model.GroupStore;
 import org.traccar.web.client.model.api.GroupService;
 import org.traccar.web.client.model.api.IGroupService.AddDeviceGroupDto;
 import org.traccar.web.client.model.api.IGroupService.DeviceGroupDto;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class GroupsController implements NavView.GroupsHandler, ContentController {
-    private static final GroupsDialog.GroupsHandler EMPTY_GROUPS_HANDLER = new GroupsDialog.GroupsHandler() {
+    private static final DeviceGroupsDialog.GroupsHandler EMPTY_GROUPS_HANDLER = new DeviceGroupsDialog.GroupsHandler() {
         @Override
         public void onAdd(Group parent, Group group, GroupAddHandler groupsHandler) {
         }
@@ -99,9 +100,9 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
         final GroupService service = new GroupService();
         final Map<Group, List<Group>> originalParents = getParents();
         
-        GroupsDialog.GroupsHandler handler = EMPTY_GROUPS_HANDLER;
-        if(ApplicationContext.getInstance().getUser().isAdminOrManager())
-            handler = new GroupsDialog.GroupsHandler() {
+        DeviceGroupsDialog.GroupsHandler handler = EMPTY_GROUPS_HANDLER;
+        if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT))
+            handler = new DeviceGroupsDialog.GroupsHandler() {
             @Override
             public void onAdd(Group parent, Group group, final GroupAddHandler groupsHandler) {
                 service.addGroup(new AddDeviceGroupDto(group), new MethodCallback<DeviceGroupDto>() {
@@ -220,7 +221,8 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
                                     @Override
                                     public void onResponseReceived(Request request, Response response) {
                                         User u = ApplicationContext.getInstance().getUser();
-                                        if(!u.getAdmin() && !uids.contains(u.getId()))
+                                        if(!u.hasPermission(UserPermission.ALL_DEVICES)
+                                                && !uids.contains(u.getId()))
                                             groupStore.remove(group);
                                         window.hide();
                                     }
@@ -240,19 +242,9 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
                 originalParents.clear();
                 originalParents.putAll(getParents());
             }
-
-            private Group getOriginalParent(Group group) {
-                for (Map.Entry<Group, List<Group>> entry : originalParents.entrySet()) {
-                    Group originalParent = entry.getKey();
-                    if (entry.getValue().contains(group)) {
-                        return originalParent;
-                    }
-                }
-                return null;
-            }
         };
 
-        new GroupsDialog(groupStore, handler).show();
+        new DeviceGroupsDialog(groupStore, handler).show();
     }
 
     private Map<Group, List<Group>> getParents() {

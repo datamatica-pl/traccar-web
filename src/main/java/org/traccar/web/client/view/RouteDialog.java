@@ -90,6 +90,7 @@ import org.gwtopenmaps.openlayers.client.layer.OSM;
 import org.gwtopenmaps.openlayers.client.layer.Vector;
 import org.gwtopenmaps.openlayers.client.Style;
 import org.traccar.web.client.i18n.Messages;
+import org.traccar.web.client.utils.ConstValueProvider;
 import org.traccar.web.client.utils.Geocoder;
 import org.traccar.web.client.utils.Geocoder.SearchCallback;
 import org.traccar.web.client.utils.RoutePolylineFinder;
@@ -240,27 +241,12 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 pointsAccessor.radius(), 35, i18n.radius());
         ccList.add(cRadius);
         ColumnConfig<RoutePointWrapper, ImageResource> cDelete = new ColumnConfig<>(
-                new ValueProvider<RoutePointWrapper, ImageResource>() {
-                    @Override
-                    public ImageResource getValue(RoutePointWrapper object) {
-                        return R.remove();
-                    }
-
-                    @Override
-                    public void setValue(RoutePointWrapper object, ImageResource value) {
-                    }
-
-                    @Override
-                    public String getPath() {
-                        return "delete";
-                    }
-                }, 24, "");
+                new ConstValueProvider<RoutePointWrapper, ImageResource>(R.remove()), 24, "");
         cDelete.setCell(new ImageResourceCell() {
             @Override
             public Set<String> getConsumedEvents() {
                 return Collections.singleton("click");
             }
-            
             
             @Override
             public void onBrowserEvent(Cell.Context context, Element parent, ImageResource value,

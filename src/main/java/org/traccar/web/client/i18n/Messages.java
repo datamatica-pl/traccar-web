@@ -668,4 +668,22 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
 
     public String unknownModel();
     public String errReportMax31Days();
+    
+    String userGroups();
+    String deviceGroups();
+    String showUsers();
+    String copyPermissionsFrom();
+
+    public String confirmation();
+
+    public String actionNotReversible();
+    String userGroupUsersTitle(String name);
+    String defaultGroup();
+    
+    String auditLog();
+    String auditLogEvent();
+    String auditLogAgent();
+    String show();
+    String auditInfo();
+    String showLogFrom();
 }

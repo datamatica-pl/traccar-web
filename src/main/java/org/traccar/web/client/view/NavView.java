@@ -39,6 +39,8 @@ import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.model.api.BasicAuthFilter;
 import org.traccar.web.client.model.api.SessionService;
 import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class NavView {
     private static NavViewUiBinder uiBinder = GWT.create(NavViewUiBinder.class);
@@ -56,15 +58,10 @@ public class NavView {
 
     private final SettingsHandler settingsHandler;
 
-    public interface ImportHandler {
-        void onImport();
-    }
-
-    private final ImportHandler importHandler;
-
     public interface LogHandler {
         void onShowTrackerServerLog();
         void onShowWrapperLog();
+        void onShowAuditLog();
     }
 
     final LogHandler logHandler;
@@ -73,7 +70,8 @@ public class NavView {
         void onShowGroups();
     }
 
-    final GroupsHandler groupsHandler;
+    final GroupsHandler dGroupsHandler;
+    final GroupsHandler uGroupsHandler;
 
     @UiField
     ContentPanel contentPanel;
@@ -105,12 +103,18 @@ public class NavView {
 
     @UiField
     MenuItem showTrackerServerLog;
+    
+    @UiField
+    MenuItem showAuditLog;
 
     @UiField
     TextButton groupsButton;
-
+    
     @UiField
-    TextButton importButton;
+    MenuItem dGroupsButton;
+    
+    @UiField
+    MenuItem uGroupsButton;
 
     @UiField
     TextButton reportsButton;
@@ -127,43 +131,44 @@ public class NavView {
     public NavView(SettingsHandler settingsHandler,
                    ListStore<Report> reportListStore,
                    ReportsMenu.ReportHandler reportHandler,
-                   ImportHandler importHandler,
                    LogHandler logHandler,
-                   GroupsHandler groupsHandler) {
+                   GroupsHandler groupsHandler,
+                   GroupsHandler uGroupsHandler) {
         this.settingsHandler = settingsHandler;
-        this.importHandler = importHandler;
         this.logHandler = logHandler;
-        this.groupsHandler = groupsHandler;
+        this.dGroupsHandler = groupsHandler;
+        this.uGroupsHandler = uGroupsHandler;
         
         logo = new Image();
         logo.setUrl("img/logo.png");
 
         uiBinder.createAndBindUi(this);
 
-        boolean readOnly = ApplicationContext.getInstance().getUser().getReadOnly();
-        boolean admin = ApplicationContext.getInstance().getUser().getAdmin();
-        boolean manager = ApplicationContext.getInstance().getUser().getManager();
+        User user = ApplicationContext.getInstance().getUser();
 
-        settingsButton.setVisible(admin || manager);
-        settingsAccount.setVisible(!readOnly);
-        settingsPreferences.setVisible(!readOnly);
+        settingsButton.setVisible(user.hasPermission(UserPermission.SERVER_MANAGEMENT)
+            || user.hasPermission(UserPermission.USER_MANAGEMENT));
+        settingsAccount.setVisible(true);
 
-        settingsGlobal.setVisible(!readOnly && admin);
-        logsButton.setVisible(admin);
-        showTrackerServerLog.setVisible(admin);
-        settingsUsers.setVisible(!readOnly && (admin || manager));
-        settingsNotifications.setVisible(!readOnly && (admin || manager));
-        importButton.setVisible(!readOnly &&
-                (!ApplicationContext.getInstance().getApplicationSettings().isDisallowDeviceManagementByUsers()
-                    || admin || manager));
+        settingsGlobal.setVisible(user.hasPermission(UserPermission.SERVER_MANAGEMENT));
+        logsButton.setVisible(user.hasPermission(UserPermission.LOGS_ACCESS));
+        showTrackerServerLog.setVisible(user.hasPermission(UserPermission.LOGS_ACCESS));
+        showAuditLog.setVisible(user.hasPermission(UserPermission.AUDIT_ACCESS));
+        settingsUsers.setVisible(user.hasPermission(UserPermission.USER_MANAGEMENT));
+        settingsNotifications.setVisible(user.hasPermission(UserPermission.SERVER_MANAGEMENT));
 
-        groupsButton.setVisible(!readOnly);
+        if(!user.hasPermission(UserPermission.USER_GROUP_MANAGEMENT) 
+                && !user.hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT))
+            groupsButton.setVisible(false);
+        dGroupsButton.setVisible(user.hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT));
+        uGroupsButton.setVisible(user.hasPermission(UserPermission.USER_GROUP_MANAGEMENT));
 
         reportsButton.setMenu(new ReportsMenu(reportListStore, reportHandler, new ReportsMenu.ReportSettingsHandler() {
             @Override
             public void setSettings(ReportsDialog dialog) {
             }
         }));
+        reportsButton.setVisible(user.hasPermission(UserPermission.REPORTS));
     }
 
     @UiHandler("settingsAccount")
@@ -221,15 +226,20 @@ public class NavView {
     public void onShowWrapperLog(SelectionEvent<Item> event) {
         logHandler.onShowWrapperLog();
     }
-
-    @UiHandler("importButton")
-    public void onImportClicked(SelectEvent event) {
-        importHandler.onImport();
+    
+    @UiHandler("showAuditLog")
+    public void onShowAuditLog(SelectionEvent<Item> event) {
+        logHandler.onShowAuditLog();
     }
 
-    @UiHandler("groupsButton")
-    public void onGroupsClicked(SelectEvent event) {
-        groupsHandler.onShowGroups();
+    @UiHandler("dGroupsButton")
+    public void onDeviceGroupsClicked(SelectionEvent<Item> event) {
+        dGroupsHandler.onShowGroups();
+    }
+    
+    @UiHandler("uGroupsButton")
+    public void onUserGroupsClicked(SelectionEvent<Item> event) {
+        uGroupsHandler.onShowGroups();
     }
     
     @UiHandler("userGuideButton")

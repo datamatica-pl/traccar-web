@@ -32,11 +32,18 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.data.shared.LabelProvider;
+import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import pl.datamatica.traccar.model.PasswordHashMethod;
 
 import java.util.Arrays;
+import java.util.List;
+import org.traccar.web.client.ApplicationContext;
+import org.traccar.web.client.model.api.ApiUserGroup;
+import pl.datamatica.traccar.model.UserGroup;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
 
@@ -94,8 +101,16 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
 
     @UiField
     TextField matchServiceURL;
+    
+    @UiField
+    FieldLabel defaultGroupLbl;
+    
+    @UiField(provided = true)
+    ComboBox<UserGroup> defaultGroup;
 
-    public ApplicationSettingsDialog(ApplicationSettings applicationSettings, ApplicationSettingsHandler applicationSettingsHandler) {
+    public ApplicationSettingsDialog(ApplicationSettings applicationSettings, 
+            ApplicationSettingsHandler applicationSettingsHandler, 
+            List<ApiUserGroup> userGroups) {
         this.applicationSettingsHandler = applicationSettingsHandler;
 
         ListStore<PasswordHashMethod> dhmStore = new ListStore<>(
@@ -103,9 +118,14 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
         dhmStore.addAll(Arrays.asList(PasswordHashMethod.values()));
         defaultHashImplementation = new ComboBox<>(
                 dhmStore, new ApplicationSettingsProperties.PasswordHashMethodLabelProvider());
-
+        
         defaultHashImplementation.setForceSelection(true);
         defaultHashImplementation.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
+        
+        boolean canManageGroups = ApplicationContext.getInstance().getUser().hasPermission(UserPermission.USER_GROUP_MANAGEMENT);
+        if(canManageGroups) {
+            prepareDefaultGroupCBox(userGroups, applicationSettings);
+        }
 
         language = new LanguageComboBox();
 
@@ -113,9 +133,34 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
 
         updateInterval.addValidator(new MinNumberValidator<>((short) 100));
         updateInterval.addValidator(new MaxNumberValidator<>((short) 30000));
+        
+        defaultGroupLbl.setVisible(canManageGroups);
 
         driver.initialize(this);
         driver.edit(applicationSettings);
+    }
+
+    private void prepareDefaultGroupCBox(List<ApiUserGroup> userGroups, ApplicationSettings applicationSettings) {
+        ListStore<UserGroup> uGroups = new ListStore<>(new ModelKeyProvider<UserGroup>() {
+            @Override
+            public String getKey(UserGroup item) {
+                return item.getId()+"";
+            }
+        });
+        for(ApiUserGroup aug : userGroups) {
+            UserGroup ug = aug.toUserGroup();
+            uGroups.add(ug);
+            if(aug.getId() == applicationSettings.getDefaultGroupId())
+                applicationSettings.setDefaultGroup(ug);
+        }
+        defaultGroup = new ComboBox(uGroups, new LabelProvider<UserGroup>() {
+            @Override
+            public String getLabel(UserGroup item) {
+                return item.getName();
+            }
+        });
+        defaultGroup.setForceSelection(true);
+        defaultGroup.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
     }
 
     public void show() {

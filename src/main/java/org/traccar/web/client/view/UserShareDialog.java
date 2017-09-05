@@ -15,7 +15,10 @@
  */
 package org.traccar.web.client.view;
 
+import com.google.gwt.cell.client.Cell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -23,6 +26,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.core.client.ValueProvider;
+import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
@@ -105,6 +109,11 @@ public class UserShareDialog {
     StoreFilterField<UserShared> userFilter;
 
     public UserShareDialog(Set<Long> shares, UserShareHandler shareHandler) {
+        this(shares, shareHandler, true);
+    }
+
+    public UserShareDialog(Set<Long> shares, UserShareHandler shareHandler, 
+            final boolean editable) {
         this.shareHandler = shareHandler;
 
         List<User> users = new ArrayList<>(ApplicationContext.getInstance().getUsers());
@@ -134,7 +143,19 @@ public class UserShareDialog {
         columnConfigList.add(new ColumnConfig<>(userSharedProperties.name(), 25, i18n.name()));
 
         ColumnConfig<UserShared, Boolean> colManager = new ColumnConfig<>(userSharedProperties.shared(), 25, i18n.share());
-        colManager.setCell(new CheckBoxCell());
+        colManager.setCell(new CheckBoxCell() {
+            @Override
+            public void render(Cell.Context context, Boolean value, SafeHtmlBuilder sb) {
+                if(editable || !value 
+                        || shareStore.getRecord(shareStore.get(context.getIndex())).isDirty())
+                    super.render(context, value, sb);
+                else {
+                    CheckBoxCellOptions opts = new CheckBoxCellOptions();
+                    opts.setDisabled(true);
+                    getAppearance().render(sb, value, opts);
+                }
+            }
+        });
         columnConfigList.add(colManager);
 
         columnModel = new ColumnModel<>(columnConfigList);
@@ -143,7 +164,7 @@ public class UserShareDialog {
 
         grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
     }
-
+    
     public void show() {
         window.show();
     }
