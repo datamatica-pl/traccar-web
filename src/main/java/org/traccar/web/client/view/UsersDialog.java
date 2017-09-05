@@ -47,6 +47,7 @@ import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
+import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.SelectionChangedHandler;
 import java.util.ArrayList;
 import pl.datamatica.traccar.model.UserGroup;
 import pl.datamatica.traccar.model.UserPermission;
@@ -169,8 +170,14 @@ public class UsersDialog implements SelectionChangedEvent.SelectionChangedHandle
 
     @Override
     public void onSelectionChanged(SelectionChangedEvent<User> event) {
-        removeButton.setEnabled(!event.getSelection().isEmpty());
+        editButton.setEnabled(!event.getSelection().isEmpty());
         changePasswordButton.setEnabled(!event.getSelection().isEmpty());
+        if(event.getSelection().isEmpty()) {
+            changePasswordButton.setEnabled(false);
+        } else {
+            removeButton.setEnabled(!ApplicationContext.getInstance().getUser()
+                    .equals(event.getSelection().get(0)));
+        }
     }
 
     @UiHandler("addButton")
