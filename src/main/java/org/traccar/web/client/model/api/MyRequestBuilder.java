@@ -15,41 +15,14 @@
  */
 package org.traccar.web.client.model.api;
 
-import java.util.List;
+import com.google.gwt.http.client.RequestBuilder;
 
 /**
  *
- * @author ŁŁ
+ * @author Lukasz
  */
-public class ApiDeviceModel {
-    long id;
-    String modelName;
-    String protocolName;
-    String imageUrl;
-    boolean isDeleted;
-    List<ApiCommandType> commandTypes;
-    
-    public long getId() {
-        return id;
-    }
-    
-    public String getModelName() {
-        return modelName;
-    }
-    
-    public String getProtocolName() {
-        return protocolName;
-    }
-    
-    public String getImageUrl() {
-        return imageUrl;
-    }
-    
-    public boolean isDeleted() {
-        return isDeleted;
-    }
-    
-    public List<ApiCommandType> getCommandTypes() {
-        return commandTypes;
+public class MyRequestBuilder extends RequestBuilder{
+    public MyRequestBuilder(String httpMethod, String url) {
+        super(httpMethod, url);
     }
 }

@@ -37,6 +37,7 @@ import org.traccar.web.client.i18n.Messages;
 import pl.datamatica.traccar.model.User;
 
 import java.util.*;
+import org.traccar.web.client.ApplicationContext;
 
 public class UserShareDialog {
 
@@ -80,7 +81,7 @@ public class UserShareDialog {
     }
 
     public interface UserShareHandler {
-        void onSaveShares(Map<User, Boolean> shares, Window window);
+        void onSaveShares(List<Long> shares, Window window);
     }
 
     private UserShareHandler shareHandler;
@@ -103,10 +104,10 @@ public class UserShareDialog {
     @UiField(provided = true)
     StoreFilterField<UserShared> userFilter;
 
-    public UserShareDialog(Map<User, Boolean> shares, UserShareHandler shareHandler) {
+    public UserShareDialog(Set<Long> shares, UserShareHandler shareHandler) {
         this.shareHandler = shareHandler;
 
-        List<User> users = new ArrayList<>(shares.keySet());
+        List<User> users = new ArrayList<>(ApplicationContext.getInstance().getUsers());
         Collections.sort(users, new Comparator<User>() {
             @Override
             public int compare(User o1, User o2) {
@@ -126,7 +127,7 @@ public class UserShareDialog {
         userFilter.bind(shareStore);
 
         for (User user : users) {
-            shareStore.add(new UserShared(user, shares.get(user)));
+            shareStore.add(new UserShared(user, shares.contains(user.getId())));
         }
 
         List<ColumnConfig<UserShared, ?>> columnConfigList = new LinkedList<>();
@@ -154,15 +155,12 @@ public class UserShareDialog {
     @UiHandler("saveButton")
     public void onSaveClicked(SelectEvent event) {
         window.hide();
-        Map<User, Boolean> updatedShare = new HashMap<>(shareStore.getModifiedRecords().size());
-        for (Store<UserShared>.Record record : shareStore.getModifiedRecords()) {
-            UserShared updated = new UserShared(record.getModel().user, record.getModel().shared);
-            for (Store.Change<UserShared, ?> change : record.getChanges()) {
-                change.modify(updated);
-            }
-            updatedShare.put(updated.user, updated.shared);
-        }
-        shareHandler.onSaveShares(updatedShare, window);
+        shareStore.commitChanges();
+        List<Long> uids = new ArrayList<>();
+        for(UserShared us : shareStore.getAll())
+            if(us.shared)
+                uids.add(us.user.getId());
+        shareHandler.onSaveShares(uids, window);
     }
 
     @UiHandler("cancelButton")

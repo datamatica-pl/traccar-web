@@ -15,29 +15,71 @@
  */
 package org.traccar.web.client.model.api;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import com.github.nmorel.gwtjackson.client.ObjectMapper;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.http.client.RequestBuilder;
+import com.google.gwt.http.client.RequestCallback;
+import com.google.gwt.http.client.RequestException;
+import com.google.gwt.i18n.client.DateTimeFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import org.fusesource.restygwt.client.JsonCallback;
-import org.fusesource.restygwt.client.RestService;
+import org.fusesource.restygwt.client.MethodCallback;
+import org.traccar.web.client.model.api.IDevicesService.AddDeviceDto;
+import org.traccar.web.client.model.api.IDevicesService.EditDeviceDto;
 
-//@Path("https://localhost/api/v1/devices")
-@Path("../api/v1/devices")
-public interface DevicesService extends RestService {
-    @GET
-    void getDevices(JsonCallback callback);
+public class DevicesService {
+    public static interface EditDeviceDtoMapper extends ObjectMapper<EditDeviceDto>{}
+    public static interface LLongMapper extends ObjectMapper<List<Long>> {}
     
-    @POST
-    void addDevice(AddDeviceDto dto, JsonCallback callback);
+    private IDevicesService service = GWT.create(IDevicesService.class);
+    private EditDeviceDtoMapper mapper = GWT.create(EditDeviceDtoMapper.class);
+    private LLongMapper llMapper = GWT.create(LLongMapper.class);
     
+    public void getDevices(JsonCallback callback) {
+        service.getDevices(callback);
+    }
+
+    public void addDevice(AddDeviceDto dto, JsonCallback callback) {
+        service.addDevice(dto, callback);
+    }
     
-    public static class AddDeviceDto {
-        public String imei;
-        
-        public AddDeviceDto(){}
-        
-        public AddDeviceDto(String imei) {
-            this.imei = imei;
+    public void updateDevice(long id, EditDeviceDto dto, RequestCallback callback) {
+        RequestBuilder builder = new MyRequestBuilder("PATCH",
+            "../api/v1/devices/"+id);
+        try{
+            builder.sendRequest(mapper.write(dto), callback);
+        } catch(RequestException e) {
+            callback.onError(null, e);
+        }
+    }
+    
+    public void updateAlarmsViewTime(long id, RequestCallback callback) {
+        RequestBuilder rb = new MyRequestBuilder("PATCH", "../api/v1/devices/"+id);
+        try {
+            DateTimeFormat df = DateTimeFormat.getFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+            rb.sendRequest("{\"lastAlarmsCheck\":\""+df.format(new Date())+"\"}", callback);
+        } catch(RequestException e) {
+            callback.onError(null, e);
+        }
+    }
+    
+    public void removeDevice(long id, JsonCallback callback) {
+        service.removeDevice(id, callback);
+    }
+    
+    public void getDeviceShare(long id, MethodCallback<Set<Long>> callback) {
+        service.getDeviceShares(id, callback);
+    }
+    
+    public void updateDeviceShare(long id, List<Long> uids, RequestCallback callback) {
+        RequestBuilder builder = new RequestBuilder(RequestBuilder.PUT,
+            "../api/v1/devices/"+id+"/share");
+        try {
+            builder.sendRequest(llMapper.write(uids), callback);
+        } catch(RequestException e) {
+            callback.onError(null, e);
         }
     }
 }

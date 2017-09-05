@@ -37,9 +37,12 @@ import org.traccar.web.client.view.ReportsMenu;
 import org.traccar.web.client.view.UserSettingsDialog;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.json.client.JSONParser;
+import com.google.gwt.json.client.JSONValue;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import org.traccar.web.client.model.api.DevicePositionsService;
 
 public class ArchiveController implements ContentController, ArchiveView.ArchiveHandler {
 
@@ -95,17 +98,21 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
             final AutoProgressMessageBox progress = new AutoProgressMessageBox(i18n.archive(), i18n.loadingData());
             progress.auto();
             progress.show();
-            Application.getDataService().getPositions(device, from, to, filter, new BaseAsyncCallback<List<Position>>(i18n) {
+            DevicePositionsService service = new DevicePositionsService();
+            service.getPositions(device, from, to, filter, new RequestCallback() {
                 @Override
-                public void onSuccess(List<Position> result) {
+                public void onResponseReceived(Request request, Response response) {
+                    JSONValue v = JSONParser.parseStrict(response.getText());
+                    List<Position> result = Application.getDecoder()
+                            .decodePositions(device, v.isObject());
                     archiveHandler.onClear(device);
-                    if (result.isEmpty()) {
+                    if(result.isEmpty()) {
                         progress.hide();
                         new AlertMessageBox(i18n.error(), i18n.errNoResults()).show();
                     }
                     originalTracks.put(device.getId(), new Track(result, style));
                     snappedTracks.remove(device.getId());
-                    if (snapToRoads) {
+                    if(snapToRoads) {
                         loadSnappedPointsAndShowTrack(device);
                     } else {
                         showArchive(device);
@@ -114,10 +121,11 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
                 }
 
                 @Override
-                public void onFailure(Throwable caught) {
+                public void onError(Request request, Throwable exception) {
                     progress.hide();
-                    super.onFailure(caught);
+                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                 }
+                
             });
         } else {
             new AlertMessageBox(i18n.error(), i18n.errFillFields()).show();

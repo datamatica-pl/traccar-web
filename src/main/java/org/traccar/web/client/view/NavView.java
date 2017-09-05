@@ -36,6 +36,7 @@ import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
+import org.traccar.web.client.model.api.BasicAuthFilter;
 import org.traccar.web.client.model.api.SessionService;
 import pl.datamatica.traccar.model.Report;
 
@@ -196,6 +197,7 @@ public class NavView {
             @Override
             public void onSuccess(Boolean result) {
                 SessionService session = GWT.create(SessionService.class);
+                BasicAuthFilter.getInstance().pushCredentials(":", ":");
                 session.logout(new JsonCallback(){
                     @Override
                     public void onFailure(Method method, Throwable exception) {

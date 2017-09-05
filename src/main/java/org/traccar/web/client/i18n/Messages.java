@@ -667,4 +667,5 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String more();
 
     public String unknownModel();
+    public String errReportMax31Days();
 }

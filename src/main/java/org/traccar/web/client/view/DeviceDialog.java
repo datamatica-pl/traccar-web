@@ -15,7 +15,6 @@
  */
 package org.traccar.web.client.view;
 
-import pl.datamatica.traccar.model.Picture;
 import pl.datamatica.traccar.model.Group;
 import pl.datamatica.traccar.model.Device;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -23,8 +22,6 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.text.shared.AbstractSafeHtmlRenderer;
-import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.ScrollPanel;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;

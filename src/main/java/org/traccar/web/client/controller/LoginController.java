@@ -32,10 +32,10 @@ import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.model.api.BasicAuthFilter;
 import org.traccar.web.client.model.api.SessionService;
-import org.traccar.web.client.model.api.UsersService;
 import org.traccar.web.client.widget.InfoMessageBox;
 import org.traccar.web.shared.model.UserBlockedException;
 import org.traccar.web.shared.model.UserExpiredException;
+import org.traccar.web.client.model.api.IUsersService;
 
 public class LoginController implements LoginDialog.LoginHandler {
 
@@ -51,19 +51,34 @@ public class LoginController implements LoginDialog.LoginHandler {
 
     public void login(final LoginHandler loginHandler) {
         this.loginHandler = loginHandler;
+        SessionService session = GWT.create(SessionService.class);
 
-        Application.getDataService().authenticated(new BaseAsyncCallback<User>(i18n) {
+        session.getUser(new JsonCallback() {
             @Override
-            public void onSuccess(User result) {
-                if (result == null) {
-                    dialog = new LoginDialog(LoginController.this);
-                    hideLoadingDiv();
-                    dialog.show();
-                } else {
-                    ApplicationContext.getInstance().setUser(result);
-                    hideLoadingDiv();
-                    loginHandler.onLogin();
-                }
+            public void onFailure(Method method, Throwable exception) {
+                dialog = new LoginDialog(LoginController.this);
+                hideLoadingDiv();
+                dialog.show();
+            }
+
+            @Override
+            public void onSuccess(Method method, JSONValue response) {
+                User u = Application.getDecoder().decodeUser(response.isObject());
+                ApplicationContext.getInstance().setUser(u);
+                Application.getDataService().authenticated(new BaseAsyncCallback<User>(i18n) {
+                    @Override
+                    public void onSuccess(User result) {
+                        if(result == null) {
+                            dialog = new LoginDialog(LoginController.this);
+                            hideLoadingDiv();
+                            dialog.show();
+                        } else {
+                            hideLoadingDiv();
+                            loginHandler.onLogin();
+                        }
+                    }
+                    
+                });
             }
 
             void hideLoadingDiv() {
@@ -94,7 +109,6 @@ public class LoginController implements LoginDialog.LoginHandler {
             Application.getDataService().login(login, password, new BaseAsyncCallback<User>(i18n) {
                 @Override
                 public void onSuccess(User result) {
-                    ApplicationContext.getInstance().setUser(result);
                     BasicAuthFilter.getInstance().pushCredentials(login, password);
                     SessionService session = GWT.create(SessionService.class);
                     session.getUser(new JsonCallback() {
@@ -105,6 +119,8 @@ public class LoginController implements LoginDialog.LoginHandler {
 
                         @Override
                         public void onSuccess(Method method, JSONValue response) {
+                            User u = Application.getDecoder().decodeUser(response.isObject());
+                            ApplicationContext.getInstance().setUser(u);
                             if (loginHandler != null) {
                                 dialog.hide();
                                 loginHandler.onLogin();
@@ -130,8 +146,8 @@ public class LoginController implements LoginDialog.LoginHandler {
     @Override
     public void onRegister(String email, String imei, String password) {
         if (validate(email, imei, password)) {
-            UsersService users = GWT.create(UsersService.class);
-            UsersService.AddUserDto dto = new UsersService.AddUserDto(email, imei, password);
+            IUsersService users = GWT.create(IUsersService.class);
+            IUsersService.RegisterUserDto dto = new IUsersService.RegisterUserDto(email, imei, password);
             users.register(dto, new JsonCallback() {
                 @Override
                 public void onSuccess(Method method, JSONValue response) {

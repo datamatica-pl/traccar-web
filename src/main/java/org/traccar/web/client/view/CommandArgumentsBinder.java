@@ -25,11 +25,11 @@ public class CommandArgumentsBinder {
     private final Map<String, Widget> widgetMap = new HashMap<>();
     
     public static CommandArgumentsBinder getInstance(String protocol, CommandDialog commandDialog) {
-        if(protocol.equals("h02")) {
+        if(protocol.equalsIgnoreCase("h02")) {
             return new H02CommandArgumentsBinder(commandDialog);
-        } else if (protocol.equals("minifinder")) {
+        } else if (protocol.equalsIgnoreCase("minifinder")) {
             return new MiniFinderCommandArgumentsBinder(commandDialog);
-        } else if (protocol.equals("gt06")) {
+        } else if (protocol.equalsIgnoreCase("gt06")) {
             return new GT06CommandArgumentsBinder(commandDialog);
         } else {
             return new CommandArgumentsBinder(commandDialog);
