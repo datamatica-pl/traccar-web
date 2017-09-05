@@ -134,7 +134,7 @@
                 </container:child>
                 
                 <container:child layoutData="{hltWrapContent}">
-                    <g:Label text="m" />
+                    <g:Label text="km" />
                 </container:child>
             </container:HorizontalLayoutContainer>
         </container:child>
