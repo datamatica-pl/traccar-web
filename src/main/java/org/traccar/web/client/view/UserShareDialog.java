@@ -15,7 +15,10 @@
  */
 package org.traccar.web.client.view;
 
+import com.google.gwt.cell.client.Cell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -23,6 +26,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.core.client.ValueProvider;
+import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
@@ -37,6 +41,7 @@ import org.traccar.web.client.i18n.Messages;
 import pl.datamatica.traccar.model.User;
 
 import java.util.*;
+import org.traccar.web.client.ApplicationContext;
 
 public class UserShareDialog {
 
@@ -80,7 +85,7 @@ public class UserShareDialog {
     }
 
     public interface UserShareHandler {
-        void onSaveShares(Map<User, Boolean> shares, Window window);
+        void onSaveShares(List<Long> shares, Window window);
     }
 
     private UserShareHandler shareHandler;
@@ -103,10 +108,15 @@ public class UserShareDialog {
     @UiField(provided = true)
     StoreFilterField<UserShared> userFilter;
 
-    public UserShareDialog(Map<User, Boolean> shares, UserShareHandler shareHandler) {
+    public UserShareDialog(Set<Long> shares, UserShareHandler shareHandler) {
+        this(shares, shareHandler, true);
+    }
+
+    public UserShareDialog(Set<Long> shares, UserShareHandler shareHandler, 
+            final boolean editable) {
         this.shareHandler = shareHandler;
 
-        List<User> users = new ArrayList<>(shares.keySet());
+        List<User> users = new ArrayList<>(ApplicationContext.getInstance().getUsers());
         Collections.sort(users, new Comparator<User>() {
             @Override
             public int compare(User o1, User o2) {
@@ -126,14 +136,26 @@ public class UserShareDialog {
         userFilter.bind(shareStore);
 
         for (User user : users) {
-            shareStore.add(new UserShared(user, shares.get(user)));
+            shareStore.add(new UserShared(user, shares.contains(user.getId())));
         }
 
         List<ColumnConfig<UserShared, ?>> columnConfigList = new LinkedList<>();
         columnConfigList.add(new ColumnConfig<>(userSharedProperties.name(), 25, i18n.name()));
 
         ColumnConfig<UserShared, Boolean> colManager = new ColumnConfig<>(userSharedProperties.shared(), 25, i18n.share());
-        colManager.setCell(new CheckBoxCell());
+        colManager.setCell(new CheckBoxCell() {
+            @Override
+            public void render(Cell.Context context, Boolean value, SafeHtmlBuilder sb) {
+                if(editable || !value 
+                        || shareStore.getRecord(shareStore.get(context.getIndex())).isDirty())
+                    super.render(context, value, sb);
+                else {
+                    CheckBoxCellOptions opts = new CheckBoxCellOptions();
+                    opts.setDisabled(true);
+                    getAppearance().render(sb, value, opts);
+                }
+            }
+        });
         columnConfigList.add(colManager);
 
         columnModel = new ColumnModel<>(columnConfigList);
@@ -142,7 +164,7 @@ public class UserShareDialog {
 
         grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
     }
-
+    
     public void show() {
         window.show();
     }
@@ -154,15 +176,12 @@ public class UserShareDialog {
     @UiHandler("saveButton")
     public void onSaveClicked(SelectEvent event) {
         window.hide();
-        Map<User, Boolean> updatedShare = new HashMap<>(shareStore.getModifiedRecords().size());
-        for (Store<UserShared>.Record record : shareStore.getModifiedRecords()) {
-            UserShared updated = new UserShared(record.getModel().user, record.getModel().shared);
-            for (Store.Change<UserShared, ?> change : record.getChanges()) {
-                change.modify(updated);
-            }
-            updatedShare.put(updated.user, updated.shared);
-        }
-        shareHandler.onSaveShares(updatedShare, window);
+        shareStore.commitChanges();
+        List<Long> uids = new ArrayList<>();
+        for(UserShared us : shareStore.getAll())
+            if(us.shared)
+                uids.add(us.user.getId());
+        shareHandler.onSaveShares(uids, window);
     }
 
     @UiHandler("cancelButton")

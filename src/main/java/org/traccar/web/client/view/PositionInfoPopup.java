@@ -31,6 +31,8 @@ import org.traccar.web.shared.model.*;
 
 import java.util.*;
 import org.traccar.web.client.utils.JsonXmlParser;
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class PositionInfoPopup {
     private final static Messages i18n = GWT.create(Messages.class);
@@ -62,15 +64,14 @@ public class PositionInfoPopup {
                 "<tr>"+
                 (position.getStopTime() == 0 ? "" : "<td>"+i18n.stopDuration()+"</td><td>"+formatDateTimeDiff(position.getStopTime()*1000)+"</td>")+
                 "</tr>";
-
-        boolean admin = ApplicationContext.getInstance().getUser().getAdmin();
-        boolean manager = ApplicationContext.getInstance().getUser().getManager(); 
+        
+        User user = ApplicationContext.getInstance().getUser();
         Device device = deviceStore.findModelWithKey(Long.toString(position.getDevice().getId()));
 
-        if(manager || admin) {
-            if (position.getDevice().getOdometer() > 0 && device.isShowOdometer()) {
-                body += "<tr><td style=\"padding: 3px 0px 3px 0px;\">" + i18n.odometer() + "</td><td>" + ApplicationContext.getInstance().getFormatterUtil().getDistanceFormat().format(position.getDevice().getOdometer()) + "</td></tr>";
-            }
+        if (position.getDevice().getOdometer() > 0 && device.isShowOdometer()) {
+            body += "<tr><td style=\"padding: 3px 0px 3px 0px;\">" + i18n.odometer() + "</td><td>" + ApplicationContext.getInstance().getFormatterUtil().getDistanceFormat().format(position.getDevice().getOdometer()) + "</td></tr>";
+        }
+        if(user.hasPermission(UserPermission.ALL_DEVICES)) {
             if (position.getProtocol() != null && device.isShowProtocol()) {
                 body += "<tr><td style=\"padding: 3px 0px 3px 0px;\">" + i18n.protocol() + "</td><td>" + position.getProtocol() + "</td></tr>";
             }
@@ -84,17 +85,8 @@ public class PositionInfoPopup {
 
             Map<String, Object> sensorData = JsonXmlParser.parse(other);
 
-            if(!admin && !manager) {
+            if(!user.hasPermission(UserPermission.ALL_DEVICES)) {
                 sensorData.keySet().retainAll(alwaysVisibleOthers);
-            }
-            if(!admin && sensorData.containsKey("ip"))
-                sensorData.remove("ip");
-            if (!device.isShowProtocol() && sensorData.containsKey("protocol")) {
-                sensorData.remove("protocol");
-            }
-            // Alarm is not synchronized properly, remove it from device pop-up temporary
-            if (sensorData.containsKey("alarm")) {
-                sensorData.remove("alarm");
             }
 
             // write values

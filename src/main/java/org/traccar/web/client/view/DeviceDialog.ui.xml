@@ -81,6 +81,13 @@
                           </form:widget>
                       </form:FieldLabel>
                   </container:child>
+                  <container:child layoutData="{verticalLayoutDataWithButtons}">
+                      <form:FieldLabel text="{i18n.deviceModel}" labelWidth="180">
+                          <form:widget>
+                              <form:ComboBox ui:field="deviceModelId" />
+                          </form:widget>
+                      </form:FieldLabel>
+                  </container:child>
                   <container:child layoutData="{verticalLayoutData}">
                       <form:FieldLabel text="{i18n.description}" labelWidth="180">
                           <form:widget>
@@ -227,25 +234,6 @@
                               <form:CheckBox ui:field="showOdometer" />
                           </form:widget>
                       </form:FieldLabel>
-                  </container:child>
-                  <container:child layoutData="{verticalLayoutDataWithButtons}">
-                      <form:FieldLabel text="{i18n.photo}" labelWidth="180">
-                          <form:widget>
-                              <container:HorizontalLayoutContainer>
-                                  <container:child layoutData="{horizontalLayoutData}">
-                                      <button:TextButton ui:field="editPhotoButton" text="{i18n.edit}..." />
-                                  </container:child>
-                                  <container:child layoutData="{horizontalLayoutData}">
-                                      <button:TextButton ui:field="removePhotoButton" text="{i18n.remove}" />
-                                  </container:child>
-                              </container:HorizontalLayoutContainer>
-                          </form:widget>
-                      </form:FieldLabel>
-                  </container:child>
-                  <container:child layoutData="{verticalLayoutDataWithButtons}">
-                      <g:ScrollPanel ui:field="panelPhoto">
-                          <g:Image ui:field="photo" />
-                      </g:ScrollPanel>
                   </container:child>
               </container:VerticalLayoutContainer>
           </gxt:child>

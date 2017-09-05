@@ -39,6 +39,8 @@ import com.sencha.gxt.widget.core.client.Header;
 import com.sencha.gxt.widget.core.client.PlainTabPanel;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.button.TextButton;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.*;
 import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel;
@@ -129,6 +131,13 @@ public class GeoFenceWindow implements Editor<GeoFence> {
 
     @UiField
     Grid<Device> grid;
+    
+    @UiField
+    @Editor.Ignore
+    TextButton clearButton;
+    
+    @UiField
+    VerticalLayoutContainer devicesTab;
 
     public GeoFenceWindow(GeoFence geoFence,
                           GeoFenceDrawing geoFenceDrawing,
@@ -175,6 +184,12 @@ public class GeoFenceWindow implements Editor<GeoFence> {
         driver.initialize(this);
         driver.edit(this.geoFence);
         toggleRadiusField(this.geoFence.getType());
+        
+        if(GeoFenceType.LINE.equals(this.geoFence.getType())) {
+            clearButton.setEnabled(false);
+            type.setEnabled(false);
+            tabs.remove(devicesTab);
+        }
 
         this.geoFenceDrawing = geoFenceDrawing;
         if (geoFenceDrawing == null) {
@@ -354,6 +369,9 @@ public class GeoFenceWindow implements Editor<GeoFence> {
     }
 
     private void edit() {
+        if(type.getCurrentValue() == GeoFenceType.LINE)
+            return;
+        
         if (modifyFeature == null) {
             // add editing feature
             ModifyFeatureOptions options = new ModifyFeatureOptions();

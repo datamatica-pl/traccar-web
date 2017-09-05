@@ -65,6 +65,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import pl.datamatica.traccar.model.UserPermission;
 
 @Singleton
 public class NotificationServiceImpl extends RemoteServiceServlet implements NotificationService {
@@ -196,6 +197,8 @@ public class NotificationServiceImpl extends RemoteServiceServlet implements Not
         }
 
         private void addEvent(Map<User, Set<DeviceEvent>> events, User user, DeviceEvent event) {
+            if(!user.hasPermission(UserPermission.NOTIFICATIONS))
+                return;
             // check whether user wants to receive such notification events
             if (!user.getNotificationEvents().contains(event.getType())) {
                 return;
@@ -453,23 +456,11 @@ public class NotificationServiceImpl extends RemoteServiceServlet implements Not
     @RequireUser(roles = { Role.ADMIN, Role.MANAGER })
     @Override
     public String checkTemplate(NotificationTemplate template) {
-        List<Device> devices = dataService.getDevices();
-        Device testDevice;
-        if (devices.isEmpty()) {
-            testDevice = new Device();
-            testDevice.setName("Test-Device");
-            testDevice.setUniqueId("123");
-            testDevice.setMaintenances(new ArrayList<Maintenance>());
-        } else {
-            testDevice = devices.get(0);
-        }
-        List<GeoFence> geoFences = dataService.getGeoFences();
-        GeoFence testGeoFence;
-        if (geoFences.isEmpty()) {
-            testGeoFence = new GeoFence(0l, "Some-GeoFence");
-        } else {
-            testGeoFence = geoFences.get(0);
-        }
+        Device testDevice = new Device();
+        testDevice.setName("Test-Device");
+        testDevice.setUniqueId("123");
+        testDevice.setMaintenances(new ArrayList<Maintenance>());
+        GeoFence testGeoFence = new GeoFence(0L, "Some-GeoFence");
         Maintenance testMaintenance;
         if (testDevice.getMaintenances().isEmpty()) {
             testMaintenance = new Maintenance("Oil change");

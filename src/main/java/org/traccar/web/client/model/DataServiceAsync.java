@@ -16,74 +16,31 @@
 package org.traccar.web.client.model;
 
 import pl.datamatica.traccar.model.User;
-import pl.datamatica.traccar.model.UserSettings;
-import pl.datamatica.traccar.model.Position;
-import pl.datamatica.traccar.model.GeoFence;
-import pl.datamatica.traccar.model.ApplicationSettings;
-import pl.datamatica.traccar.model.Device;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
-
-import org.traccar.web.shared.model.*;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import java.util.Date;
+import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.Device;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.Route;
 
 public interface DataServiceAsync {
 
     void authenticated(AsyncCallback<User> callback);
-
     void login(String login, String password, boolean passwordHashed, AsyncCallback<User> callback);
-
     void login(String login, String password, AsyncCallback<User> callback);
-
     void logout(AsyncCallback<Boolean> callback);
-
-    void getUsers(AsyncCallback<List<User>> callback);
-
-    void addUser(User user, AsyncCallback<User> callback);
-
-    void updateUser(User user, AsyncCallback<User> callback);
-
-    void updateUserSettings(UserSettings userSettings, AsyncCallback<UserSettings> callback);
-
-    void removeUser(User user, AsyncCallback<User> callback);
-
-    void getDevices(AsyncCallback<List<Device>> callback);
-
-    void addDevice(Device device, AsyncCallback<Device> callback);
-
-    void updateDevice(Device device, AsyncCallback<Device> callback);
-
-    void removeDevice(Device device, AsyncCallback<Device> callback);
-
-    void getLatestPositions(AsyncCallback<List<Position>> callback);
-
-    void getPositions(Device device, Date from, Date to, boolean filter, AsyncCallback<List<Position>> callback);
-
-    void updateApplicationSettings(ApplicationSettings applicationSettings, AsyncCallback<Void> callback);
-
-    void getApplicationSettings(AsyncCallback<ApplicationSettings> async);
-
-    void saveRoles(List<User> users, AsyncCallback<Void> async);
-
-    void getDeviceShare(Device device, AsyncCallback<Map<User, Boolean>> async);
-
-    void saveDeviceShare(Device device, Map<User, Boolean> share, AsyncCallback<Void> async);
-
-    void getGeoFences(AsyncCallback<List<GeoFence>> async);
-
-    void updateGeoFence(GeoFence geoFence, AsyncCallback<GeoFence> async);
-
-    void addGeoFence(GeoFence geoFence, AsyncCallback<GeoFence> async);
-
-    void removeGeoFence(GeoFence geoFence, AsyncCallback<GeoFence> async);
-
-    void getGeoFenceShare(GeoFence geoFence, AsyncCallback<Map<User, Boolean>> async);
-
-    void saveGeoFenceShare(GeoFence geoFence, Map<User, Boolean> share, AsyncCallback<Void> async);
-
-    void sendCommand(Command command, AsyncCallback<String> async);
     
-    void updateAlarmsViewTime(Device device, AsyncCallback<Void> async);
+    void getDevices(AsyncCallback<List<Device>> callback);
+    void getPositions(Device device, Date from, Date to, boolean filter, AsyncCallback<List<Position>> callback);
+    void getGeoFences(AsyncCallback<List<GeoFence>> async);
+    
+    void addRoute(Route route, boolean connect, AsyncCallback<Route> async);
+    public void getRoutes(AsyncCallback<List<Route>> asyncCallback);
+    public void updateRoute(Route updated, AsyncCallback<Route> asyncCallback);
+    public void removeRoute(Route route, AsyncCallback<Route> asyncCallback);
+    
+    void getApplicationSettings(AsyncCallback<ApplicationSettings> async);
 }

@@ -25,10 +25,13 @@ import org.traccar.web.client.ApplicationContext;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BodyElement;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
@@ -43,8 +46,8 @@ import java.util.Map;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.api.UsersService;
-import org.traccar.web.client.model.api.UsersService.ResetPasswordDto;
+import org.traccar.web.client.model.api.IUsersService.ResetPasswordDto;
+import org.traccar.web.client.model.api.IUsersService;
 
 public class LoginDialog {
 
@@ -75,6 +78,9 @@ public class LoginDialog {
     @UiField
     TextButton registerButton;
     
+    @UiField
+    Label moreButton;
+    
     private Messages i18n = GWT.create(Messages.class);
 
     public LoginDialog(LoginHandler loginHandler) {
@@ -88,6 +94,12 @@ public class LoginDialog {
         if (ApplicationContext.getInstance().getApplicationSettings().getRegistrationEnabled()) {
             registerButton.setVisible(true);
         }
+        moreButton.addClickHandler(new ClickHandler() { 
+            @Override
+            public void onClick(ClickEvent event) {
+                new LoginMoreDialog().show();
+            }
+        });
     }
 
     public void show() {
@@ -141,22 +153,6 @@ public class LoginDialog {
                 }
             });
         dialog.show();
-    }
-    
-    @UiHandler("resetButton")
-    public void onResetClicked(SelectEvent event) {
-        UsersService us = GWT.create(UsersService.class);
-        us.resetPassword(new ResetPasswordDto(login.getText()), new JsonCallback() {
-            @Override
-            public void onFailure(Method method, Throwable exception) {
-                new AlertMessageBox(i18n.success(), i18n.resetMailSent()).show();
-            }
-
-            @Override
-            public void onSuccess(Method method, JSONValue response) {
-                new AlertMessageBox(i18n.success(), i18n.resetMailSent()).show();
-            }
-        });
     }
 
     @UiHandler({ "login", "password" })

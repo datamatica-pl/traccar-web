@@ -17,10 +17,11 @@ package org.traccar.web.client.controller;
 
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.http.client.*;
+import com.google.gwt.json.client.JSONString;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
-import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.view.CommandDialog;
 import org.traccar.web.client.view.DeviceView;
@@ -63,63 +64,65 @@ public class CommandController implements ContentController, DeviceView.CommandH
                        String message,
                        HashMap<String, Object> extendedAttributes,
                        String rawCommand) {
-        Command command = new Command();
-        command.setType(type);
-        command.setDeviceId((int) device.getId());
-        command.setAttributes(new HashMap<String, Object>());
+        JSONObject attrs = new JSONObject();
         switch (type) {
             case positionPeriodic:
-                command.getAttributes().put(CommandType.KEY_FREQUENCY, frequency);
+                attrs.put(CommandType.KEY_FREQUENCY, new JSONString(Integer.toString(frequency)));
                 if (extendedAttributes.get(CommandType.KEY_FREQUENCY_STOP) != null) {
-                    command.getAttributes().put(CommandType.KEY_FREQUENCY_STOP,
-                            extendedAttributes.get(CommandType.KEY_FREQUENCY_STOP));
+                    attrs.put(CommandType.KEY_FREQUENCY_STOP,
+                            new JSONString(extendedAttributes.get(CommandType.KEY_FREQUENCY_STOP).toString()));
                 }
                 break;
             case positionStop:
-                command.getAttributes().put(CommandType.KEY_FREQUENCY, frequency);
+                attrs.put(CommandType.KEY_FREQUENCY, new JSONString(Integer.toString(frequency)));
                 break;
             case setTimezone:
-                command.getAttributes().put(CommandType.KEY_TIMEZONE, timezone);
+                attrs.put(CommandType.KEY_TIMEZONE, new JSONString(Long.toString(timezone/3600)));
                 break;
             case movementAlarm:
-                command.getAttributes().put(CommandType.KEY_RADIUS, radius);
+                attrs.put(CommandType.KEY_RADIUS, new JSONString(Integer.toString(radius)));
                 break;
             case sendSms:
-                command.getAttributes().put(CommandType.KEY_PHONE_NUMBER, phoneNumber);
-                command.getAttributes().put(CommandType.KEY_MESSAGE, message);
+                attrs.put(CommandType.KEY_PHONE_NUMBER, new JSONString(phoneNumber));
+                attrs.put(CommandType.KEY_MESSAGE, new JSONString(message));
                 break;
             case setDefenseTime:
-                command.getAttributes().put(CommandType.KEY_DEFENSE_TIME,
-                        extendedAttributes.get(CommandType.KEY_DEFENSE_TIME));
+                attrs.put(CommandType.KEY_DEFENSE_TIME,
+                        new JSONString(extendedAttributes.get(CommandType.KEY_DEFENSE_TIME).toString()));
                 break;
             case setSOSNumbers:
-                command.getAttributes().put(CommandType.KEY_SOS_NUMBER_1,
-                        extendedAttributes.get(CommandType.KEY_SOS_NUMBER_1));
-                command.getAttributes().put(CommandType.KEY_SOS_NUMBER_2,
-                        extendedAttributes.get(CommandType.KEY_SOS_NUMBER_2));
-                command.getAttributes().put(CommandType.KEY_SOS_NUMBER_3,
-                        extendedAttributes.get(CommandType.KEY_SOS_NUMBER_3));
+                attrs.put(CommandType.KEY_SOS_NUMBER_1,
+                        new JSONString(extendedAttributes.get(CommandType.KEY_SOS_NUMBER_1).toString()));
+                attrs.put(CommandType.KEY_SOS_NUMBER_2,
+                        new JSONString(extendedAttributes.get(CommandType.KEY_SOS_NUMBER_2).toString()));
+                attrs.put(CommandType.KEY_SOS_NUMBER_3,
+                        new JSONString(extendedAttributes.get(CommandType.KEY_SOS_NUMBER_3).toString()));
                 break;
             case deleteSOSNumber:
-                command.getAttributes().put(CommandType.KEY_SOS_NUMBER,
-                        extendedAttributes.get(CommandType.KEY_SOS_NUMBER));
+                attrs.put(CommandType.KEY_SOS_NUMBER,
+                        new JSONString(extendedAttributes.get(CommandType.KEY_SOS_NUMBER).toString()));
+                break;
+            case positionPeriodicAlt:
+                attrs.put(CommandType.KEY_FREQUENCY, new JSONString(Integer.toString(frequency)));
                 break;
             case setCenterNumber:
-                command.getAttributes().put(CommandType.KEY_CENTER_NUMBER,
-                        extendedAttributes.get(CommandType.KEY_CENTER_NUMBER));
+                attrs.put(CommandType.KEY_CENTER_NUMBER,
+                        new JSONString(extendedAttributes.get(CommandType.KEY_CENTER_NUMBER).toString()));
+                break;
             case extendedCustom:
-                command.getAttributes().put(CommandType.KEY_MESSAGE, rawCommand);
+                attrs.put(CommandType.KEY_MESSAGE, new JSONString(rawCommand));
             case custom:
-                command.setCommand(rawCommand);
+                attrs.put("command", new JSONString(rawCommand));
                 break;
         }
 
         final Messages i18n = GWT.create(Messages.class);
 
-        RequestBuilder builder = new RequestBuilder(RequestBuilder.POST, "traccar/rest/sendCommand");
+        RequestBuilder builder = new RequestBuilder(RequestBuilder.POST, 
+                "../api/v1/devices/"+device.getId()+"/sendCommand/"+type.name());
 
         try {
-            builder.sendRequest("[" + commandMapper.write(command) + "]", new RequestCallback() {
+            builder.sendRequest(attrs.toString(), new RequestCallback() {
                 @Override
                 public void onResponseReceived(Request request, Response response) {
                     currentDialog.onAnswerReceived();
@@ -128,11 +131,11 @@ public class CommandController implements ContentController, DeviceView.CommandH
 
                 @Override
                 public void onError(Request request, Throwable exception) {
-                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall());
+                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                 }
             });
         } catch (RequestException e) {
-            new AlertMessageBox(i18n.error(), e.getLocalizedMessage());
+            new AlertMessageBox(i18n.error(), e.getLocalizedMessage()).show();
             e.printStackTrace();
         }
     }

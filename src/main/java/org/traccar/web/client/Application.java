@@ -34,27 +34,54 @@ import org.traccar.web.client.model.*;
 import org.traccar.web.client.view.ApplicationView;
 import org.traccar.web.client.view.UserSettingsDialog;
 import org.traccar.web.client.widget.TimeZoneComboBox;
-import org.traccar.web.shared.model.*;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.http.client.Request;
+import com.google.gwt.http.client.RequestCallback;
+import com.google.gwt.http.client.Response;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreHandlers;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
+import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import org.traccar.web.client.InitialLoader.LoadFinishedListener;
+import org.traccar.web.client.model.api.Decoder;
+import org.traccar.web.client.model.api.DevicesService;
+import org.traccar.web.client.model.api.IUsersService.EditUserSettingsDto;
+import org.traccar.web.client.model.api.Resources;
+import org.traccar.web.client.model.api.UsersService;
+import pl.datamatica.traccar.model.ApplicationSettings;
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class Application {
 
     private static final DataServiceAsync dataService = GWT.create(DataService.class);
+    private static final DevicesService devices = new DevicesService();
+    private static final Decoder decoder = new Decoder();
+    private static final Resources resources = new Resources();
     private final static Messages i18n = GWT.create(Messages.class);
 
     public static DataServiceAsync getDataService() {
         return dataService;
     }
+    
+    public static DevicesService getDevicesService() {
+        return devices;
+    }
+    
+    public static Decoder getDecoder() {
+        return decoder;
+    }
+    
+    public static Resources getResources() {
+        return resources;
+    }
 
     private final SettingsController settingsController;
     private final NavController navController;
-    private final ImportController importController;
     private final DeviceController deviceController;
+    private final RouteController routeController;
     private final CommandController commandController;
     private final GeoFenceController geoFenceController;
     private final MapController mapController;
@@ -64,6 +91,9 @@ public class Application {
     private final LogController logController;
     private final GroupsController groupsController;
     private final VisibilityController visibilityController;
+    private final UserGroupsController userGroupsController;
+    
+    private final InitialLoader initialLoader;
 
     private ApplicationView view;
 
@@ -82,9 +112,12 @@ public class Application {
         geoFenceController.getGeoFenceStore().addStoreHandlers(geoFenceStoreHandler);
         commandController = new CommandController();
         reportsController = new ReportsController(reportStore, deviceStore, geoFenceController.getGeoFenceStore());
+        routeController = new RouteController(deviceStore, geoFenceController.getGeoFenceStore(),
+                mapController);
         deviceController = new DeviceController(mapController,
                 geoFenceController,
                 commandController,
+                routeController,
                 visibilityController,
                 deviceStore,
                 deviceStoreHandler,
@@ -92,18 +125,20 @@ public class Application {
                 geoFenceController.getDeviceGeoFences(),
                 groupStore,
                 reportStore,
+                routeController.getStore(),
                 reportsController,
                 this);
         groupsController = new GroupsController(groupStore, deviceController);
-        importController = new ImportController(deviceController.getDeviceStore());
+        userGroupsController = new UserGroupsController();
         logController = new LogController();
-        navController = new NavController(settingsController, reportStore, reportsController, importController, logController, groupsController);
+        navController = new NavController(settingsController, reportStore, reportsController, logController, groupsController, userGroupsController);
         archiveController = new ArchiveController(archiveHandler, userSettingsHandler, deviceController.getDeviceStore(), reportStore, reportsController);
         
         updatesController = new UpdatesController();
         updatesController.addLatestPositionsListener(mapController);
         updatesController.addDevicesListener(deviceController);
 
+        initialLoader = new InitialLoader(deviceStore, groupStore);
         view = new ApplicationView(
                 navController.getView(), deviceController.getView(), mapController.getView(), archiveController.getView());
     }
@@ -111,17 +146,31 @@ public class Application {
     public void run() {
         RootPanel.get().add(view);
 
-        navController.run();
-        deviceController.run();
-        mapController.run();
-        archiveController.run();
-        geoFenceController.run();
-        commandController.run();
-        groupsController.run();
-        visibilityController.run();
-        reportsController.run();
-        updatesController.run();
-        setupTimeZone();
+        initialLoader.load(new LoadFinishedListener() {
+            @Override
+            public void onLoadFinished() {
+                User user = ApplicationContext.getInstance().getUser();
+                navController.run();
+                deviceController.run();
+                mapController.run();
+                if(user.hasPermission(UserPermission.HISTORY_READ))
+                    archiveController.run();
+                if(user.hasPermission(UserPermission.GEOFENCE_READ))
+                    geoFenceController.run();
+                if(user.hasPermission(UserPermission.COMMAND_TCP))
+                    commandController.run();
+                if(user.hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT))
+                    groupsController.run();
+                visibilityController.run();
+                if(user.hasPermission(UserPermission.REPORTS))
+                    reportsController.run();
+                updatesController.run();
+                if(user.hasPermission(UserPermission.TRACK_READ))
+                    routeController.run();
+                setupTimeZone();
+                updatesController.devicesLoaded(deviceController.getDeviceStore().getAll());
+            }
+        });
     }
 
     private void setupTimeZone() {
@@ -229,14 +278,26 @@ public class Application {
     };
 
     private class UserSettingsHandlerImpl implements UserSettingsDialog.UserSettingsHandler {
+        private UsersService users = new UsersService();
+        
         @Override
-        public void onSave(UserSettings userSettings) {
-            Application.getDataService().updateUserSettings(userSettings, new BaseAsyncCallback<UserSettings>(i18n) {
+        public void onSave(final UserSettings userSettings) {
+            users.updateUserSettings(ApplicationContext.getInstance().getUser().getId(), 
+                    new EditUserSettingsDto(userSettings), new RequestCallback() {
                 @Override
-                public void onSuccess(UserSettings result) {
-                    ApplicationContext.getInstance().setUserSettings(result);
+                public void onResponseReceived(Request request, Response response) {
+                    if(userSettings.getMinDistance() != null)
+                        userSettings.setMinDistance(userSettings.getMinDistance()
+                            /userSettings.getSpeedUnit().getDistanceUnit().getFactor());
+                    ApplicationContext.getInstance().setUserSettings(userSettings);
                 }
-            });
+
+                @Override
+                public void onError(Request request, Throwable exception) {
+                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                }
+                        
+                    });
         }
 
         @Override

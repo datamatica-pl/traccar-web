@@ -1,0 +1,92 @@
+<!--
+Uncomment this for XHTML entities
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+-->
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+             xmlns:g="urn:import:com.google.gwt.user.client.ui"
+             xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
+  	xmlns:container="urn:import:com.sencha.gxt.widget.core.client.container"
+  	xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
+    xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
+    xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid"
+  	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
+    xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu">
+    
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="smallMargins">
+    <ui:attributes top="4" right="4" bottom="4" left="4" />
+  </ui:with>
+    
+  <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" 
+           field="vWrapContent">
+    <ui:attributes width="1" height="-1" margins="{smallMargins}" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" 
+           field="vMatchParent">
+    <ui:attributes width="1" height="1" margins="{smallMargins}" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+           field="v28Px">
+      <ui:attributes width="1" height="28" margins="{smallMargins}" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="textMargin">
+      <ui:attributes top="4" right="6" bottom="0" left="6" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="textLayout">
+      <ui:attributes width="-1" height="1" margins="{textMargin}" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="text1Margin">
+      <ui:attributes left="0" top="4" right="6" bottom ="0" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="text1Layout">
+      <ui:attributes width="-1" height="1" margins="{text1Margin}" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="btnMargin">
+      <ui:attributes left="6" top="0" right="0" bottom="0" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="buttonLayout">
+      <ui:attributes width="-1" height="1" margins="{btnMargin}" />
+  </ui:with>
+  
+  <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
+  
+  <gxt:Window ui:field="window" pixelSize="640, 480" modal="true" headingText="{i18n.auditLog}">
+    <container:VerticalLayoutContainer>
+      <container:child layoutData="{vWrapContent}">
+        <g:Label text="{i18n.auditInfo}" />
+      </container:child>
+      <container:child layoutData="{v28Px}">
+        <container:HorizontalLayoutContainer>
+            <container:child layoutData="{text1Layout}">
+                <g:Label text="{i18n.showLogFrom}" />
+            </container:child>
+            <container:child>
+                <form:DateField ui:field="fromDate"/>
+            </container:child>
+            <container:child layoutData="{textLayout}">
+                <g:Label text="{i18n.to}" />
+            </container:child>
+            <container:child>
+                <form:DateField ui:field="toDate"/>
+            </container:child>
+            <container:child layoutData="{buttonLayout}">
+                <button:TextButton text="{i18n.show}" ui:field="show"/>
+            </container:child>
+        </container:HorizontalLayoutContainer>
+      </container:child>
+      <container:child layoutData="{vMatchParent}">
+          <grid:Grid ui:field="logGrid"/>
+      </container:child>
+    </container:VerticalLayoutContainer>
+  </gxt:Window>
+</ui:UiBinder>

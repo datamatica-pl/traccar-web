@@ -56,4 +56,6 @@ public interface UserProperties extends PropertyAccess<User> {
     ValueProvider<User, Date> expirationDate();
 
     ValueProvider<User, Integer> maxNumOfDevices();
+    
+    ValueProvider<User, String> userGroupName();
 }

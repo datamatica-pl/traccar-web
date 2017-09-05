@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Vitaly Litvak (vitavaque@gmail.com)
+ * Copyright 2017 Datamatica (dev@datamatica.pl)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.traccar.web.client.controller;
+package org.traccar.web.client.utils;
 
-import com.sencha.gxt.data.shared.ListStore;
-import org.traccar.web.client.view.ImportDialog;
-import org.traccar.web.client.view.NavView;
-import pl.datamatica.traccar.model.Device;
+import com.sencha.gxt.core.client.ValueProvider;
 
-public class ImportController implements NavView.ImportHandler {
-    private final ListStore<Device> deviceStore;
-
-    public ImportController(ListStore<Device> deviceStore) {
-        this.deviceStore = deviceStore;
+/**
+ *
+ * @author ŁŁ
+ * @param <T1>
+ * @param <T2>
+ */
+public class ConstValueProvider<T1, T2> implements ValueProvider<T1, T2> {
+    private final T2 value;
+    
+    public ConstValueProvider(T2 value) {
+        this.value = value;
+    }
+    
+    @Override
+    public T2 getValue(T1 object) {
+        return value;
     }
 
     @Override
-    public void onImport() {
-        new ImportDialog(deviceStore).show();
+    public void setValue(T1 object, T2 value) {
     }
+
+    @Override
+    public String getPath() {
+        return "";
+    }
+    
 }
