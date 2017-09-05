@@ -132,30 +132,11 @@ public class UsersDialog implements SelectionChangedEvent.SelectionChangedHandle
         colGroup.setResizable(false);
         columnConfigList.add(colGroup);
         
-        ColumnConfig<User, Boolean> colBlocked = new ColumnConfig<>(userProperties.blocked(), 75, i18n.blocked());
-        colBlocked.setCell(new CheckBoxCell());
-        colBlocked.setFixed(true);
-        colBlocked.setResizable(false);
-        columnConfigList.add(colBlocked);
-        
-        ColumnConfig<User, Date> colExpirationDate = new ColumnConfig<>(userProperties.expirationDate(), 165, i18n.expirationDate());
-        colExpirationDate.setCell(new DateCell());
-        colExpirationDate.setFixed(true);
-        colExpirationDate.setResizable(false);
-        columnConfigList.add(colExpirationDate);
-        
         ColumnConfig<User, Integer> colMaxNumOfDevices = new ColumnConfig<>(userProperties.maxNumOfDevices(), 200, i18n.maxNumOfDevices());
         colMaxNumOfDevices.setCell(new NumberCell<Integer>());
         colMaxNumOfDevices.setFixed(true);
         colMaxNumOfDevices.setResizable(false);
         columnConfigList.add(colMaxNumOfDevices);
-        
-        GridEditing<User> editing = new GridInlineEditing<>(grid);
-        NumberField<Integer> maxNumOfDevicesEditor = new NumberField<>(new NumberPropertyEditor.IntegerPropertyEditor());
-        maxNumOfDevicesEditor.setAllowDecimals(false);
-        maxNumOfDevicesEditor.setAllowBlank(true);
-        maxNumOfDevicesEditor.setAllowNegative(false);
-        editing.addEditor(colMaxNumOfDevices, maxNumOfDevicesEditor);
         
         return new ColumnModel<>(columnConfigList);
     }
