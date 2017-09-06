@@ -18,7 +18,7 @@ package org.traccar.web.server.model;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import static org.traccar.web.server.model.EventServiceImpl.*;
+import static pl.datamatica.traccar.api.auth.EventServiceImpl.*;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.Before;

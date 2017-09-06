@@ -44,27 +44,8 @@ public class UserCheck implements MethodInterceptor {
             cleanUp();
         }
     }
-
-    private final ThreadLocal<Role[]> rolesChecked = new ThreadLocal<>();
+    
     void checkRequireUser(RequireUser requireUser) {
-        if (rolesChecked.get() != null) {
-            // this method require an logged in user
-            // so if rolesChecked thread local returns some value
-            // then this check already passed for sure
-            if (requireUser.roles().length == 0) {
-                return;
-            }
-            // check role
-            Role[] checkedRoles = rolesChecked.get();
-            for (Role role : requireUser.roles()) {
-                for (int i = 0; i < checkedRoles.length; i++) {
-                    if (role == checkedRoles[i]) {
-                        return;
-                    }
-                }
-            }
-        }
-
         User user = sessionUser.get();
         if (user == null) {
             throw new SecurityException("Not logged in");
@@ -74,22 +55,6 @@ public class UserCheck implements MethodInterceptor {
         }
         if (user.isExpired()) {
             throw new SecurityException("User account expired");
-        }
-        if (requireUser.roles().length > 0) {
-            StringBuilder roles = new StringBuilder();
-            for (Role role : requireUser.roles()) {
-                if (roles.length() > 0) {
-                    roles.append(" or ");
-                }
-                roles.append(role.toString());
-                if (role.has(user)) {
-                    rolesChecked.set(requireUser.roles());
-                    return;
-                }
-            }
-            throw new SecurityException("User must have " + roles + " role");
-        } else {
-            rolesChecked.set(requireUser.roles());
         }
     }
 
@@ -124,7 +89,6 @@ public class UserCheck implements MethodInterceptor {
     }
 
     void cleanUp() {
-        rolesChecked.remove();
         checkedDeviceManagement.remove();
         checkedRequireWrite.remove();
     }

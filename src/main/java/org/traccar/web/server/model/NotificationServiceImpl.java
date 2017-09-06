@@ -363,10 +363,11 @@ public class NotificationServiceImpl extends RemoteServiceServlet implements Not
     }
 
     @Transactional
-    @RequireUser(roles = { Role.ADMIN, Role.MANAGER })
     @RequireWrite
     @Override
     public void checkEmailSettings(NotificationSettings settings) {
+        if(!sessionUser.get().hasPermission(UserPermission.SERVER_MANAGEMENT))
+            throw new SecurityException("User must have SERVER_MANAGEMENT permission");
         // Validate smtp settings
         try {
             Session s = getSession(settings);
@@ -424,10 +425,11 @@ public class NotificationServiceImpl extends RemoteServiceServlet implements Not
     }
 
     @Transactional
-    @RequireUser(roles = { Role.ADMIN, Role.MANAGER })
     @RequireWrite
     @Override
     public void checkPushbulletSettings(NotificationSettings settings) {
+        if(!sessionUser.get().hasPermission(UserPermission.SERVER_MANAGEMENT))
+            throw new SecurityException("User must have SERVER_MANAGEMENT permission");
         InputStream is = null;
         try {
             URL url = new URL("https://api.pushbullet.com/v2/users/me");
@@ -453,9 +455,10 @@ public class NotificationServiceImpl extends RemoteServiceServlet implements Not
     }
 
     @Transactional
-    @RequireUser(roles = { Role.ADMIN, Role.MANAGER })
     @Override
     public String checkTemplate(NotificationTemplate template) {
+        if(!sessionUser.get().hasPermission(UserPermission.SERVER_MANAGEMENT))
+            throw new SecurityException("User must have SERVER_MANAGEMENT permission");
         Device testDevice = new Device();
         testDevice.setName("Test-Device");
         testDevice.setUniqueId("123");
@@ -564,9 +567,10 @@ public class NotificationServiceImpl extends RemoteServiceServlet implements Not
     }
 
     @Transactional
-    @RequireUser(roles = { Role.ADMIN, Role.MANAGER })
     @Override
     public NotificationSettings getSettings() {
+        if(!sessionUser.get().hasPermission(UserPermission.SERVER_MANAGEMENT))
+            throw new SecurityException("User must have SERVER_MANAGEMENT permission");
         List<NotificationSettings> settings = entityManager.get().createQuery("SELECT n FROM NotificationSettings n WHERE n.user = :user", NotificationSettings.class)
                 .setParameter("user", sessionUser.get())
                 .getResultList();
@@ -583,10 +587,11 @@ public class NotificationServiceImpl extends RemoteServiceServlet implements Not
     }
 
     @Transactional
-    @RequireUser(roles = { Role.ADMIN, Role.MANAGER })
     @RequireWrite
     @Override
     public void saveSettings(NotificationSettings settings) {
+        if(!sessionUser.get().hasPermission(UserPermission.SERVER_MANAGEMENT))
+            throw new SecurityException("User must have SERVER_MANAGEMENT permission");
         NotificationSettings currentSettings = getSettings();
         if (currentSettings == null) {
             currentSettings = settings;
