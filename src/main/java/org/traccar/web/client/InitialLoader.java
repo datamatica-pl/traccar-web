@@ -38,6 +38,7 @@ import pl.datamatica.traccar.model.Group;
 import pl.datamatica.traccar.model.User;
 import org.traccar.web.client.model.api.IUsersService;
 import org.traccar.web.client.model.api.GroupService;
+import org.traccar.web.client.model.api.Resources;
 import pl.datamatica.traccar.model.UserPermission;
 
 /**
@@ -92,7 +93,7 @@ public class InitialLoader {
                 onRequestAnswered();
                 for(ApiDeviceIcon ico : response)
                     if(!ico.isDeleted())
-                        Application.getResources().icon(ico.getId(), 
+                        Resources.getInstance().icon(ico.getId(), 
                                 ico.getUrl().replace("/images/", "/markers/"));
             }
         });
@@ -113,7 +114,7 @@ public class InitialLoader {
                             if(!ct.isTCP())
                                 nonTcp.add(ct);
                         m.getCommandTypes().removeAll(nonTcp);
-                        Application.getResources().model(m);
+                        Resources.getInstance().model(m);
                     }
                 }
             }

@@ -219,7 +219,7 @@ public class DeviceIconEditor {
         @Override
         public void load(Object loadConfig, AsyncCallback<List<MarkerIcon>> callback) {
             List<MarkerIcon> result = new ArrayList<>();
-            for(Long icon: Application.getResources().icons()) {
+            for(Long icon: org.traccar.web.client.model.api.Resources.getInstance().icons()) {
                 result.add(new MarkerIcon.BuiltIn(icon));
             }
             if(device.getCustomIconId() != null)

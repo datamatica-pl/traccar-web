@@ -6,9 +6,9 @@
 package org.traccar.web.client.model.api;
 
 public class ApiDeviceIcon {
-    long id;
-    String iconUrl;
-    boolean isDeleted;
+    public long id;
+    public String iconUrl;
+    public boolean isDeleted;
     
     public long getId() {
         return id;
