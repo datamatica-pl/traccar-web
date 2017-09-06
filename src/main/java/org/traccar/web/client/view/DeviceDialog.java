@@ -47,6 +47,7 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.TextField;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.model.api.ApiDeviceModel;
+import org.traccar.web.client.model.api.Resources;
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UserPermission;
 
@@ -186,7 +187,7 @@ public class DeviceDialog implements Editor<Device> {
                 return item+"";
             }
         });
-        for(long id : Application.getResources().models())
+        for(long id : Resources.getInstance().models())
             modelStore.add(id);
         modelStore.add(-1L);
         this.deviceModelId = new ComboBox<>(modelStore, new LabelProvider<Long>() {
@@ -194,7 +195,7 @@ public class DeviceDialog implements Editor<Device> {
             public String getLabel(Long id) {
                 if(id == null)
                     return i18n.unknownModel();
-                ApiDeviceModel m = Application.getResources().model(id);
+                ApiDeviceModel m = Resources.getInstance().model(id);
                 if(m == null)
                     return i18n.unknownModel();
                 return m.getModelName();

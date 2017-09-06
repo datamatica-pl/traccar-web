@@ -15,16 +15,13 @@
  */
 package org.traccar.web.client.view;
 
-import com.google.gwt.core.client.GWT;
-import org.traccar.web.client.Application;
+import org.traccar.web.client.model.api.Resources;
 import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.PositionIcon;
-import pl.datamatica.traccar.model.Picture;
 import pl.datamatica.traccar.model.DeviceIcon;
 import pl.datamatica.traccar.model.DeviceIconType;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.DeviceIconMode;
-import org.traccar.web.shared.model.*;
 
 public abstract class MarkerIcon {
     abstract Long getId();
@@ -86,7 +83,7 @@ public abstract class MarkerIcon {
         
         @Override
         String getDefaultURL() {
-            return Application.getResources().icon(id);
+            return Resources.getInstance().icon(id);
         }
     }
     

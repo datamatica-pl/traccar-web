@@ -105,7 +105,7 @@ public class Decoder {
         
         d.setIconMode(DeviceIconMode.ICON);
         
-        ApiDeviceModel model = Application.getResources().model(d.getDeviceModelId());
+        ApiDeviceModel model = Resources.getInstance().model(d.getDeviceModelId());
         if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.COMMAND_CUSTOM)) {
             d.addSupportedCommand(CommandType.custom);
             d.addSupportedCommand(CommandType.extendedCustom);

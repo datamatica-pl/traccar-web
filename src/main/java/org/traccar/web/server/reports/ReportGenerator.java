@@ -15,6 +15,8 @@
  */
 package org.traccar.web.server.reports;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UserSettings;
 import pl.datamatica.traccar.model.ReportFormat;
@@ -31,11 +33,39 @@ import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.util.EntityUtils;
+import org.traccar.web.client.model.api.ApiDeviceIcon;
+import org.traccar.web.client.model.api.Resources;
 
 public abstract class ReportGenerator {
     public static final int DEFAULT_TABLE_HEIGHT = 150;
@@ -85,10 +115,68 @@ public abstract class ReportGenerator {
         dateFormat.setTimeZone(timeZone);
         longDateFormat = new SimpleDateFormat("d MMM yyyy", locale);
         longDateFormat.setTimeZone(timeZone);
-
+        
+        loadDeviceIcons();
         renderer.start(report);
         generateImpl(report);
         renderer.end(report);
+    }
+
+    private void loadDeviceIcons() throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        //http://nemerosa.ghost.io/2014/11/06/disabling-ssl-checks-with-apache-httpclient-4-3-x/
+        SSLConnectionSocketFactory sslSocketFactory;
+        try {
+            SSLContext ctx = SSLContext.getInstance("TLS");
+            ctx.init(new KeyManager[0], new TrustManager[]{
+                new X509TrustManager() {
+                @Override
+                public void checkClientTrusted(X509Certificate[] xcs, String string) throws CertificateException {
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] xcs, String string) throws CertificateException {
+                }
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }    
+                }
+            }, new SecureRandom());
+            sslSocketFactory = new SSLConnectionSocketFactory(ctx, 
+                    SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+        Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                .register("https", sslSocketFactory)
+                .build();
+
+        CredentialsProvider cp = new BasicCredentialsProvider();
+        try {
+            Context ctx = new InitialContext();
+            cp.setCredentials(new AuthScope("localhost", 443), 
+                    new UsernamePasswordCredentials("report", ctx.lookup("java:/reports.password").toString()));
+        } catch (NamingException ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        CloseableHttpClient client = HttpClientBuilder.create()
+                .setConnectionManager(new PoolingHttpClientConnectionManager(registry))
+                .setDefaultCredentialsProvider(cp)
+                .build();
+        try {
+            String res = EntityUtils.toString(client
+                    .execute(new HttpGet("https://localhost/api/v1/resources/deviceicons"))
+                    .getEntity());
+            List<ApiDeviceIcon> icons = mapper.readValue(res, new TypeReference<List<ApiDeviceIcon>>(){});
+            for(ApiDeviceIcon icon : icons)
+                Resources.getInstance().icon(icon.getId(), icon.getUrl().replace("/images/", "/markers/"));
+        } finally {
+            client.close();
+        }
     }
 
     void h1(String text) {

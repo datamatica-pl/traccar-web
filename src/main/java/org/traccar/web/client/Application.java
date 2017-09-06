@@ -48,9 +48,7 @@ import org.traccar.web.client.InitialLoader.LoadFinishedListener;
 import org.traccar.web.client.model.api.Decoder;
 import org.traccar.web.client.model.api.DevicesService;
 import org.traccar.web.client.model.api.IUsersService.EditUserSettingsDto;
-import org.traccar.web.client.model.api.Resources;
 import org.traccar.web.client.model.api.UsersService;
-import pl.datamatica.traccar.model.ApplicationSettings;
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UserPermission;
 
@@ -59,7 +57,6 @@ public class Application {
     private static final DataServiceAsync dataService = GWT.create(DataService.class);
     private static final DevicesService devices = new DevicesService();
     private static final Decoder decoder = new Decoder();
-    private static final Resources resources = new Resources();
     private final static Messages i18n = GWT.create(Messages.class);
 
     public static DataServiceAsync getDataService() {
@@ -72,10 +69,6 @@ public class Application {
     
     public static Decoder getDecoder() {
         return decoder;
-    }
-    
-    public static Resources getResources() {
-        return resources;
     }
 
     private final SettingsController settingsController;
