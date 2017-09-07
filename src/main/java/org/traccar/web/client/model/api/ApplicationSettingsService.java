@@ -41,13 +41,11 @@ public interface ApplicationSettingsService extends RestService{
         boolean registrationEnabled;
         short updateInterval;
         String defaultPasswordHash;
-        boolean disallowDeviceManagementByUsers;
         boolean eventRecordingEnabled;
         int notificationExpirationPeriod;
         String language;
         String bingMapsKey;
         String matchServiceURL;
-        boolean allowCommandsOnlyForAdmins;
         Long defaultUserGroupId;
         
         public ApplicationSettings toApplicationSettings() {
@@ -55,13 +53,11 @@ public interface ApplicationSettingsService extends RestService{
             as.setRegistrationEnabled(registrationEnabled);
             as.setUpdateInterval(updateInterval);
             as.setDefaultHashImplementation(PasswordHashMethod.fromString(defaultPasswordHash));
-            as.setDisallowDeviceManagementByUsers(disallowDeviceManagementByUsers);
             as.setEventRecordingEnabled(eventRecordingEnabled);
             as.setNotificationExpirationPeriod(notificationExpirationPeriod);
             as.setLanguage(language);
             as.setBingMapsKey(bingMapsKey);
             as.setMatchServiceURL(matchServiceURL);
-            as.setAllowCommandsOnlyForAdmins(allowCommandsOnlyForAdmins);
             if(defaultUserGroupId != null)
                 as.setDefaultGroupId(defaultUserGroupId);
             return as;
@@ -72,13 +68,11 @@ public interface ApplicationSettingsService extends RestService{
             dto.registrationEnabled = as.getRegistrationEnabled();
             dto.updateInterval = as.getUpdateInterval();
             dto.defaultPasswordHash = as.getDefaultHashImplementation().getName();
-            dto.disallowDeviceManagementByUsers = as.isDisallowDeviceManagementByUsers();
             dto.eventRecordingEnabled = as.isEventRecordingEnabled();
             dto.notificationExpirationPeriod = as.getNotificationExpirationPeriod();
             dto.language = as.getLanguage();
             dto.bingMapsKey = as.getBingMapsKey();
             dto.matchServiceURL = as.getMatchServiceURL();
-            dto.allowCommandsOnlyForAdmins = as.isAllowCommandsOnlyForAdmins();
             dto.defaultUserGroupId = as.getDefaultGroupId();
             return dto;
         }

@@ -27,20 +27,6 @@
         </form:FieldLabel>
       </container:child>
       <container:child layoutData="{verticalLayoutData}">
-        <form:FieldLabel text="{i18n.disallowDeviceManagementByUsers}" labelWidth="230">
-            <form:widget>
-                <form:CheckBox ui:field="disallowDeviceManagementByUsers" />
-            </form:widget>
-        </form:FieldLabel>
-      </container:child>
-        <container:child layoutData="{verticalLayoutData}">
-            <form:FieldLabel text="{i18n.allowCommandsOnlyForAdmins}" labelWidth="230">
-                <form:widget>
-                    <form:CheckBox ui:field="allowCommandsOnlyForAdmins" />
-                </form:widget>
-            </form:FieldLabel>
-        </container:child>
-      <container:child layoutData="{verticalLayoutData}">
           <form:FieldLabel text="{i18n.updateInterval}" labelWidth="230">
               <form:widget>
                   <form:NumberField editor="{shortPropertyEditor}"

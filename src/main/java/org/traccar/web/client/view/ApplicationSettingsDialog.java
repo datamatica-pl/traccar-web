@@ -68,13 +68,7 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
 
     @UiField
     CheckBox registrationEnabled;
-
-    @UiField
-    CheckBox disallowDeviceManagementByUsers;
-
-    @UiField
-    CheckBox allowCommandsOnlyForAdmins;
-
+    
     @UiField
     CheckBox eventRecordingEnabled;
 
@@ -131,7 +125,7 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
 
         uiBinder.createAndBindUi(this);
 
-        updateInterval.addValidator(new MinNumberValidator<>((short) 100));
+        updateInterval.addValidator(new MinNumberValidator<>((short) 1000));
         updateInterval.addValidator(new MaxNumberValidator<>((short) 30000));
         
         defaultGroupLbl.setVisible(canManageGroups);
