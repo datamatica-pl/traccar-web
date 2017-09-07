@@ -25,7 +25,6 @@ import com.google.inject.persist.jpa.JpaPersistModule;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
 import org.traccar.web.client.model.DataService;
-import org.traccar.web.client.model.EventService;
 import org.traccar.web.server.reports.ReportsModule;
 import pl.datamatica.traccar.model.ApplicationSettings;
 import pl.datamatica.traccar.model.Picture;
@@ -68,7 +67,6 @@ public class GuiceServletConfig extends GuiceServletContextListener {
 
                 serve("/traccar/dataService").with(DataServiceImpl.class);
                 serve("/traccar/uiStateService").with(UIStateServiceImpl.class);
-                serve("/traccar/eventService").with(EventServiceImpl.class);
                 serve("/traccar/notificationService").with(NotificationServiceImpl.class);
                 serve("/traccar/picturesService").with(PicturesServiceImpl.class);
                 serve("/traccar/reportService").with(ReportServiceImpl.class);
@@ -101,7 +99,6 @@ public class GuiceServletConfig extends GuiceServletContextListener {
                 bind(User.class).toProvider(CurrentUserProvider.class);
                 bind(ApplicationSettings.class).toProvider(ApplicationSettingsProvider.class);
                 bind(DataService.class).to(DataServiceImpl.class);
-                bind(EventService.class).to(EventServiceImpl.class);
 
                 bindInterceptor(Matchers.subclassesOf(RemoteServiceServlet.class),
                         Matchers.returns(Matchers.only(SerializationPolicy.class)), new FixSerializationPolicy());

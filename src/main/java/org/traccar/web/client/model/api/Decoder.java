@@ -213,11 +213,7 @@ public class Decoder {
         u.setMaxNumOfDevices(anInt(v, "maxNumOfDevices"));
         u.setManagedBy(null);
         u.setManagedById(aLong(v, "managedById"));
-        u.setManager(bool(v, "manager"));
-        u.setAdmin(bool(v, "admin"));
-        u.setArchive(bool(v, "archive"));
         u.setBlocked(bool(v, "blocked"));
-        u.setReadOnly(bool(v, "readOnly"));
         u.setPassword(string(v, "password"));
         if(v.get("notificationEvents") != null && v.get("notificationEvents").isArray() != null) {
             JSONArray ne = v.get("notificationEvents").isArray();

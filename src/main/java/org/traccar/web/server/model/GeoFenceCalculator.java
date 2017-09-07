@@ -15,15 +15,14 @@
  */
 package org.traccar.web.server.model;
 
-import pl.datamatica.traccar.model.GeoFence;
-import pl.datamatica.traccar.model.Position;
-
-import java.awt.*;
+import java.awt.Shape;
 import java.awt.geom.Path2D;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Position;
 
 public class GeoFenceCalculator {
     private static final double radKoef = Math.PI / 180;
@@ -40,7 +39,7 @@ public class GeoFenceCalculator {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return earthRadius * c; // Distance in km
     }
-
+    
     private static class GeoFenceData {
         final List<GeoFence.LonLat> points;
         final Shape shape;

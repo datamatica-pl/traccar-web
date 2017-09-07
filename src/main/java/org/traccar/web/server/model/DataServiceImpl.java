@@ -15,6 +15,7 @@
  */
 package org.traccar.web.server.model;
 
+import org.traccar.web.server.model.GeoFenceCalculator;
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.RegistrationMaintenance;
 import pl.datamatica.traccar.model.Sensor;
@@ -43,7 +44,6 @@ import org.hibernate.Session;
 import org.hibernate.proxy.HibernateProxy;
 import org.slf4j.LoggerFactory;
 import org.traccar.web.client.model.DataService;
-import org.traccar.web.client.model.EventService;
 import org.traccar.web.server.utils.JsonXmlParser;
 import org.traccar.web.server.utils.StopsDetector;
 import org.traccar.web.shared.model.*;
@@ -70,9 +70,6 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
 
     @Inject
     private Provider<HttpServletRequest> request;
-
-    @Inject
-    private EventService eventService;
 
     @Inject
     private MovementDetector movementDetector;
@@ -289,7 +286,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         boolean full = true;
         User user = getSessionUser();
         List<Device> devices;
-        if (user.getAdmin()) {
+        if (user.hasPermission(UserPermission.ALL_DEVICES)) {
             devices = getSessionEntityManager().createQuery("SELECT x FROM Device x LEFT JOIN FETCH x.latestPosition ORDER BY x.name", Device.class).getResultList();
         } else {
             devices = new ArrayList<>(user.getAllAvailableDevices());

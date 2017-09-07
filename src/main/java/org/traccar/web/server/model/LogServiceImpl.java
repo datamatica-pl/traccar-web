@@ -25,20 +25,29 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import javax.inject.Inject;
+import javax.inject.Provider;
+import pl.datamatica.traccar.model.User;
+import pl.datamatica.traccar.model.UserPermission;
 
 @Singleton
 public class LogServiceImpl extends RemoteServiceServlet implements LogService {
+    @Inject
+    private Provider<User> sessionUser;
+    
     @Transactional
-    @RequireUser(roles = { Role.ADMIN })
     @Override
     public String getTrackerServerLog(short sizeKB) {
+        if(!sessionUser.get().hasPermission(UserPermission.LOGS_ACCESS))
+            throw new SecurityException("User must have LOGS_ACCESS permission");
         return getLog("tracker-server.log", sizeKB);
     }
 
     @Transactional
-    @RequireUser(roles = { Role.ADMIN })
     @Override
     public String getWrapperLog(short sizeKb) {
+        if(!sessionUser.get().hasPermission(UserPermission.LOGS_ACCESS))
+            throw new SecurityException("User must have LOGS_ACCESS permission");
         return getLog("wrapper.log." + new SimpleDateFormat("yyyyMMdd").format(new Date()), sizeKb);
     }
 
