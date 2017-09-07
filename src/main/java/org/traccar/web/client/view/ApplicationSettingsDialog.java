@@ -125,8 +125,8 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
 
         uiBinder.createAndBindUi(this);
 
-        updateInterval.addValidator(new MinNumberValidator<>((short) 1000));
-        updateInterval.addValidator(new MaxNumberValidator<>((short) 30000));
+        updateInterval.addValidator(new MinNumberValidator<>(ApplicationSettings.UPDATE_INTERVAL_MIN));
+        updateInterval.addValidator(new MaxNumberValidator<>(ApplicationSettings.UPDATE_INTERVAL_MAX));
         
         defaultGroupLbl.setVisible(canManageGroups);
 
