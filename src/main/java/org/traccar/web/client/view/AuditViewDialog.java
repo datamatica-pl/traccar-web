@@ -28,12 +28,10 @@ import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.DateField;
-import com.sencha.gxt.widget.core.client.form.TextArea;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import org.traccar.web.client.i18n.Messages;
@@ -100,6 +98,8 @@ public class AuditViewDialog {
             cc.setFixed(true);
             cc.setResizable(false);
         }
+        cEvent.setResizable(true);
+        cEvent.setFixed(false);
         
         return new ColumnModel<>(ccList);
     }
@@ -110,7 +110,7 @@ public class AuditViewDialog {
     
     @UiHandler("show")
     public void onShowClicked(SelectEvent event) {
-        handler.onLoad(fromDate.getDatePicker().getValue(), toDate.getDatePicker().getValue());
+        handler.onLoad(fromDate.getValue(), toDate.getValue());
     }
     
     public interface LogHandler {
