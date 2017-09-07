@@ -31,6 +31,7 @@ import pl.datamatica.traccar.model.CommandType;
 import pl.datamatica.traccar.model.Device;
 
 import java.util.HashMap;
+import org.traccar.web.client.model.api.ApiRequestCallback;
 
 public class CommandController implements ContentController, DeviceView.CommandHandler, CommandDialog.CommandHandler {
 
@@ -122,21 +123,15 @@ public class CommandController implements ContentController, DeviceView.CommandH
                 "../api/v1/devices/"+device.getId()+"/sendCommand/"+type.name());
 
         try {
-            builder.sendRequest(attrs.toString(), new RequestCallback() {
+            builder.sendRequest(attrs.toString(), new ApiRequestCallback(i18n) {
                 @Override
-                public void onResponseReceived(Request request, Response response) {
+                public void onSuccess(String response) {
                     currentDialog.onAnswerReceived();
-                    new LogViewDialog("<pre>" + response.getText() + "</pre>").show();
-                }
-
-                @Override
-                public void onError(Request request, Throwable exception) {
-                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                    new LogViewDialog("<pre>" + response + "</pre>").show();
                 }
             });
         } catch (RequestException e) {
             new AlertMessageBox(i18n.error(), e.getLocalizedMessage()).show();
-            e.printStackTrace();
         }
     }
 }

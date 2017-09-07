@@ -21,6 +21,7 @@ import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
@@ -29,6 +30,7 @@ import org.traccar.web.client.model.GroupStore;
 import org.traccar.web.client.model.api.ApiCommandType;
 import org.traccar.web.client.model.api.ApiDeviceIcon;
 import org.traccar.web.client.model.api.ApiDeviceModel;
+import org.traccar.web.client.model.api.ApiMethodCallback;
 import org.traccar.web.client.model.api.ApplicationSettingsService;
 import org.traccar.web.client.model.api.ApplicationSettingsService.ApplicationSettingsDto;
 import org.traccar.web.client.model.api.IGroupService.DeviceGroupDto;
@@ -39,6 +41,7 @@ import pl.datamatica.traccar.model.User;
 import org.traccar.web.client.model.api.IUsersService;
 import org.traccar.web.client.model.api.GroupService;
 import org.traccar.web.client.model.api.Resources;
+import org.traccar.web.client.model.api.StringsService;
 import pl.datamatica.traccar.model.UserPermission;
 
 /**
@@ -55,6 +58,7 @@ public class InitialLoader {
     private final GroupStore groupStore;
     private Messages i18n = GWT.create(Messages.class);
     private int unansweredRequests;
+    private int errorCount;
     
     public InitialLoader(ListStore<Device> deviceStore, GroupStore groupStore) {
         this.groupStore = groupStore;
@@ -63,7 +67,8 @@ public class InitialLoader {
     
     public void load(LoadFinishedListener listener) {
         this.listener = listener;
-        unansweredRequests = 5;
+        unansweredRequests = 6;
+        errorCount = 0;
         ResourcesService res = GWT.create(ResourcesService.class);
         IUsersService users = GWT.create(IUsersService.class);
         ApplicationSettingsService settings = GWT.create(ApplicationSettingsService.class);
@@ -72,20 +77,35 @@ public class InitialLoader {
         settings.get(new MethodCallback<ApplicationSettingsDto>() {
             @Override
             public void onFailure(Method method, Throwable exception) {
-                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                onError();
             }
 
             @Override
             public void onSuccess(Method method, ApplicationSettingsDto response) {
                 onRequestAnswered();
-                ApplicationContext.getInstance().setApplicationSettings(response.toApplicationSettings());
+                final ApplicationContext ctx = ApplicationContext.getInstance();
+                ctx.setApplicationSettings(response.toApplicationSettings());
+                StringsService ss = GWT.create(StringsService.class);
+                ss.get(ctx.getLang(), new MethodCallback<Map<String, String>>() {
+                    @Override
+                    public void onFailure(Method method, Throwable exception) {
+                        onError();
+                    }
+
+                    @Override
+                    public void onSuccess(Method method, Map<String, String> response) {
+                        onRequestAnswered();
+                        ctx.setMessages(response);
+                    }
+                });
+                
             }
         });
         
         res.getDeviceIcons(new MethodCallback<List<ApiDeviceIcon>>() {
             @Override
             public void onFailure(Method method, Throwable exception) {
-                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                onError();
             }
 
             @Override
@@ -101,7 +121,7 @@ public class InitialLoader {
         res.getDeviceModels(new MethodCallback<List<ApiDeviceModel>>() {
             @Override
             public void onFailure(Method method, Throwable exception) {
-                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                onError();
             }
 
             @Override
@@ -125,7 +145,7 @@ public class InitialLoader {
             service.getGroups(new MethodCallback<List<DeviceGroupDto>>() {
                 @Override
                 public void onFailure(Method method, Throwable exception) {
-                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                    onError();
                 }
 
                 @Override
@@ -145,7 +165,7 @@ public class InitialLoader {
             users.getUsers(new JsonCallback() {
                 @Override
                 public void onFailure(Method method, Throwable exception) {
-                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                    onError();
                 }
 
                 @Override
@@ -177,5 +197,11 @@ public class InitialLoader {
                     listener.onLoadFinished();
                 }   
             });
+    }
+    
+    private void onError() {
+        ++errorCount;
+        if(errorCount == unansweredRequests)
+            new AlertMessageBox(i18n.error(), i18n.errInitialLoadFailed()).show();
     }
 }

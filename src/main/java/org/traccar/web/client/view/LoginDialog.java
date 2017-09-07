@@ -172,6 +172,10 @@ public class LoginDialog {
                 queryString += "&" + paramName + "=" + paramValue;
             }
         }
+        if("default".equals(event.getSelectedItem()))
+            ApplicationContext.getInstance().setLang("en");
+        else
+            ApplicationContext.getInstance().setLang("pl");
         com.google.gwt.user.client.Window.Location.assign(queryString);
     }
 }

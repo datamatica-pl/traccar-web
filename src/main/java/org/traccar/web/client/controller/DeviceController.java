@@ -30,7 +30,6 @@ import com.sencha.gxt.widget.core.client.box.MessageBox;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.model.GroupStore;
 import org.traccar.web.client.state.DeviceVisibilityHandler;
 import org.traccar.web.client.view.*;
@@ -52,13 +51,11 @@ import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
-import org.traccar.web.client.model.api.DevicesService;
 import org.traccar.web.client.model.api.IDevicesService.AddDeviceDto;
 import org.traccar.web.client.model.api.IDevicesService.EditDeviceDto;
 import pl.datamatica.traccar.model.ReportFormat;
 import pl.datamatica.traccar.model.ReportType;
 import pl.datamatica.traccar.model.Route;
-import org.traccar.web.client.model.api.IDevicesService;
 
 public class DeviceController implements ContentController, DeviceView.DeviceHandler, 
         GroupsController.GroupRemoveHandler, UpdatesController.DevicesListener {
