@@ -68,9 +68,6 @@ public class UserCheck implements MethodInterceptor {
             throw new SecurityException("Not logged in");
         }
         if (!user.hasPermission(UserPermission.DEVICE_EDIT)) {
-            if (applicationSettings.get().isDisallowDeviceManagementByUsers()) {
-                throw new SecurityException("Users are not allowed to manage devices");
-            }
             checkedDeviceManagement.set(Boolean.TRUE);
         }
     }

@@ -117,14 +117,6 @@ public class UserCheckTest {
         injector.getInstance(ManagesDevicesObject.class).manageDevices();
     }
 
-    @Test
-    public void testManagesDevicesRestricted() {
-        settingsProvider.settings.setDisallowDeviceManagementByUsers(true);
-        user();
-        thrown.expect(SecurityException.class);
-        injector.getInstance(ManagesDevicesObject.class).manageDevices();
-    }
-
     public static class MultipleAnnotationsObject {
         @RequireUser
         @ManagesDevices
@@ -148,13 +140,5 @@ public class UserCheckTest {
     public void testMultipleAnnotationsAdmin() {
         admin();
         injector.getInstance(MultipleAnnotationsObject.class).someMethod();
-    }
-
-    @Test
-    public void testMultipleAnnotationsUserDisallowedDeviceManagement() {
-        user();
-        settingsProvider.settings.setDisallowDeviceManagementByUsers(true);
-        thrown.expect(SecurityException.class);
-        injector.getInstance(MultipleAnnotationsObject.class).anotherMethod();
     }
 }
