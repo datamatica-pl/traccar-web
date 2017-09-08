@@ -131,6 +131,10 @@ public class LoginDialog {
     }
 
     private void login() {
+        String lang = language.getValue();
+        if("default".equals(lang))
+            lang = "en";
+        ApplicationContext.getInstance().setLang(lang);
         loginHandler.onLogin(login.getText(), password.getText());
     }
 
@@ -172,10 +176,6 @@ public class LoginDialog {
                 queryString += "&" + paramName + "=" + paramValue;
             }
         }
-        if("default".equals(event.getSelectedItem()))
-            ApplicationContext.getInstance().setLang("en");
-        else
-            ApplicationContext.getInstance().setLang("pl");
         com.google.gwt.user.client.Window.Location.assign(queryString);
     }
 }

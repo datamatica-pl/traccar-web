@@ -167,8 +167,11 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
 
     @UiHandler("saveButton")
     public void onLoginClicked(SelectEvent event) {
-        window.hide();
-        applicationSettingsHandler.onSave(driver.flush());
+        ApplicationSettings as = driver.flush();
+        if(!driver.hasErrors()) {
+            window.hide();
+            applicationSettingsHandler.onSave(as);
+        }
     }
 
     @UiHandler("cancelButton")

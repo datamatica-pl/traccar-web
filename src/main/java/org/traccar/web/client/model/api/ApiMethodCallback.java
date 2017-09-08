@@ -18,6 +18,7 @@ package org.traccar.web.client.model.api;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.ApplicationContext;
@@ -34,21 +35,19 @@ public abstract class ApiMethodCallback<T> implements MethodCallback<T> {
     @Override
     public void onFailure(Method method, Throwable exception) {
         AlertMessageBox alert;
-        if(method.getResponse().getStatusCode() == 401) {
-            Timer timer = new Timer() {
+        if(method.getResponse().getStatusCode() >= 500) {
+            alert = new AlertMessageBox(i18n.error(), i18n.errRemoteCall());
+        } else if(method.getResponse().getStatusCode() == 401) {
+            alert = new AlertMessageBox(i18n.error(), i18n.errUserSessionExpired());
+            alert.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
                 @Override
-                public void run() {
+                public void onDialogHide(DialogHideEvent event) {
                     Window.Location.reload();
                 }
-            };
-            alert = new AlertMessageBox(i18n.error(), i18n.errUserSessionExpired());
-            timer.schedule(2000);
-        } else if(method.getResponse().getStatusCode() < 500) {
-            String msg = ApplicationContext.getInstance().getMessage(method
-                    .getResponse().getText());
-            alert = new AlertMessageBox(i18n.error(), msg);
+            });
         } else {
-            alert = new AlertMessageBox(i18n.error(), i18n.errRemoteCall());
+            ApiError err = ApiError.fromJson(method.getResponse().getText());
+            alert = new AlertMessageBox(i18n.error(), err.getMessage());
         }
         alert.show();
     }

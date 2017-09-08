@@ -17,6 +17,7 @@ package org.traccar.web.client.model.api;
 
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.google.gwt.core.client.GWT;
+import java.util.List;
 import org.traccar.web.client.ApplicationContext;
 
 public class ApiError {
@@ -32,8 +33,14 @@ public class ApiError {
     }
     
     public static ApiError fromJson(String body) {
-        return mapper.read(body);
+        List<ApiError> errors = mapper.read(body);
+        if(errors.isEmpty()) {
+            ApiError err = new ApiError();
+            err.localizedMessage = "EMPTY error!";
+            return err;
+        }
+        return errors.get(0);
     }
     
-    public interface Mapper extends ObjectMapper<ApiError> {}
+    public interface Mapper extends ObjectMapper<List<ApiError>> {}
 }

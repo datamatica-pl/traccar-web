@@ -30,6 +30,7 @@ import pl.datamatica.traccar.model.User;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
+import org.traccar.web.client.model.api.ApiJsonCallback;
 import org.traccar.web.client.model.api.BasicAuthFilter;
 import org.traccar.web.client.model.api.SessionService;
 import org.traccar.web.client.widget.InfoMessageBox;
@@ -111,12 +112,15 @@ public class LoginController implements LoginDialog.LoginHandler {
                 public void onSuccess(User result) {
                     BasicAuthFilter.getInstance().pushCredentials(login, password);
                     SessionService session = GWT.create(SessionService.class);
-                    session.getUser(new JsonCallback() {
+                    session.getUser(new ApiJsonCallback(i18n) {
                         @Override
                         public void onFailure(Method method, Throwable exception) {
-                            new AlertMessageBox(i18n.error(), i18n.errInvalidUsernameOrPassword()).show();
+                            if(method.getResponse().getStatusCode() == 401) {
+                                new AlertMessageBox(i18n.error(), i18n.errInvalidUsernameOrPassword()).show();
+                            } else
+                                super.onFailure(method, exception);
                         }
-
+                        
                         @Override
                         public void onSuccess(Method method, JSONValue response) {
                             User u = Application.getDecoder().decodeUser(response.isObject());

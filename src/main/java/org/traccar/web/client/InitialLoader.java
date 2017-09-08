@@ -16,10 +16,12 @@
 package org.traccar.web.client;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.fusesource.restygwt.client.JsonCallback;
@@ -82,23 +84,28 @@ public class InitialLoader {
 
             @Override
             public void onSuccess(Method method, ApplicationSettingsDto response) {
-                onRequestAnswered();
                 final ApplicationContext ctx = ApplicationContext.getInstance();
                 ctx.setApplicationSettings(response.toApplicationSettings());
                 StringsService ss = GWT.create(StringsService.class);
-                ss.get(ctx.getLang(), new MethodCallback<Map<String, String>>() {
+                ss.get(ctx.getLang(), new JsonCallback() {
                     @Override
                     public void onFailure(Method method, Throwable exception) {
                         onError();
                     }
 
                     @Override
-                    public void onSuccess(Method method, Map<String, String> response) {
+                    public void onSuccess(Method method, JSONValue response) {
+                        Map<String, String> map = new HashMap<>();
+                        JSONObject jso = response.isObject();
+                        for(String key : jso.keySet()) {
+                            if(jso.get(key).isString() != null)
+                                map.put(key, jso.get(key).isString().stringValue());
+                        }
+                        ctx.setMessages(map);
                         onRequestAnswered();
-                        ctx.setMessages(response);
                     }
                 });
-                
+                onRequestAnswered();
             }
         });
         
@@ -110,11 +117,11 @@ public class InitialLoader {
 
             @Override
             public void onSuccess(Method method, List<ApiDeviceIcon> response) {
-                onRequestAnswered();
                 for(ApiDeviceIcon ico : response)
                     if(!ico.isDeleted())
                         Resources.getInstance().icon(ico.getId(), 
                                 ico.getUrl().replace("/images/", "/markers/"));
+                onRequestAnswered();
             }
         });
         
@@ -126,7 +133,6 @@ public class InitialLoader {
 
             @Override
             public void onSuccess(Method method, List<ApiDeviceModel> response) {
-                onRequestAnswered();
                 for(ApiDeviceModel m : response) {
                     if(!m.isDeleted()) {
                         List<ApiCommandType> nonTcp = new ArrayList<>();
@@ -137,6 +143,7 @@ public class InitialLoader {
                         Resources.getInstance().model(m);
                     }
                 }
+                onRequestAnswered();
             }
         });
         
@@ -150,12 +157,12 @@ public class InitialLoader {
 
                 @Override
                 public void onSuccess(Method method, List<DeviceGroupDto> response) {
-                    onRequestAnswered();
                     List<Group> groups = new ArrayList<>();
                     for(DeviceGroupDto dto : response)
                         groups.add(dto.toGroup());
                     ApplicationContext.getInstance().setGroups(groups);
                     groupStore.add(groups);
+                    onRequestAnswered();
                 }
             });
         } else
@@ -170,9 +177,9 @@ public class InitialLoader {
 
                 @Override
                 public void onSuccess(Method method, JSONValue response) {
-                    onRequestAnswered();
                     List<User> users = Application.getDecoder().decodeUsers(response.isArray());
                     ApplicationContext.getInstance().setUsers(users);
+                    onRequestAnswered();
                 }
             });
         } else {

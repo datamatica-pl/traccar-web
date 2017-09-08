@@ -16,9 +16,12 @@
 package org.traccar.web.client.model.api;
 
 import com.google.gwt.json.client.JSONValue;
+import com.google.gwt.user.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
+import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 
 public class ApiJsonCallback implements JsonCallback {
@@ -31,9 +34,21 @@ public class ApiJsonCallback implements JsonCallback {
     
     @Override
     public void onFailure(Method method, Throwable exception) {
-        if(method.getResponse().getStatusCode() >= 500)
+        if(method.getResponse().getStatusCode() >= 500) {
             new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-        //todo
+        } else if(method.getResponse().getStatusCode() == 401) {
+            AlertMessageBox alert = new AlertMessageBox(i18n.error(), i18n.errUserSessionExpired());
+            alert.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
+                @Override
+                public void onDialogHide(DialogHideEvent event) {
+                    Window.Location.reload();
+                }
+            });
+            alert.show();
+        } else {
+            ApiError err = ApiError.fromJson(method.getResponse().getText());
+            new AlertMessageBox(i18n.error(), err.getMessage()).show();
+        }
     }
 
     @Override

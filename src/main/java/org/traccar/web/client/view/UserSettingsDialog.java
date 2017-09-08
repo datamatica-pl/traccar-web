@@ -208,14 +208,16 @@ public class UserSettingsDialog implements Editor<UserSettings> {
 
     @UiHandler("saveButton")
     public void onSaveClicked(SelectEvent event) {
-        window.hide();
         UserSettings settings = driver.flush();
+        if(driver.hasErrors())
+            return;
         String overlayTypes = "";
         for (UserSettings.OverlayType overlayType : grid.getSelectionModel().getSelectedItems()) {
             overlayTypes += (overlayTypes.isEmpty() ? "" : ",") + overlayType.name();
         }
         settings.setOverlays(overlayTypes);
         settings.setTimeZoneId(timeZone.getValue() == null ? null : timeZone.getValue().getID());
+        window.hide();
         userSettingsHandler.onSave(settings);
     }
 

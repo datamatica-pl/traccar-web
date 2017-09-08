@@ -265,6 +265,9 @@ public class DeviceDialog implements Editor<Device> {
     @UiHandler("saveButton")
     public void onSaveClicked(SelectEvent event) {
         Device device = driver.flush();
+        if(driver.hasErrors())
+            return;
+        
         device.setIdleSpeedThreshold(ApplicationContext.getInstance().getUserSettings().getSpeedUnit().toKnots(device.getIdleSpeedThreshold()));
         if (device.getSpeedLimit() != null) {
             device.setSpeedLimit(ApplicationContext.getInstance().getUserSettings().getSpeedUnit().toKnots(device.getSpeedLimit()));
