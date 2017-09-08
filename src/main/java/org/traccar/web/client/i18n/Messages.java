@@ -641,6 +641,7 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     public String reportsForPremium();
     
     String resetMailSent();
+    String resetMailSentFailure();
     
     String errUpdateFailed();
     
