@@ -42,6 +42,8 @@ import com.google.gwt.json.client.JSONValue;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import org.traccar.web.client.model.api.ApiError;
+import org.traccar.web.client.model.api.ApiRequestCallback;
 import org.traccar.web.client.model.api.DevicePositionsService;
 
 public class ArchiveController implements ContentController, ArchiveView.ArchiveHandler {
@@ -99,10 +101,10 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
             progress.auto();
             progress.show();
             DevicePositionsService service = new DevicePositionsService();
-            service.getPositions(device, from, to, filter, new RequestCallback() {
+            service.getPositions(device, from, to, filter, new ApiRequestCallback(i18n) {
                 @Override
-                public void onResponseReceived(Request request, Response response) {
-                    JSONValue v = JSONParser.parseStrict(response.getText());
+                public void onSuccess(String response) {
+                    JSONValue v = JSONParser.parseStrict(response);
                     List<Position> result = Application.getDecoder()
                             .decodePositions(device, v.isObject());
                     archiveHandler.onClear(device);
@@ -122,8 +124,8 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
 
                 @Override
                 public void onError(Request request, Throwable exception) {
+                    super.onError(request, exception);
                     progress.hide();
-                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                 }
                 
             });

@@ -201,20 +201,20 @@ public class NavView {
         Application.getDataService().logout(new BaseAsyncCallback<Boolean>(i18n) {
             @Override
             public void onSuccess(Boolean result) {
-                SessionService session = GWT.create(SessionService.class);
-                BasicAuthFilter.getInstance().pushCredentials(":", ":");
-                session.logout(new JsonCallback(){
-                    @Override
-                    public void onFailure(Method method, Throwable exception) {
-                    }
-
-                    @Override
-                    public void onSuccess(Method method, JSONValue response) {
-                    }
-                });
-                Window.Location.reload();
             }
         });
+        SessionService session = GWT.create(SessionService.class);
+        BasicAuthFilter.getInstance().pushCredentials(":", ":");
+        session.logout(new JsonCallback(){
+            @Override
+            public void onFailure(Method method, Throwable exception) {
+            }
+
+            @Override
+            public void onSuccess(Method method, JSONValue response) {
+            }
+        });
+        Window.Location.reload();
     }
 
     @UiHandler("showTrackerServerLog")

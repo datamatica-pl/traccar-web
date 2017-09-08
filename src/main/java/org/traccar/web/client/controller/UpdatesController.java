@@ -1,25 +1,33 @@
+/*
+ * Copyright 2017 Datamatica (dev@datamatica.pl)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.traccar.web.client.controller;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.StatusCodeException;
-import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
-import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 import java.util.ArrayList;
 import java.util.List;
-import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
-import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.api.ApiDeviceIcon;
+import org.traccar.web.client.model.api.ApiJsonCallback;
 import org.traccar.web.client.model.api.Decoder;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.Position;
-import org.traccar.web.client.model.api.ResourcesService;
 
 public class UpdatesController {
     public interface LatestPositionsListener {
@@ -45,10 +53,16 @@ public class UpdatesController {
     
     public void update() {
         updateTimer.cancel();
-        Application.getDevicesService().getDevices(new JsonCallback() {
+        Application.getDevicesService().getDevices(new ApiJsonCallback(i18n) {
             @Override
             public void onFailure(Method method, Throwable caught) {
-                onUpdateFailed(caught);
+                if(++updateFailureCount >= MAX_UPDATE_FAILURE_COUNT) {
+                    updateTimer.cancel();
+                    super.onFailure(method, caught);
+                } else {
+                    updateTimer.schedule(ApplicationContext.getInstance()
+                        .getApplicationSettings().getUpdateInterval());
+                }
             }
             
             @Override
@@ -74,27 +88,6 @@ public class UpdatesController {
         updateTimer.schedule(ApplicationContext.getInstance()
                 .getApplicationSettings().getUpdateInterval());
     }
-    
-    private void onUpdateFailed(Throwable caught) {
-        if (++updateFailureCount >= MAX_UPDATE_FAILURE_COUNT) {
-            updateTimer.cancel();
-            String msg = i18n.errUserDisconnected();
-            if (caught instanceof StatusCodeException) {
-                StatusCodeException e = (StatusCodeException) caught;
-                if (e.getStatusCode() == 500) {
-                    msg = i18n.errUserSessionExpired();
-                }
-            }
-            AlertMessageBox msgBox = new AlertMessageBox(i18n.error(), msg);
-            msgBox.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
-                @Override
-                public void onDialogHide(DialogHideEvent event) {
-                    Window.Location.reload();
-                }
-            });
-            msgBox.show();
-        }
-   }
     
     public void run() {       
         updateTimer = new Timer() {

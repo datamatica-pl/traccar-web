@@ -131,6 +131,10 @@ public class LoginDialog {
     }
 
     private void login() {
+        String lang = language.getValue();
+        if("default".equals(lang))
+            lang = "en";
+        ApplicationContext.getInstance().setLang(lang);
         loginHandler.onLogin(login.getText(), password.getText());
     }
 

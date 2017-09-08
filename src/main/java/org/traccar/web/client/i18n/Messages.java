@@ -686,4 +686,6 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String show();
     String auditInfo();
     String showLogFrom();
+    
+    String errInitialLoadFailed();
 }
