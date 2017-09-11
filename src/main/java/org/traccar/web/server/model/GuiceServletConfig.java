@@ -25,7 +25,6 @@ import com.google.inject.persist.jpa.JpaPersistModule;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
 import org.traccar.web.client.model.DataService;
-import org.traccar.web.server.reports.ReportsModule;
 import pl.datamatica.traccar.model.ApplicationSettings;
 import pl.datamatica.traccar.model.Picture;
 import pl.datamatica.traccar.model.User;
@@ -60,7 +59,6 @@ public class GuiceServletConfig extends GuiceServletContextListener {
                 }
 
                 install(new JpaPersistModule(persistenceUnit));
-                install(new ReportsModule());
 
                 filter("/traccar/*").through(PersistFilter.class);
                 filter("/", "/traccar.html", "/m/", "/m/index.html").through(LocaleFilter.class);
@@ -73,7 +71,6 @@ public class GuiceServletConfig extends GuiceServletContextListener {
                 serve("/traccar/logService").with(LogServiceImpl.class);
 
                 serve("/traccar/rest/*").with(RESTApiServlet.class);
-                serve("/traccar/report*").with(ReportServlet.class);
                 serve("/traccar/s/login").with(LoginServlet.class);
                 serve("/" + Picture.URL_PREFIX + "*").with(PicturesServlet.class);
 
