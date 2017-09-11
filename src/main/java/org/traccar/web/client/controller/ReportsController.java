@@ -88,12 +88,12 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
         
         FormPanel form = new FormPanel("_blank");
         form.setVisible(false);
-        form.setAction("traccar/report" + (report.isPreview() ? "/" + report.getName() + format : ""));
+        form.setAction("api/v1/reports" + (report.isPreview() ? "/" + report.getName() + format : ""));
         form.setMethod(FormPanel.METHOD_POST);
         form.setEncoding(FormPanel.ENCODING_URLENCODED);
         HorizontalPanel container = new HorizontalPanel();
         container.add(new Hidden("report", reportMapper.write(report)));
-        container.add(new Hidden("locale", LocaleInfo.getCurrentLocale().getLocaleName()));
+        container.add(new Hidden("lang", LocaleInfo.getCurrentLocale().getLocaleName()));
         form.add(container);
         RootPanel.get().add(form);
         try {
