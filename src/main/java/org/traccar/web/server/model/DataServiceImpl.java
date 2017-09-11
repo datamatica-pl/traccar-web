@@ -147,7 +147,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 if (storedPassword.equals(user.getPasswordHashMethod().doHash(password, ""))) {
                     user.setPassword(user.getPasswordHashMethod().doHash(password, getApplicationSettings().getSalt()));
                 } else {
-                    throw new IllegalStateException();
+                    System.out.print("WARNING: Login failed - wrong password");
+                    throw new AccessDeniedException();
                 }
             }
         }
