@@ -29,6 +29,7 @@ import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.api.IUsersService;
+import org.traccar.web.client.widget.InfoMessageBox;
 
 public class LoginMoreDialog {
     private static _UiBinder uiBinder = GWT.create(_UiBinder.class);
@@ -61,12 +62,12 @@ public class LoginMoreDialog {
         us.resetPassword(new IUsersService.ResetPasswordDto(login.getText()), new JsonCallback() {
             @Override
             public void onFailure(Method method, Throwable exception) {
-                new AlertMessageBox(i18n.success(), i18n.resetMailSent()).show();
+                new AlertMessageBox(i18n.error(), i18n.resetMailSentFailure()).show();
             }
 
             @Override
             public void onSuccess(Method method, JSONValue response) {
-                new AlertMessageBox(i18n.success(), i18n.resetMailSent()).show();
+                new InfoMessageBox(i18n.success(), i18n.resetMailSent()).show();
                 window.hide();
             }
         });
