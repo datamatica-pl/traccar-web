@@ -586,6 +586,9 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
 
     String errSnapToRoads(int code, String text);
 
+    String errNoSubscriptionTitle();
+    String errNoSubscriptionMessage();
+    
     String arrowSize();
 
     String allowCommandsOnlyForAdmins();
