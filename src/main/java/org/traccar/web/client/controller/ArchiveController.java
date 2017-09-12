@@ -153,8 +153,6 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
         Date dev = new Date();
         CalendarUtil.addDaysToDate(dev, -1 * sub);
        
-        new InfoMessageBox("LOG", "DEV: " + dev + " FROM: " + from + " TO: " + to + " SUB: " + sub).show();
-        
         if (CalendarUtil.getDaysBetween(from, dev) > 0 && CalendarUtil.getDaysBetween(to, dev) > 0) {
             new InfoMessageBox(i18n.errNoSubscriptionTitle(), i18n.errNoSubscriptionMessage()).show();
             return false;
