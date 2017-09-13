@@ -27,8 +27,6 @@ import com.sencha.gxt.widget.core.client.ContentPanel;
 import java.util.Date;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
-import org.traccar.web.client.model.ReportService;
-import org.traccar.web.client.model.ReportServiceAsync;
 import org.traccar.web.client.view.ReportsDialog;
 import org.traccar.web.client.view.ReportsMenu;
 import pl.datamatica.traccar.model.Device;
@@ -36,6 +34,10 @@ import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.Report;
 
 import java.util.List;
+import org.fusesource.restygwt.client.Method;
+import org.traccar.web.client.model.api.ApiMethodCallback;
+import org.traccar.web.client.model.api.ApiRequestCallback;
+import org.traccar.web.client.model.api.ReportsService;
 import pl.datamatica.traccar.model.ReportFormat;
 
 public class ReportsController implements ContentController, ReportsMenu.ReportHandler {
@@ -74,13 +76,14 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
 
     @Override
     public void run() {
-        final ReportServiceAsync service = GWT.create(ReportService.class);
-        service.getReports(new BaseAsyncCallback<List<Report>>(i18n) {
-                               @Override
-                               public void onSuccess(List<Report> result) {
-                                   reportStore.addAll(result);
-                               }
-                           });
+        final ReportsService service = new ReportsService();
+        service.getReports(new ApiMethodCallback<List<Report>>(i18n) {
+            @Override
+            public void onSuccess(Method method, List<Report> response) {
+                reportStore.addAll(response);
+            }
+            
+        });
     }
 
     public void generate(Report report) {
@@ -88,7 +91,7 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
         
         FormPanel form = new FormPanel("_blank");
         form.setVisible(false);
-        form.setAction("api/v1/reports" + (report.isPreview() ? "/" + report.getName() + format : ""));
+        form.setAction("api/v1/reports/generate" + (report.isPreview() ? "/" + report.getName() + format : ""));
         form.setMethod(FormPanel.METHOD_POST);
         form.setEncoding(FormPanel.ENCODING_URLENCODED);
         HorizontalPanel container = new HorizontalPanel();
@@ -107,35 +110,36 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
     public ReportsDialog createDialog() {
         if(!isEnabled())
             return null;
-        final ReportServiceAsync service = GWT.create(ReportService.class);
+        final ReportsService service = new ReportsService();
         return new ReportsDialog(reportStore, deviceStore, geoFenceStore, new ReportsDialog.ReportHandler() {
             @Override
             public void onAdd(Report report, final ReportHandler handler) {
-                service.addReport(report, new BaseAsyncCallback<Report>(i18n) {
+                service.createReport(report, new ApiMethodCallback<Report>(i18n) {
                     @Override
-                    public void onSuccess(Report result) {
-                        handler.reportAdded(result);
+                    public void onSuccess(Method method, Report response) {
+                        handler.reportAdded(response);
                     }
                 });
             }
 
             @Override
-            public void onUpdate(Report report, final ReportHandler handler) {
-                service.updateReport(report, new BaseAsyncCallback<Report>(i18n) {
+            public void onUpdate(final Report report, final ReportHandler handler) {
+                service.updateReport(report.getId(), report, new ApiRequestCallback(i18n) {
                     @Override
-                    public void onSuccess(Report result) {
-                        handler.reportUpdated(result);
+                    public void onSuccess(String response) {
+                        handler.reportUpdated(report);
                     }
+                    
                 });
             }
 
             @Override
             public void onRemove(final Report report, final ReportHandler handler) {
-                service.removeReport(report, new BaseAsyncCallback<Void>(i18n) {
-                    @Override
-                    public void onSuccess(Void result) {
-                        handler.reportRemoved(report);
-                    }
+                service.removeReport(report.getId(), new ApiMethodCallback<Void>(i18n) {
+                        @Override
+                        public void onSuccess(Method method, Void response) {
+                            handler.reportRemoved(report);
+                        }
                 });
             }
 
