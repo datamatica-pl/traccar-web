@@ -45,7 +45,7 @@ import org.traccar.web.client.model.api.ApiMethodCallback;
 import org.traccar.web.client.model.api.ApiRequestCallback;
 import org.traccar.web.client.model.api.GeofencesService;
 
-public class GeoFenceController implements ContentController, DeviceView.GeoFenceHandler {
+public class GeoFenceController implements DeviceView.GeoFenceHandler {
     private final MapController mapController;
     private final ListStore<GeoFence> geoFenceStore;
     private final ListStore<Device> deviceStore;
@@ -201,12 +201,11 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
         dialog.show();
     }
 
-    @Override
     public ContentPanel getView() {
         return null;
     }
 
-    public void run() {
+    public void run(final Runnable after) {
         service.getGeoFences(new ApiMethodCallback<List<ApiGeofence>>(i18n) {
             @Override
             public void onSuccess(Method method, List<ApiGeofence> response) {
@@ -215,6 +214,7 @@ public class GeoFenceController implements ContentController, DeviceView.GeoFenc
                     gfs.add(agf.toGeofence(deviceStore.getAll()));
                 geoFenceStore.addAll(gfs);
                 geoFenceStore.applySort(false);
+                after.run();
             }
         });
     }

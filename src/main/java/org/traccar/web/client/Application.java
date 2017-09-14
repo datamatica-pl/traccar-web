@@ -142,21 +142,25 @@ public class Application {
         initialLoader.load(new LoadFinishedListener() {
             @Override
             public void onLoadFinished() {
-                User user = ApplicationContext.getInstance().getUser();
+                final User user = ApplicationContext.getInstance().getUser();
                 navController.run();
                 deviceController.run();
                 mapController.run();
                 if(user.hasPermission(UserPermission.HISTORY_READ))
                     archiveController.run();
                 if(user.hasPermission(UserPermission.GEOFENCE_READ))
-                    geoFenceController.run();
+                    geoFenceController.run(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(user.hasPermission(UserPermission.REPORTS))
+                                reportsController.run();
+                        }
+                    });
                 if(user.hasPermission(UserPermission.COMMAND_TCP))
                     commandController.run();
                 if(user.hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT))
                     groupsController.run();
                 visibilityController.run();
-                if(user.hasPermission(UserPermission.REPORTS))
-                    reportsController.run();
                 updatesController.run();
                 if(user.hasPermission(UserPermission.TRACK_READ))
                     routeController.run();
