@@ -21,6 +21,7 @@ import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import java.util.List;
+import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.MethodCallback;
 
 /**
@@ -34,12 +35,12 @@ public class ReportsService implements IReportsService{
     private ReportMapper mapper = GWT.create(ReportMapper.class);
 
     @Override
-    public void getReports(MethodCallback<List<ApiReport>> callback) {
+    public void getReports(JsonCallback callback) {
         service.getReports(callback);
     }
 
     @Override
-    public void createReport(ApiReport report, MethodCallback<ApiReport> callback) {
+    public void createReport(ApiReport report, JsonCallback callback) {
         service.createReport(report, callback);
     }
     

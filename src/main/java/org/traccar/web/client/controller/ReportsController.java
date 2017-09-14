@@ -18,16 +18,18 @@ package org.traccar.web.client.controller;
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.i18n.client.LocaleInfo;
+import com.google.gwt.json.client.JSONArray;
+import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.Hidden;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.view.ReportsDialog;
 import org.traccar.web.client.view.ReportsMenu;
 import pl.datamatica.traccar.model.Device;
@@ -37,6 +39,7 @@ import pl.datamatica.traccar.model.Report;
 import java.util.List;
 import java.util.Map;
 import org.fusesource.restygwt.client.Method;
+import org.traccar.web.client.model.api.ApiJsonCallback;
 import org.traccar.web.client.model.api.ApiMethodCallback;
 import org.traccar.web.client.model.api.ApiReport;
 import org.traccar.web.client.model.api.ApiRequestCallback;
@@ -53,7 +56,7 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
     private final Map<Long, Device> devMap;
     private final Map<Long, GeoFence> gfMap;
 
-    interface ReportMapper extends ObjectMapper<Report> {}
+    interface ReportMapper extends ObjectMapper<ApiReport> {}
 
     public interface ReportHandler {
         void reportAdded(Report report);
@@ -90,11 +93,16 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
             devMap.put(d.getId(), d);
         for(GeoFence gf : geoFenceStore.getAll())
             gfMap.put(gf.getId(), gf);
-        service.getReports(new ApiMethodCallback<List<ApiReport>>(i18n) {
+        service.getReports(new ApiJsonCallback(i18n) {
             @Override
-            public void onSuccess(Method method, List<ApiReport> response) {
-                for(ApiReport ar : response)
-                    reportStore.add(ar.toReport(devMap, gfMap));
+            public void onSuccess(Method method, JSONValue response) {
+                List<Report> reports = new ArrayList<>();
+                JSONArray arr = response.isArray();
+                for(int i=0;i<arr.size();++i) {
+                    ApiReport ar = new ApiReport(arr.get(i).isObject());
+                    reports.add(ar.toReport(devMap, gfMap));
+                }
+                reportStore.addAll(reports);
             }
             
         });
@@ -109,7 +117,7 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
         form.setMethod(FormPanel.METHOD_POST);
         form.setEncoding(FormPanel.ENCODING_URLENCODED);
         HorizontalPanel container = new HorizontalPanel();
-        container.add(new Hidden("report", reportMapper.write(report)));
+        container.add(new Hidden("report", reportMapper.write(new ApiReport(report))));
         container.add(new Hidden("lang", LocaleInfo.getCurrentLocale().getLocaleName()));
         form.add(container);
         RootPanel.get().add(form);
@@ -128,10 +136,11 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
         return new ReportsDialog(reportStore, deviceStore, geoFenceStore, new ReportsDialog.ReportHandler() {
             @Override
             public void onAdd(Report report, final ReportHandler handler) {
-                service.createReport(new ApiReport(report), new ApiMethodCallback<ApiReport>(i18n) {
+                service.createReport(new ApiReport(report), new ApiJsonCallback(i18n) {
                     @Override
-                    public void onSuccess(Method method, ApiReport response) {
-                        handler.reportAdded(response.toReport(devMap, gfMap));
+                    public void onSuccess(Method method, JSONValue response) {
+                        handler.reportAdded(new ApiReport(response.isObject())
+                                .toReport(devMap, gfMap));
                     }
                 });
             }

@@ -16,6 +16,10 @@
 package org.traccar.web.client.model.api;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.google.gwt.i18n.client.DateTimeFormat;
+import com.google.gwt.json.client.JSONArray;
+import com.google.gwt.json.client.JSONObject;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -45,6 +49,9 @@ public class ApiReport {
     public boolean includeMap;
     public boolean disableFilter;
     
+    public String format;
+    public boolean preview;
+    
     public ApiReport() {
     }
     
@@ -57,11 +64,41 @@ public class ApiReport {
         this.includeMap = report.isIncludeMap();
         this.disableFilter = report.isDisableFilter();
         this.deviceIds = new ArrayList<>();
-        for(Device d : report.getDevices())
-            this.deviceIds.add(d.getId());
+        if(report.getDevices() != null)
+            for(Device d : report.getDevices())
+                if(d != null)
+                    this.deviceIds.add(d.getId());
         this.geofenceIds = new ArrayList<>();
-        for(GeoFence gf : report.getGeoFences())
-            this.geofenceIds.add(gf.getId());
+        if(report.getGeoFences() != null)
+            for(GeoFence gf : report.getGeoFences())
+                if(gf != null)
+                    this.geofenceIds.add(gf.getId());
+        
+        if(report.getFormat() != null)
+            this.format = report.getFormat().name();
+        this.preview = report.isPreview();
+    }
+    
+    public ApiReport(JSONObject val) {
+        DateTimeFormat dtf = DateTimeFormat.getFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+        
+        id = (long)val.get("id").isNumber().doubleValue();
+        name = val.get("name").isString().stringValue();
+        reportType = val.get("reportType").isString().stringValue();
+        deviceIds = new ArrayList<Long>();
+        JSONArray dids = val.get("deviceIds").isArray();
+        for(int i=0;i<dids.size();++i)
+            deviceIds.add((long)dids.get(i).isNumber().doubleValue());
+        geofenceIds = new ArrayList<Long>();
+        JSONArray gids = val.get("geofenceIds").isArray();
+        for(int i=0;i<gids.size();++i) {
+            if(gids.get(i).isNumber() != null)
+                geofenceIds.add((long)gids.get(i).isNumber().doubleValue());
+        }
+        fromDate = dtf.parse(val.get("fromDate").isString().stringValue());
+        toDate = dtf.parse(val.get("toDate").isString().stringValue());
+        includeMap = val.get("includeMap").isBoolean().booleanValue();
+        disableFilter = val.get("disableFilter").isBoolean().booleanValue();
     }
     
     public Report toReport(Map<Long, Device> devices, Map<Long, GeoFence> geofences) {
@@ -74,10 +111,12 @@ public class ApiReport {
         report.setDisableFilter(disableFilter);
         report.setDevices(new HashSet<Device>());
         for(long did : deviceIds)
-            report.getDevices().add(devices.get(did));
+            if(devices.containsKey(did))
+                report.getDevices().add(devices.get(did));
         report.setGeoFences(new HashSet<GeoFence>());
-        for(long gid : geofenceIds) 
-            report.getGeoFences().add(geofences.get(gid));
+        for(long gid : geofenceIds)
+            if(geofences.containsKey(gid))
+                report.getGeoFences().add(geofences.get(gid));
         return report;
     }
 }
