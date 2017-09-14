@@ -23,7 +23,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.fusesource.restygwt.client.RestService;
-import pl.datamatica.traccar.model.Report;
 
 /**
  *
@@ -32,10 +31,10 @@ import pl.datamatica.traccar.model.Report;
 @Path("../api/v1/reports")
 public interface IReportsService extends RestService{
     @GET
-    void getReports(MethodCallback<List<Report>> callback);
+    void getReports(MethodCallback<List<ApiReport>> callback);
     
     @POST
-    void createReport(Report report, MethodCallback<Report> callback);
+    void createReport(ApiReport report, MethodCallback<ApiReport> callback);
     
     @DELETE
     @Path("/{id}")

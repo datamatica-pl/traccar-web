@@ -25,6 +25,7 @@ import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import java.util.Date;
+import java.util.HashMap;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.view.ReportsDialog;
@@ -34,8 +35,10 @@ import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.Report;
 
 import java.util.List;
+import java.util.Map;
 import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.model.api.ApiMethodCallback;
+import org.traccar.web.client.model.api.ApiReport;
 import org.traccar.web.client.model.api.ApiRequestCallback;
 import org.traccar.web.client.model.api.ReportsService;
 import pl.datamatica.traccar.model.ReportFormat;
@@ -46,6 +49,9 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
     private final ListStore<Report> reportStore;
     private final ListStore<Device> deviceStore;
     private final ListStore<GeoFence> geoFenceStore;
+    
+    private final Map<Long, Device> devMap;
+    private final Map<Long, GeoFence> gfMap;
 
     interface ReportMapper extends ObjectMapper<Report> {}
 
@@ -58,7 +64,10 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
     public ReportsController(ListStore<Report> reportStore, ListStore<Device> deviceStore, ListStore<GeoFence> geoFenceStore) {
         this.reportStore = reportStore;
         this.deviceStore = deviceStore;
-        this.geoFenceStore = geoFenceStore;        
+        this.geoFenceStore = geoFenceStore;
+        
+        this.devMap = new HashMap<>();
+        this.gfMap = new HashMap<>();
     }
     
     private boolean isEnabled() {
@@ -77,10 +86,15 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
     @Override
     public void run() {
         final ReportsService service = new ReportsService();
-        service.getReports(new ApiMethodCallback<List<Report>>(i18n) {
+        for(Device d : deviceStore.getAll())
+            devMap.put(d.getId(), d);
+        for(GeoFence gf : geoFenceStore.getAll())
+            gfMap.put(gf.getId(), gf);
+        service.getReports(new ApiMethodCallback<List<ApiReport>>(i18n) {
             @Override
-            public void onSuccess(Method method, List<Report> response) {
-                reportStore.addAll(response);
+            public void onSuccess(Method method, List<ApiReport> response) {
+                for(ApiReport ar : response)
+                    reportStore.add(ar.toReport(devMap, gfMap));
             }
             
         });
@@ -114,21 +128,22 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
         return new ReportsDialog(reportStore, deviceStore, geoFenceStore, new ReportsDialog.ReportHandler() {
             @Override
             public void onAdd(Report report, final ReportHandler handler) {
-                service.createReport(report, new ApiMethodCallback<Report>(i18n) {
+                service.createReport(new ApiReport(report), new ApiMethodCallback<ApiReport>(i18n) {
                     @Override
-                    public void onSuccess(Method method, Report response) {
-                        handler.reportAdded(response);
+                    public void onSuccess(Method method, ApiReport response) {
+                        handler.reportAdded(response.toReport(devMap, gfMap));
                     }
                 });
             }
 
             @Override
             public void onUpdate(final Report report, final ReportHandler handler) {
-                service.updateReport(report.getId(), report, new ApiRequestCallback(i18n) {
-                    @Override
-                    public void onSuccess(String response) {
-                        handler.reportUpdated(report);
-                    }
+                service.updateReport(report.getId(), new ApiReport(report), 
+                        new ApiRequestCallback(i18n) {
+                            @Override
+                            public void onSuccess(String response) {
+                                handler.reportUpdated(report);
+                            }
                     
                 });
             }

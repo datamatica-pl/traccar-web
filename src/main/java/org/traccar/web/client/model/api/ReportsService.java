@@ -22,29 +22,28 @@ import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import java.util.List;
 import org.fusesource.restygwt.client.MethodCallback;
-import pl.datamatica.traccar.model.Report;
 
 /**
  *
  * @author ŁŁ
  */
 public class ReportsService implements IReportsService{
-    public static interface ReportMapper extends ObjectMapper<Report>{}
+    public static interface ReportMapper extends ObjectMapper<ApiReport>{}
     
     private IReportsService service = GWT.create(IReportsService.class);
     private ReportMapper mapper = GWT.create(ReportMapper.class);
 
     @Override
-    public void getReports(MethodCallback<List<Report>> callback) {
+    public void getReports(MethodCallback<List<ApiReport>> callback) {
         service.getReports(callback);
     }
 
     @Override
-    public void createReport(Report report, MethodCallback<Report> callback) {
+    public void createReport(ApiReport report, MethodCallback<ApiReport> callback) {
         service.createReport(report, callback);
     }
     
-    public void updateReport(long id, Report report, RequestCallback callback) {
+    public void updateReport(long id, ApiReport report, RequestCallback callback) {
         RequestBuilder builder = new RequestBuilder(RequestBuilder.PUT,
             "../api/v1/reports/"+id);
         try{
