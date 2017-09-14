@@ -129,6 +129,11 @@ public class CommandController implements ContentController, DeviceView.CommandH
                     currentDialog.onAnswerReceived();
                     new LogViewDialog("<pre>" + response + "</pre>").show();
                 }
+                
+                @Override
+                public void onFailure() {
+                    currentDialog.hide();
+                }
             });
         } catch (RequestException e) {
             new AlertMessageBox(i18n.error(), e.getLocalizedMessage()).show();
