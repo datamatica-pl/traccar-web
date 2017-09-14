@@ -35,6 +35,7 @@ public abstract class ApiRequestCallback implements RequestCallback {
     public void onResponseReceived(Request request, Response response) {
         if(response.getStatusCode() >= 500) {
             new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+            onFailure();
         } else if(response.getStatusCode() == 401) {
             AlertMessageBox amb = new AlertMessageBox(i18n.error(), i18n.errUserSessionExpired());
             amb.show();
@@ -44,15 +45,20 @@ public abstract class ApiRequestCallback implements RequestCallback {
                     Window.Location.reload();
                 }
             });
+            onFailure();
         } else if(response.getStatusCode() != expectedStatusCode()) {
             ApiError err = ApiError.fromJson(response.getText());
             new AlertMessageBox(i18n.error(), err.getMessage()).show();
+            onFailure();
         } else {
             onSuccess(response.getText());
         }
     }
     
     public abstract void onSuccess(String response);
+    
+    public void onFailure() {
+    }
     
     protected int expectedStatusCode() {
         return 200;

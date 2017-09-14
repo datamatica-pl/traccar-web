@@ -212,9 +212,9 @@ public class NavView {
 
             @Override
             public void onSuccess(Method method, JSONValue response) {
+                Window.Location.reload();
             }
         });
-        Window.Location.reload();
     }
 
     @UiHandler("showTrackerServerLog")
