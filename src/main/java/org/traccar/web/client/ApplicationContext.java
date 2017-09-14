@@ -156,9 +156,12 @@ public class ApplicationContext {
     private String lang;
     
     public String getLang() {
-        if(lang == null)
-            return applicationSettings.getLanguage();
-        return lang;
+        String language = lang;
+        if(language == null)
+            language = applicationSettings.getLanguage();
+        if("default".equals(language))
+            return "en";
+        return language;
     }
     
     public void setLang(String lang) {
