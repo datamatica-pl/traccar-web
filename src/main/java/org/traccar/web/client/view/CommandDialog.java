@@ -18,7 +18,6 @@ package org.traccar.web.client.view;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
-import com.google.gwt.i18n.client.TimeZoneInfo;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -26,20 +25,14 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
-import com.sencha.gxt.data.shared.StringLabelProvider;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.*;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.EnumKeyProvider;
-import org.traccar.web.client.widget.TimeZoneComboBox;
-import pl.datamatica.traccar.model.CommandType;
 import pl.datamatica.traccar.model.Device;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.model.api.ApiCommandType;
@@ -95,10 +88,10 @@ public class CommandDialog {
             
         });
         commandTypes.addAll(Resources.getInstance().model(device.getDeviceModelId()).getCommandTypes());
-//        if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.COMMAND_CUSTOM)) {
-//            commandTypes.add(ApiCommandType.custom);
-//            commandTypes.add(ApiCommandType.extendedCustom);
-//        }
+        if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.COMMAND_CUSTOM)) {
+            commandTypes.add(ApiCommandType.CUSTOM);
+            commandTypes.add(ApiCommandType.EXTENDED_CUSTOM);
+        }
 
         this.typeCombo = new ComboBox<>(commandTypes, new LabelProvider<ApiCommandType>() {
             @Override

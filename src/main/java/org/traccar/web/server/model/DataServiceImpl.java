@@ -15,16 +15,13 @@
  */
 package org.traccar.web.server.model;
 
-import org.traccar.web.server.model.GeoFenceCalculator;
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.RegistrationMaintenance;
 import pl.datamatica.traccar.model.Sensor;
 import pl.datamatica.traccar.model.Maintenance;
 import pl.datamatica.traccar.model.GeoFence;
-import pl.datamatica.traccar.model.CommandType;
 import pl.datamatica.traccar.model.ApplicationSettings;
 import pl.datamatica.traccar.model.Device;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
 

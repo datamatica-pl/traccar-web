@@ -17,20 +17,15 @@ package org.traccar.web.client.controller;
 
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.http.client.*;
-import com.google.gwt.json.client.JSONString;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.view.CommandDialog;
 import org.traccar.web.client.view.DeviceView;
 import org.traccar.web.client.view.LogViewDialog;
-import org.traccar.web.shared.model.Command;
-import pl.datamatica.traccar.model.CommandType;
 import pl.datamatica.traccar.model.Device;
 
-import java.util.HashMap;
 import java.util.Map;
 import org.traccar.web.client.model.api.ApiRequestCallback;
 
