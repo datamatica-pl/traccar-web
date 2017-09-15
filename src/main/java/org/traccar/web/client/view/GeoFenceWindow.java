@@ -312,9 +312,9 @@ public class GeoFenceWindow implements Editor<GeoFence> {
             updated.points(points);
         }
         // set up devices
-        updated.getTransferDevices().clear();
+        updated.setDevices(new HashSet<Device>());
         for(Device d : grid.getSelectionModel().getSelectedItems())
-            updated.getTransferDevices().add(d);
+            updated.getDevices().add(d);
 
         return updated;
     }
