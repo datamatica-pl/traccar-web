@@ -692,4 +692,5 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String showLogFrom();
     
     String errInitialLoadFailed();
+    String errValMustBeDivisibleBy(int val);
 }

@@ -105,22 +105,6 @@ public class Decoder {
         
         d.setIconMode(DeviceIconMode.ICON);
         
-        ApiDeviceModel model = Resources.getInstance().model(d.getDeviceModelId());
-        if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.COMMAND_CUSTOM)) {
-            d.addSupportedCommand(CommandType.custom);
-            d.addSupportedCommand(CommandType.extendedCustom);
-        }
-        if(model != null) {
-            for(ApiCommandType ct : model.getCommandTypes()) {
-                try {
-                    d.addSupportedCommand(CommandType.fromString(ct.getCommandName()));
-                } catch (IllegalArgumentException e) {
-                    // We want to process rest of commands
-                    // It will be thrown only in case of developer mistake.
-                }
-            }
-            d.setProtocol(model.getProtocolName());
-        }
         List<Maintenance> ms = new ArrayList<>();
         if(v.get("maintenances") != null && v.get("maintenances").isArray() != null) {
             JSONArray arr = v.get("maintenances").isArray();

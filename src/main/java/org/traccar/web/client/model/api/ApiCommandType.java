@@ -15,6 +15,7 @@
  */
 package org.traccar.web.client.model.api;
 
+import java.util.List;
 import pl.datamatica.traccar.model.CommandType;
 
 /**
@@ -24,6 +25,7 @@ import pl.datamatica.traccar.model.CommandType;
 public class ApiCommandType {
     String commandName;
     boolean isTCP;
+    List<Parameter> commandParameters;
     
     public String getCommandName() {
         return commandName;
@@ -31,5 +33,46 @@ public class ApiCommandType {
     
     public boolean isTCP() {
         return isTCP;
+    }
+    
+    public List<Parameter> getCommandParameters() {
+        return commandParameters;
+    }
+    
+    
+    public static class Parameter {
+        String parameterName;
+        String valueType;
+        String description;
+        List<ParameterConstraint> constraints;
+        
+        public String getParameterName() {
+            return parameterName;
+        }
+        
+        public String getValueType() {
+            return valueType;
+        }
+        
+        public String getDescription() {
+            return description;
+        }
+        
+        public List<ParameterConstraint> getConstraints() {
+            return constraints;
+        }
+    }
+    
+    public static class ParameterConstraint {
+        String constraintType;
+        String constraintValue;
+        
+        public String getConstraintType() {
+            return constraintType;
+        }
+        
+        public String getConstraintValue() {
+            return constraintValue;
+        }
     }
 }

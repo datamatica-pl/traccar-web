@@ -21,136 +21,24 @@
     <gxt:Window ui:field="window" pixelSize="400, -1" modal="true" headingText="{i18n.command}" focusWidget="{sendButton}">
         <container:VerticalLayoutContainer>
             <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.type}" labelWidth="120">
-                    <form:widget>
-                        <form:ComboBox ui:field="typeCombo" triggerAction="ALL" allowBlank="false" />
-                    </form:widget>
-                </form:FieldLabel>
-            </container:child>
-            <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.frequency}" ui:field="lblFrequency" visible="false" labelWidth="120" height="30">
-                    <form:widget>
-                        <container:HorizontalLayoutContainer>
-                            <container:child layoutData="{horizontalLayoutData}">
-                                <form:NumberField editor="{integerPropertyEditor}"
-                                                  ui:field="frequency"
-                                                  allowNegative="false"
-                                                  allowDecimals="false"
-                                                  allowBlank="false"
-                                                  visible="false"
-                                                  width="70"/>
-                            </container:child>
-                            <container:child layoutData="{horizontalLayoutData}">
-                                <form:ComboBox ui:field="frequencyUnit" triggerAction="ALL" visible="false" width="70" />
-                            </container:child>
-                        </container:HorizontalLayoutContainer>
-                    </form:widget>
-                </form:FieldLabel>
-            </container:child>
-            <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.frequencyStop}" ui:field="lblFrequencyStop" visible="false" labelWidth="120" height="30">
-                    <form:widget>
-                        <container:HorizontalLayoutContainer>
-                            <container:child layoutData="{horizontalLayoutData}">
-                                <form:NumberField editor="{integerPropertyEditor}"
-                                                  ui:field="frequencyStop"
-                                                  allowNegative="false"
-                                                  allowDecimals="false"
-                                                  allowBlank="false"
-                                                  visible="false"
-                                                  width="70"/>
-                            </container:child>
-                            <container:child layoutData="{horizontalLayoutData}">
-                                <form:ComboBox ui:field="frequencyUnitStop" triggerAction="ALL" visible="false" width="70" />
-                            </container:child>
-                        </container:HorizontalLayoutContainer>
-                    </form:widget>
-                </form:FieldLabel>
-            </container:child>
-            <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.timeZone}" ui:field="lblTimeZone" visible="false" labelWidth="120">
-                    <form:widget>
-                        <form:ComboBox ui:field="timeZone" allowBlank="false" />
-                    </form:widget>
-                </form:FieldLabel>
-            </container:child>
-            <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.radius}" ui:field="lblRadius" visible="false" labelWidth="120">
-                    <form:widget>
-                        <form:NumberField editor="{integerPropertyEditor}"
-                                          ui:field="radius"
-                                          allowNegative="false"
-                                          allowDecimals="false"
-                                          allowBlank="false"
-                                          visible="false"
-                                          width="70"/>
-                    </form:widget>
-                </form:FieldLabel>
-            </container:child>
-            <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.phoneNumber}" ui:field="lblPhoneNumber" visible="false" labelWidth="120">
-                    <form:widget>
-                        <form:TextField ui:field="phoneNumber" />
-                    </form:widget>
-                </form:FieldLabel>
-            </container:child>
-            <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.message}" ui:field="lblMessage" visible="false" labelWidth="120">
-                    <form:widget>
-                        <form:TextField ui:field="message" />
-                    </form:widget>
-                </form:FieldLabel>
-            </container:child>
-            <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.SOSNumber1}" ui:field="lblSOSNumber1" visible="true" labelWidth="120">
-                    <form:widget>
-                        <form:TextField ui:field="SOSNumber1" />
-                    </form:widget>
-                </form:FieldLabel>
-            </container:child>
-            <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.SOSNumber2}" ui:field="lblSOSNumber2" visible="false" labelWidth="120">
-                    <form:widget>
-                        <form:TextField ui:field="SOSNumber2" />
-                    </form:widget>
-                </form:FieldLabel>
-            </container:child>
-            <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.SOSNumber3}" ui:field="lblSOSNumber3" visible="false" labelWidth="120">
-                    <form:widget>
-                        <form:TextField ui:field="SOSNumber3" />
-                    </form:widget>
-                </form:FieldLabel>
-            </container:child>
-            <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.SOSNumber}" ui:field="lblSOSNumber" visible="false" labelWidth="120" title="{i18n.SOSNumber}">
-                    <form:widget>
-                        <form:TextField ui:field="SOSNumber" />
-                    </form:widget>
-                </form:FieldLabel>
-            </container:child>
-            <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.centerNumber}" ui:field="lblCenterNumber" visible="false" labelWidth="120" title="{i18n.centerNumber}">
-                    <form:widget>
-                        <form:TextField ui:field="centerNumber" />
-                    </form:widget>
-                </form:FieldLabel>
-            </container:child>
-            <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.customMessage}" ui:field="lblCustomMessage" visible="false" labelWidth="120">
-                    <form:widget>
-                        <form:TextField ui:field="customMessage" />
-                    </form:widget>
-                </form:FieldLabel>
-            </container:child>
-            <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="{i18n.defenseTime}" ui:field="lblDefenseTime" visible="false" labelWidth="120">
-                    <form:widget>
-                        <form:TextField ui:field="defenseTime" />
-                    </form:widget>
-                </form:FieldLabel>
+                <container:VerticalLayoutContainer>
+                    <container:child layoutData="{verticalLayoutData}">
+                        <form:FieldLabel text="{i18n.type}" labelWidth="120">
+                            <form:widget>
+                                <form:ComboBox ui:field="typeCombo" triggerAction="ALL" allowBlank="false" />
+                            </form:widget>
+                        </form:FieldLabel>
+                    </container:child>
+                </container:VerticalLayoutContainer>
             </container:child>
 
+            <container:child layoutData="{verticalLayoutData}">
+                <container:VerticalLayoutContainer ui:field="container">
+                    <container:child layoutData="{verticalLayoutData}">
+                        <form:FieldLabel ui:field="sizeSentinel" text="GWT has problems with resizing!"/>
+                    </container:child>
+                </container:VerticalLayoutContainer>
+            </container:child>
         </container:VerticalLayoutContainer>
 
         <gxt:button>

@@ -29,6 +29,7 @@ import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.StringLabelProvider;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.button.TextButton;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.*;
 import org.traccar.web.client.i18n.Messages;
@@ -39,6 +40,11 @@ import pl.datamatica.traccar.model.Device;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import org.traccar.web.client.ApplicationContext;
+import org.traccar.web.client.model.api.ApiCommandType;
+import org.traccar.web.client.model.api.Resources;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class CommandDialog {
     private static CommandDialogUiBinder uiBinder = GWT.create(CommandDialogUiBinder.class);
@@ -48,13 +54,8 @@ public class CommandDialog {
 
     public interface CommandHandler {
         void onSend(Device device,
-                    CommandType type,
-                    int frequency,
-                    int timeZone,
-                    int radius,
-                    String phoneNumber, String message,
-                    HashMap<String, Object> extendedAttributes,
-                    String rawCommand);
+                    String type,
+                    Map<String, String> parameters);
     }
 
     @UiField
@@ -67,94 +68,16 @@ public class CommandDialog {
     NumberPropertyEditor<Integer> integerPropertyEditor = new NumberPropertyEditor.IntegerPropertyEditor();
 
     @UiField(provided = true)
-    ComboBox<CommandType> typeCombo;
-
-    @UiField
-    FieldLabel lblFrequency;
-    
-    @UiField
-    FieldLabel lblFrequencyStop;
-
-    @UiField
-    NumberField<Integer> frequency;
-    
-    @UiField
-    NumberField<Integer> frequencyStop;
-
-    @UiField(provided = true)
-    ComboBox<String> frequencyUnit;
-    
-    @UiField(provided = true)
-    ComboBox<String> frequencyUnitStop;
-
-    @UiField
-    FieldLabel lblTimeZone;
-
-    @UiField(provided = true)
-    ComboBox<TimeZoneInfo> timeZone;
-
-    @UiField
-    FieldLabel lblRadius;
-
-    @UiField
-    NumberField<Integer> radius;
-
-    @UiField
-    FieldLabel lblCustomMessage;
-
-    @UiField
-    FieldLabel lblPhoneNumber;
-
-    @UiField
-    TextField phoneNumber;
-
-    @UiField
-    FieldLabel lblMessage;
-
-    @UiField
-    TextField message;
-
-    @UiField
-    FieldLabel lblDefenseTime;
-
-    @UiField
-    TextField defenseTime;
-
-    @UiField
-    FieldLabel lblSOSNumber1;
-
-    @UiField
-    FieldLabel lblSOSNumber2;
-
-    @UiField
-    FieldLabel lblSOSNumber3;
-
-    @UiField
-    FieldLabel lblSOSNumber;
-
-    @UiField
-    FieldLabel lblCenterNumber;
-
-    @UiField
-    TextField SOSNumber1;
-
-    @UiField
-    TextField SOSNumber2;
-
-    @UiField
-    TextField SOSNumber3;
-
-    @UiField
-    TextField SOSNumber;
-
-    @UiField
-    TextField centerNumber;
-
-    @UiField
-    TextField customMessage;
+    ComboBox<ApiCommandType> typeCombo;
 
     @UiField
     TextButton sendButton;
+    
+    @UiField
+    VerticalLayoutContainer container;
+    
+    @UiField
+    FieldLabel sizeSentinel; 
 
     final Device device;
     final CommandHandler commandHandler;
@@ -164,54 +87,49 @@ public class CommandDialog {
         this.device = device;
         this.commandHandler = commandHandler;
 
-        ListStore<CommandType> commandTypes = new ListStore<>(new EnumKeyProvider<CommandType>());
-        commandTypes.addAll(device.getSupportedCommands());
-
-        this.typeCombo = new ComboBox<>(commandTypes, new LabelProvider<CommandType>() {
+        ListStore<ApiCommandType> commandTypes = new ListStore<>(new ModelKeyProvider<ApiCommandType>() {
             @Override
-            public String getLabel(CommandType item) {
-                return i18n.commandType(item);
+            public String getKey(ApiCommandType item) {
+                return item.getCommandName();
+            }
+            
+        });
+        commandTypes.addAll(Resources.getInstance().model(device.getDeviceModelId()).getCommandTypes());
+//        if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.COMMAND_CUSTOM)) {
+//            commandTypes.add(ApiCommandType.custom);
+//            commandTypes.add(ApiCommandType.extendedCustom);
+//        }
+
+        this.typeCombo = new ComboBox<>(commandTypes, new LabelProvider<ApiCommandType>() {
+            @Override
+            public String getLabel(ApiCommandType item) {
+                return ApplicationContext.getInstance().getMessage("command_"+item.getCommandName());
             }
         });
-
-        ListStore<String> frequencyUnits = new ListStore<>(new ModelKeyProvider<String>() {
-            @Override
-            public String getKey(String item) {
-                return item;
-            }
-        });
-        frequencyUnits.add(i18n.second());
-        frequencyUnits.add(i18n.minute());
-        frequencyUnits.add(i18n.hour());
-        
-        this.frequencyUnit = new ComboBox<>(frequencyUnits, new StringLabelProvider<>());
-        this.frequencyUnitStop = new ComboBox<>(frequencyUnits, new StringLabelProvider<>());
-        
-        this.timeZone = new TimeZoneComboBox();
 
         uiBinder.createAndBindUi(this);
-        this.contentBinder = CommandArgumentsBinder.getInstance(device.getProtocol(), this);
+        this.contentBinder = new CommandArgumentsBinder(container);
 
         if (commandTypes.size() == 0) {
             this.sendButton.setEnabled(false);
         }
 
-        typeCombo.addSelectionHandler(new SelectionHandler<CommandType>() {
+        typeCombo.addSelectionHandler(new SelectionHandler<ApiCommandType>() {
             @Override
-            public void onSelection(SelectionEvent<CommandType> event) {
+            public void onSelection(SelectionEvent<ApiCommandType> event) {
                 toggleUI(event.getSelectedItem());
             }
         });
     }
 
-    private void toggleUI(CommandType type) {
+    private void toggleUI(ApiCommandType type) {
         contentBinder.bind(type);
         window.forceLayout();
     }
 
     public void show() {
         window.show();
-        lblSOSNumber1.setVisible(false);
+        sizeSentinel.setVisible(false);
     }
 
     public void hide() {
@@ -220,65 +138,12 @@ public class CommandDialog {
 
     @UiHandler("sendButton")
     public void onSendClicked(SelectEvent event) {
-        int frequencyVal = -1;
-        if (this.frequency.getCurrentValue() != null) {
-            String unit = frequencyUnit.getCurrentValue();
-            frequencyVal = this.frequency.getCurrentValue();
-            frequencyVal *=
-                    i18n.minute().equals(unit) ? 60
-                    : i18n.hour().equals(unit) ? 3600 : 1;
-        }
-        int frequencyStopVal = -1;
-        if (this.frequencyStop.getCurrentValue() != null) {
-            String frequencyStopUnit = frequencyUnitStop.getCurrentValue();
-            frequencyStopVal = this.frequencyStop.getCurrentValue();
-            frequencyStopVal *=
-                    i18n.minute().equals(frequencyStopUnit) ? 60
-                    : i18n.hour().equals(frequencyStopUnit) ? 3600 : 1;
-        }
-        int timezone = -1;
-        if (this.timeZone.getCurrentValue() != null) {
-            timezone = timeZone.getCurrentValue().getStandardOffset() * 60;
-        }
-        int radius = -1;
-        if (this.radius.getCurrentValue() != null) {
-            radius = this.radius.getCurrentValue();
-        }
-
-        HashMap<String, Object> extendedAttributes = new HashMap();
-
-        if (this.defenseTime.getCurrentValue() != null) {
-            extendedAttributes.put(CommandType.KEY_DEFENSE_TIME, this.defenseTime.getCurrentValue());
-        }
-        if (this.SOSNumber1.getCurrentValue() != null) {
-            extendedAttributes.put(CommandType.KEY_SOS_NUMBER_1, this.SOSNumber1.getCurrentValue());
-        }
-        if (this.SOSNumber2.getCurrentValue() != null) {
-            extendedAttributes.put(CommandType.KEY_SOS_NUMBER_2, this.SOSNumber2.getCurrentValue());
-        }
-        if (this.SOSNumber3.getCurrentValue() != null) {
-            extendedAttributes.put(CommandType.KEY_SOS_NUMBER_3, this.SOSNumber3.getCurrentValue());
-        }
-        if (this.SOSNumber.getCurrentValue() != null) {
-            extendedAttributes.put(CommandType.KEY_SOS_NUMBER, this.SOSNumber.getCurrentValue());
-        }
-        if (this.centerNumber.getCurrentValue() != null) {
-            extendedAttributes.put(CommandType.KEY_CENTER_NUMBER, this.centerNumber.getCurrentValue());
-        }
-        if (this.frequencyStop.getCurrentValue() != null) {
-            extendedAttributes.put(CommandType.KEY_FREQUENCY_STOP, frequencyStopVal);
-        }
-
+        if(!contentBinder.validate())
+            return;
         window.disable();
         commandHandler.onSend(device,
-                typeCombo.getCurrentValue(),
-                frequencyVal,
-                timezone,
-                radius,
-                phoneNumber.getCurrentValue(),
-                message.getCurrentValue(),
-                extendedAttributes,
-                customMessage.getCurrentValue());
+                typeCombo.getCurrentValue().getCommandName(),
+                contentBinder.getParamMap());
     }
 
     @UiHandler("cancelButton")

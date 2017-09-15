@@ -31,13 +31,14 @@ import pl.datamatica.traccar.model.CommandType;
 import pl.datamatica.traccar.model.Device;
 
 import java.util.HashMap;
+import java.util.Map;
 import org.traccar.web.client.model.api.ApiRequestCallback;
 
 public class CommandController implements ContentController, DeviceView.CommandHandler, CommandDialog.CommandHandler {
 
-    interface CommandMapper extends ObjectMapper<Command> {}
-
-    private final CommandMapper commandMapper = GWT.create(CommandMapper.class);
+    interface ParamsMapper extends ObjectMapper<Map<String, String>> {}
+    
+    private final ParamsMapper mapper = GWT.create(ParamsMapper.class);
     private CommandDialog currentDialog;
 
     @Override
@@ -57,73 +58,16 @@ public class CommandController implements ContentController, DeviceView.CommandH
 
     @Override
     public void onSend(Device device,
-                       CommandType type,
-                       int frequency,
-                       int timezone,
-                       int radius,
-                       String phoneNumber,
-                       String message,
-                       HashMap<String, Object> extendedAttributes,
-                       String rawCommand) {
-        JSONObject attrs = new JSONObject();
-        switch (type) {
-            case positionPeriodic:
-                attrs.put(CommandType.KEY_FREQUENCY, new JSONString(Integer.toString(frequency)));
-                if (extendedAttributes.get(CommandType.KEY_FREQUENCY_STOP) != null) {
-                    attrs.put(CommandType.KEY_FREQUENCY_STOP,
-                            new JSONString(extendedAttributes.get(CommandType.KEY_FREQUENCY_STOP).toString()));
-                }
-                break;
-            case positionStop:
-                attrs.put(CommandType.KEY_FREQUENCY, new JSONString(Integer.toString(frequency)));
-                break;
-            case setTimezone:
-                attrs.put(CommandType.KEY_TIMEZONE, new JSONString(Long.toString(timezone/3600)));
-                break;
-            case movementAlarm:
-                attrs.put(CommandType.KEY_RADIUS, new JSONString(Integer.toString(radius)));
-                break;
-            case sendSms:
-                attrs.put(CommandType.KEY_PHONE_NUMBER, new JSONString(phoneNumber));
-                attrs.put(CommandType.KEY_MESSAGE, new JSONString(message));
-                break;
-            case setDefenseTime:
-                attrs.put(CommandType.KEY_DEFENSE_TIME,
-                        new JSONString(extendedAttributes.get(CommandType.KEY_DEFENSE_TIME).toString()));
-                break;
-            case setSOSNumbers:
-                attrs.put(CommandType.KEY_SOS_NUMBER_1,
-                        new JSONString(extendedAttributes.get(CommandType.KEY_SOS_NUMBER_1).toString()));
-                attrs.put(CommandType.KEY_SOS_NUMBER_2,
-                        new JSONString(extendedAttributes.get(CommandType.KEY_SOS_NUMBER_2).toString()));
-                attrs.put(CommandType.KEY_SOS_NUMBER_3,
-                        new JSONString(extendedAttributes.get(CommandType.KEY_SOS_NUMBER_3).toString()));
-                break;
-            case deleteSOSNumber:
-                attrs.put(CommandType.KEY_SOS_NUMBER,
-                        new JSONString(extendedAttributes.get(CommandType.KEY_SOS_NUMBER).toString()));
-                break;
-            case positionPeriodicAlt:
-                attrs.put(CommandType.KEY_FREQUENCY, new JSONString(Integer.toString(frequency)));
-                break;
-            case setCenterNumber:
-                attrs.put(CommandType.KEY_CENTER_NUMBER,
-                        new JSONString(extendedAttributes.get(CommandType.KEY_CENTER_NUMBER).toString()));
-                break;
-            case extendedCustom:
-                attrs.put(CommandType.KEY_MESSAGE, new JSONString(rawCommand));
-            case custom:
-                attrs.put("command", new JSONString(rawCommand));
-                break;
-        }
+                       String type,
+                       Map<String, String> parameters) {
 
         final Messages i18n = GWT.create(Messages.class);
 
         RequestBuilder builder = new RequestBuilder(RequestBuilder.POST, 
-                "../api/v1/devices/"+device.getId()+"/sendCommand/"+type.name());
+                "../api/v1/devices/"+device.getId()+"/sendCommand/"+type);
 
         try {
-            builder.sendRequest(attrs.toString(), new ApiRequestCallback(i18n) {
+            builder.sendRequest(mapper.write(parameters), new ApiRequestCallback(i18n) {
                 @Override
                 public void onSuccess(String response) {
                     currentDialog.onAnswerReceived();

@@ -15,136 +15,316 @@
  */
 package org.traccar.web.client.view;
 
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.editor.client.Editor;
+import com.google.gwt.editor.client.EditorDelegate;
+import com.google.gwt.editor.client.EditorError;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
+import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.ModelKeyProvider;
+import com.sencha.gxt.data.shared.StringLabelProvider;
+import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
+import com.sencha.gxt.widget.core.client.form.ComboBox;
+import com.sencha.gxt.widget.core.client.form.FieldLabel;
+import com.sencha.gxt.widget.core.client.form.NumberField;
+import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor;
+import com.sencha.gxt.widget.core.client.form.TextField;
+import com.sencha.gxt.widget.core.client.form.Validator;
+import com.sencha.gxt.widget.core.client.form.validator.AbstractValidator;
+import com.sencha.gxt.widget.core.client.form.validator.MaxLengthValidator;
+import com.sencha.gxt.widget.core.client.form.validator.MaxNumberValidator;
+import com.sencha.gxt.widget.core.client.form.validator.MinLengthValidator;
+import com.sencha.gxt.widget.core.client.form.validator.MinNumberValidator;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import pl.datamatica.traccar.model.CommandType;
+import org.traccar.web.client.ApplicationContext;
+import org.traccar.web.client.i18n.Messages;
+import org.traccar.web.client.model.api.ApiCommandType;
+import org.traccar.web.client.model.api.ApiCommandType.ParameterConstraint;
 
 public class CommandArgumentsBinder {    
-    protected static final Map<CommandType, String[]> visibilityInfo = new HashMap<>();
-    private final Map<String, Widget> widgetMap = new HashMap<>();
+    private final VerticalLayoutContainer container;
+    private final Map<String, IFieldAdapter> params;
     
-    public static CommandArgumentsBinder getInstance(String protocol, CommandDialog commandDialog) {
-        if(protocol.equalsIgnoreCase("h02")) {
-            return new H02CommandArgumentsBinder(commandDialog);
-        } else if (protocol.equalsIgnoreCase("minifinder")) {
-            return new MiniFinderCommandArgumentsBinder(commandDialog);
-        } else if (protocol.equalsIgnoreCase("gt06")) {
-            return new GT06CommandArgumentsBinder(commandDialog);
-        } else {
-            return new CommandArgumentsBinder(commandDialog);
+    public CommandArgumentsBinder(VerticalLayoutContainer container) {    
+        this.container = container;
+        this.params = new HashMap<>();
+    }
+    
+    public void bind(ApiCommandType type) {
+        VerticalLayoutData vld = new VerticalLayoutData(1, -1);
+        ApplicationContext ctx = ApplicationContext.getInstance();
+        container.clear();
+        params.clear();
+        for(ApiCommandType.Parameter param: type.getCommandParameters()) {
+            IFieldAdapter fa = createInput(param);
+            FieldLabel lbl = new FieldLabel();
+            lbl.setLabelWidth(120);
+            lbl.setText(ctx.getMessage(param.getDescription()));
+            lbl.add(fa.getWidget());
+            lbl.setLayoutData(vld);
+            container.add(lbl);
+            params.put(param.getParameterName(), fa);
         }
     }
     
-    public CommandArgumentsBinder(CommandDialog commandDialog) {    
-        initWidgetMap(commandDialog);
-        initVisibilityInfo(); 
+    private IFieldAdapter createInput(ApiCommandType.Parameter parameter) {
+        String valueType = parameter.getValueType();
+        if("integer".equals(valueType)) {
+            return new IntegerAdapter(parameter.getConstraints());
+        } else if("interval".equals(valueType)) {
+            return new IntervalAdapter(parameter.getConstraints());
+        } else if("string".equals(valueType)) {
+            return new StringAdapter(parameter.getConstraints());
+        }
+        return null;
     }
     
-    private void initWidgetMap(CommandDialog commandDialog) {
-        widgetMap.put("lblFrequency", commandDialog.lblFrequency);
-        widgetMap.put("frequency", commandDialog.frequency);
-        widgetMap.put("frequencyUnit", commandDialog.frequencyUnit);
-        
-        widgetMap.put("lblFrequencyStop", commandDialog.lblFrequencyStop);
-        widgetMap.put("frequencyStop", commandDialog.frequencyStop);
-        widgetMap.put("frequencyUnitStop", commandDialog.frequencyUnitStop);
-        
-        widgetMap.put("lblTimeZone", commandDialog.lblTimeZone);
-        widgetMap.put("timeZone", commandDialog.timeZone);
-        
-        widgetMap.put("lblRadius", commandDialog.lblRadius);
-        widgetMap.put("radius", commandDialog.radius);
-        
-        widgetMap.put("lblCustomMessage", commandDialog.lblCustomMessage);
-        widgetMap.put("customMessage", commandDialog.customMessage);
-        
-        widgetMap.put("lblPhoneNumber", commandDialog.lblPhoneNumber);
-        widgetMap.put("phoneNumber", commandDialog.phoneNumber);
-        
-        widgetMap.put("lblMessage", commandDialog.lblMessage);
-        widgetMap.put("message", commandDialog.message);
-        
-        widgetMap.put("lblDefenseTime", commandDialog.lblDefenseTime);
-        widgetMap.put("defenseTime", commandDialog.defenseTime);
-        
-        widgetMap.put("lblSOSNumber1", commandDialog.lblSOSNumber1);
-        widgetMap.put("lblSOSNumber2", commandDialog.lblSOSNumber2);
-        widgetMap.put("lblSOSNumber3", commandDialog.lblSOSNumber3);
-        widgetMap.put("SOSNumber1", commandDialog.SOSNumber1);
-        widgetMap.put("SOSNumber2", commandDialog.SOSNumber2);
-        widgetMap.put("SOSNumber3", commandDialog.SOSNumber3);
-        
-        widgetMap.put("lblSOSNumber", commandDialog.lblSOSNumber);
-        widgetMap.put("SOSNumber", commandDialog.SOSNumber);
-        
-        widgetMap.put("lblCenterNumber", commandDialog.lblCenterNumber);
-        widgetMap.put("centerNumber", commandDialog.centerNumber);
+    public Map<String, String> getParamMap() {
+        Map<String, String> paramMap = new HashMap<>();
+        for(String param : params.keySet()) {
+            paramMap.put(param, params.get(param).getValue());
+        }
+        return paramMap;
     }
 
-    private void initVisibilityInfo() {
-        visibilityInfo.put(CommandType.positionPeriodic,
-                new String[]{"lblFrequency", "frequency", "frequencyUnit"});
-        visibilityInfo.put(CommandType.positionStop,
-                new String[]{"lblFrequency", "frequency", "frequencyUnit"});
-        visibilityInfo.put(CommandType.custom,
-                new String[]{"lblCustomMessage", "customMessage"});
-        visibilityInfo.put(CommandType.extendedCustom,
-                new String[]{"lblCustomMessage", "customMessage"});
-        visibilityInfo.put(CommandType.setTimezone,
-                new String[]{"lblTimeZone", "timeZone"});
-        visibilityInfo.put(CommandType.movementAlarm,
-                new String[]{"lblRadius", "radius"});
-        visibilityInfo.put(CommandType.sendSms,
-                new String[]{"lblPhoneNumber", "phoneNumber", "lblMessage", "message"});
-        visibilityInfo.put(CommandType.setDefenseTime,
-                new String[]{"lblDefenseTime", "defenseTime"});
-        visibilityInfo.put(CommandType.setSOSNumbers,
-                new String[]{"lblSOSNumber1", "lblSOSNumber2", "lblSOSNumber3", 
-                    "SOSNumber1", "SOSNumber2", "SOSNumber3"});
-        visibilityInfo.put(CommandType.setCenterNumber,
-                new String[]{"lblCenterNumber", "centerNumber"});
-        visibilityInfo.put(CommandType.deleteSOSNumber,
-                new String[]{"lblSOSNumber", "SOSNumber"});
-        visibilityInfo.put(CommandType.positionPeriodicAlt,
-                new String[]{"lblFrequency", "frequency", "frequencyUnit"});
+    public boolean validate() {
+        for(IFieldAdapter fa : params.values()) {
+            if(fa.hasError())
+                return false;
+        }
+        return true;
     }
     
-    public void bind(CommandType type) {
-        for(Widget widget : widgetMap.values())
-            widget.setVisible(false);
-        if(visibilityInfo.containsKey(type))
-            for(String key : visibilityInfo.get(type))
-                widgetMap.get(key).setVisible(true);
-    }
-}
-
-class H02CommandArgumentsBinder extends CommandArgumentsBinder{
     
-    public H02CommandArgumentsBinder(CommandDialog commandDialog) {
-        super(commandDialog);
-        visibilityInfo.remove(CommandType.setSOSNumbers);
-        visibilityInfo.put(CommandType.setSOSNumbers, 
-                new String[]{"lblSOSNumber1", "SOSNumber1", "lblSOSNumber2", "SOSNumber2"});
+    private interface IFieldAdapter {
+        Widget getWidget();
+        String getValue();
+        boolean hasError();
     }
-}
-
-class MiniFinderCommandArgumentsBinder extends CommandArgumentsBinder {
     
-    public MiniFinderCommandArgumentsBinder(CommandDialog commandDialog) {
-        super(commandDialog);
-        visibilityInfo.remove(CommandType.setSOSNumbers);
-        visibilityInfo.put(CommandType.setSOSNumbers, 
-                new String[]{"lblSOSNumber1", "SOSNumber1"});
-    }
-}
+    private static class IntegerAdapter implements IFieldAdapter{
+        private NumberField field;
+        
+        IntegerAdapter(List<ParameterConstraint> constraints) {
+            NumberPropertyEditor npe = new NumberPropertyEditor.IntegerPropertyEditor();
+            field = new NumberField(npe);
+            field.setAllowBlank(false);
+            for(ParameterConstraint c: constraints) {
+                int val = Integer.parseInt(c.getConstraintValue());
+                if("GTE".equalsIgnoreCase(c.getConstraintType())) {
+                    field.addValidator(new MinNumberValidator(val));
+                } else if("LTE".equalsIgnoreCase(c.getConstraintType())) {
+                    field.addValidator(new MaxNumberValidator(val));
+                } else if("DEFAULT".equalsIgnoreCase(c.getConstraintType())) {
+                    field.setValue(val);
+                } else if("STEP".equalsIgnoreCase(c.getConstraintType())) {
+                    npe.setIncrement(val);
+                }
+            }
+        }
+        
+        @Override
+        public Widget getWidget() {
+            return field;
+        }
 
-class GT06CommandArgumentsBinder extends CommandArgumentsBinder {
-    public GT06CommandArgumentsBinder(CommandDialog commandDialog) {
-        super(commandDialog);
-        visibilityInfo.remove(CommandType.positionPeriodic);
-        visibilityInfo.put(CommandType.positionPeriodic,
-                new String[]{"lblFrequency", "frequency", "frequencyUnit",
-                            "lblFrequencyStop", "frequencyStop", "frequencyUnitStop"});
+        @Override
+        public String getValue() {
+            if(field.getValue() == null)
+                return null;
+            return field.getValue().toString();
+        }
+
+        @Override
+        public boolean hasError() {
+            field.validate();
+            return field.getErrors() != null && !field.getErrors().isEmpty();
+        }
+        
+        
+    }
+    
+    private static class IntervalAdapter implements IFieldAdapter {
+        private final Messages i18n = GWT.create(Messages.class);
+        
+        private NumberField<Integer> nf;
+        private MaxNumberValidator maxnv;
+        private MinNumberValidator minnv;
+        private Validator stepValidator;
+        private ComboBox<String> cb;
+        private HorizontalLayoutContainer hlc;
+        
+        public IntervalAdapter(List<ParameterConstraint> constraints) {
+            hlc = new HorizontalLayoutContainer();
+            HorizontalLayoutData hld = new HorizontalLayoutData(-1, -1);
+            
+            final NumberPropertyEditor npe = new NumberPropertyEditor.IntegerPropertyEditor();
+            nf = new NumberField(npe);
+            nf.setAllowNegative(false);
+            nf.setAllowDecimals(false);
+            nf.setAllowBlank(false);
+            nf.setWidth(70);
+            nf.setLayoutData(hld);
+            hlc.add(nf);
+            
+            ListStore<String> units = new ListStore<>(new ModelKeyProvider<String>(){
+                @Override
+                public String getKey(String item) {
+                    return item;
+                }
+            });
+            units.add(i18n.hour());
+            units.add(i18n.minute());
+            units.add(i18n.second());
+            cb = new ComboBox(units, new StringLabelProvider<>());
+            cb.setTriggerAction(TriggerAction.ALL);
+            cb.setLayoutData(hld);
+            hlc.add(cb);
+            
+            for(ParameterConstraint c : constraints) {
+                final int val = Integer.parseInt(c.getConstraintValue());
+                if("LTE".equalsIgnoreCase(c.getConstraintType())) {
+                    final MaxNumberValidator hv = new MaxNumberValidator(val/3600);
+                    final MaxNumberValidator mv = new MaxNumberValidator(val/60);
+                    final MaxNumberValidator sv = new MaxNumberValidator(val);
+                    maxnv = sv;
+                    nf.addValidator(maxnv);
+                    cb.addValueChangeHandler(new ValueChangeHandler<String>() {
+                        @Override
+                        public void onValueChange(ValueChangeEvent<String> event) {
+                            nf.removeValidator(maxnv);
+                            if(i18n.hour().equals(event.getValue())) {
+                                maxnv = hv;
+                            } else if(i18n.minute().equals(event.getValue())) {
+                                maxnv = mv;
+                            } else {
+                                maxnv = sv;
+                            }
+                            nf.addValidator(maxnv);
+                            nf.validate();
+                        }
+                    });
+                } else if("GTE".equalsIgnoreCase(c.getConstraintType())) {
+                    final MinNumberValidator hv = new MinNumberValidator((val-1)/3600+1);
+                    final MinNumberValidator mv = new MinNumberValidator((val-1)/60+1);
+                    final MinNumberValidator sv = new MinNumberValidator(val);
+                    minnv = sv;
+                    nf.addValidator(minnv);
+                    cb.addValueChangeHandler(new ValueChangeHandler<String>() {
+                        @Override
+                        public void onValueChange(ValueChangeEvent<String> event) {
+                            nf.removeValidator(minnv);
+                            if(i18n.hour().equals(event.getValue())) {
+                                minnv = hv;
+                            } else if(i18n.minute().equals(event.getValue())) {
+                                minnv = mv;
+                            } else {
+                                minnv = sv;
+                            }
+                            nf.addValidator(minnv);
+                            nf.validate();
+                        } 
+                    });
+                } else if("DEFAULT".equalsIgnoreCase(c.getConstraintType())) {
+                    nf.setValue(val);
+                    cb.setValue(i18n.second());
+                } else if("STEP".equalsIgnoreCase(c.getConstraintType())) {
+                    stepValidator = new AbstractValidator<Integer>() {
+                        @Override
+                        public List<EditorError> validate(Editor<Integer> editor, Integer value) {
+                            if(value % val != 0)
+                                return createError(editor, 
+                                        i18n.errValMustBeDivisibleBy(val), null);
+                            return null;
+                        }  
+                    };
+                    npe.setIncrement(val);
+                    nf.addValidator(stepValidator);
+                    cb.addValueChangeHandler(new ValueChangeHandler<String>() {
+                        @Override
+                        public void onValueChange(ValueChangeEvent<String> event) {
+                            nf.removeValidator(stepValidator);
+                            if(i18n.second().equals(event.getValue())) {
+                                npe.setIncrement(val);
+                                nf.addValidator(stepValidator);
+                                nf.addValidator(maxnv);
+                            } else
+                                npe.setIncrement(0);
+                            nf.validate();
+                        }
+                    });
+                }
+            }
+        }
+        
+        @Override
+        public Widget getWidget() {
+            return hlc;
+        }
+
+        @Override
+        public String getValue() {
+            if(nf.getValue() == null)
+                return null;
+            if(i18n.hour().equals(cb.getValue())) {
+                return Integer.toString(nf.getValue()*3600);
+            } else if(i18n.minute().equals(cb.getValue())) {
+                return Integer.toString(nf.getValue()*60);
+            } else {
+                return Integer.toString(nf.getValue());
+            }
+        }
+
+        @Override
+        public boolean hasError() {
+            nf.validate();
+            return nf.getErrors() != null && !nf.getErrors().isEmpty();
+        }
+        
+    }
+    
+    private static class StringAdapter implements IFieldAdapter {
+        private TextField tf;
+        
+        public StringAdapter(List<ParameterConstraint> constraints) {
+            tf = new TextField();
+            for(ParameterConstraint c : constraints) {
+                if("MIN_LENGTH".equalsIgnoreCase(c.getConstraintType())) {
+                    int val = Integer.parseInt(c.getConstraintValue());
+                    tf.addValidator(new MinLengthValidator(val));
+                } else if("MAX_LENGTH".equalsIgnoreCase(c.getConstraintType())) {
+                    int val = Integer.parseInt(c.getConstraintValue());
+                    tf.addValidator(new MaxLengthValidator(val));
+                } else if("DEFAULT".equalsIgnoreCase(c.getConstraintType())) {
+                    tf.setValue(c.getConstraintValue());
+                }
+            }
+        }
+        
+        @Override
+        public Widget getWidget() {
+            return tf;
+        }
+
+        @Override
+        public String getValue() {
+            return tf.getValue();
+        }
+
+        @Override
+        public boolean hasError() {
+            tf.validate();
+            return tf.getErrors() != null && !tf.getErrors().isEmpty();
+        }
+        
     }
 }

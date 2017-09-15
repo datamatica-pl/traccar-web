@@ -324,32 +324,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 Map<String, Object> other = JsonXmlParser.parse(device.getLatestPosition().getOther());
                 if(other.get(ALARM_KEY) != null)
                     device.setAlarmEnabled((boolean)other.get(ALARM_KEY));
-                
-                String protocolName = device.getProtocol();
-                if(protocolName == null)
-                    continue;
-                protocolName = protocolName.substring(0, 1).toUpperCase() + protocolName.substring(1);
-                
-                final Class<?> protocolClass;
-                Class<?> baseProtocol = Class.forName("org.traccar.BaseProtocol");
-                Boolean isOsmAndProtocol = "Osmand".equals(protocolName);
-                Boolean isMiniFinderProtocol = "Minifinder".equals(protocolName);
-                if (isOsmAndProtocol) {
-                    protocolClass = Class.forName("org.traccar.protocol.OsmAndProtocol");
-                } else if (isMiniFinderProtocol) {
-                    protocolClass = Class.forName("org.traccar.protocol.MiniFinderProtocol");
-                } else {
-                    protocolClass = Class.forName("org.traccar.protocol." + protocolName + "Protocol");
-                }
-                Object protocol = protocolClass.getConstructor().newInstance();
-                Method supportedCommands = baseProtocol.getDeclaredMethod("getSupportedCommands");
-                Set<String> commands = (Set<String>)supportedCommands.invoke(protocol);
-                
-                for(String command : commands)
-                    device.addSupportedCommand(CommandType.fromString(command));
             } catch (Exception | NoClassDefFoundError ex) {
 //                Logger.getLogger(Device.class.getName()).log(Level.SEVERE, null, ex);
-                device.clearSupportedCommands();
             }
         }
         if (full && !devices.isEmpty()) {
