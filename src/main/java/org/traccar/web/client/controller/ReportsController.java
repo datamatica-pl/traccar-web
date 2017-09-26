@@ -112,8 +112,9 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
         String format = report.getFormat() == ReportFormat.HTML ? ".html" : ".csv";
         
         FormPanel form = new FormPanel("_blank");
+        final String reportNameUrl = report.getType().toString().toLowerCase();
         form.setVisible(false);
-        form.setAction("api/v1/reports/generate" + (report.isPreview() ? "/" + report.getName() + format : ""));
+        form.setAction("api/v1/reports/generate" + (report.isPreview() ? "/" + reportNameUrl + format : ""));
         form.setMethod(FormPanel.METHOD_POST);
         form.setEncoding(FormPanel.ENCODING_URLENCODED);
         HorizontalPanel container = new HorizontalPanel();
