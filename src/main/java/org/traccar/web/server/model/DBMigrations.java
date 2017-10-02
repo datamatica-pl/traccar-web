@@ -109,12 +109,12 @@ public class DBMigrations {
             List<UserGroup> results = query.getResultList();
             if (results.isEmpty()) {
                 UserGroup users = new UserGroup();
-                users.setName("users");
+                users.setName(UserGroup.USERS_GROUP_NAME);
                 users.setPermissions(UserPermission.getUsersPermissions());
                 em.persist(users);
                 
                 UserGroup admins = new UserGroup();
-                admins.setName("admins");
+                admins.setName(UserGroup.ADMINS_GROUP_NAME);
                 admins.setPermissions(UserPermission.getAdminsPermissions());
                 em.persist(admins);
             }
@@ -127,8 +127,8 @@ public class DBMigrations {
     static class CreateAdmin implements Migration {
         @Override
         public void migrate(EntityManager em) throws Exception {
-            TypedQuery<User> query = em.createQuery("SELECT x FROM User x WHERE x.admin = :adminValue", User.class);
-            List<User> results = query.setParameter("adminValue", true).getResultList();
+            TypedQuery<User> query = em.createQuery("SELECT x FROM User x", User.class);
+            List<User> results = query.getResultList();
             if (results.isEmpty()) {
                 User user = new User();
                 user.setLogin("admin");
@@ -139,18 +139,11 @@ public class DBMigrations {
                 
                 List<UserGroup> userGroups = em.createQuery("SELECT u FROM UserGroup u", UserGroup.class).getResultList();
                 if (!userGroups.isEmpty()) {
-                    UserGroup ug = userGroups.stream().filter(g -> "admins".equals(g.getName())).collect(Collectors.toList()).get(0);
+                    UserGroup ug = userGroups.stream().filter(g -> UserGroup.ADMINS_GROUP_NAME.equals(g.getName())).collect(Collectors.toList()).get(0);
                     user.setUserGroup(ug);
                 }
                 
                 em.persist(user);
-            } else if (results.size() == 1) {
-                User singleAdmin = results.get(0);
-                if (singleAdmin.getLogin() == null && singleAdmin.getPassword() == null) {
-                    singleAdmin.setLogin("admin");
-                    singleAdmin.setPassword("admin");
-                    singleAdmin.setPasswordHashMethod(PasswordHashMethod.PLAIN);
-                }
             }
         }
     }
@@ -178,7 +171,7 @@ public class DBMigrations {
         @Override
         public void migrate(EntityManager em) throws Exception {
             List<UserGroup> userGroups = em.createQuery("SELECT u FROM UserGroup u", UserGroup.class).getResultList();
-            List<UserGroup> userGroup = userGroups.stream().filter(g -> "users".equals(g.getName())).collect(Collectors.toList());
+            List<UserGroup> userGroup = userGroups.stream().filter(g -> UserGroup.USERS_GROUP_NAME.equals(g.getName())).collect(Collectors.toList());
                 
             if (userGroup.isEmpty())
                 return;     
@@ -197,8 +190,8 @@ public class DBMigrations {
         @Override
         public void migrate(EntityManager em) throws Exception {
             List<UserGroup> userGroups = em.createQuery("SELECT u FROM UserGroup u", UserGroup.class).getResultList();
-            List<UserGroup> adminsGroups = userGroups.stream().filter(g -> "admins".equals(g.getName())).collect(Collectors.toList());
-            List<UserGroup> usersGroups = userGroups.stream().filter(g -> "users".equals(g.getName())).collect(Collectors.toList());
+            List<UserGroup> adminsGroups = userGroups.stream().filter(g -> UserGroup.ADMINS_GROUP_NAME.equals(g.getName())).collect(Collectors.toList());
+            List<UserGroup> usersGroups = userGroups.stream().filter(g -> UserGroup.USERS_GROUP_NAME.equals(g.getName())).collect(Collectors.toList());
             
             if (adminsGroups.isEmpty() || usersGroups.isEmpty())
                 return;
