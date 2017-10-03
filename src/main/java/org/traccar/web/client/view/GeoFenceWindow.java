@@ -178,7 +178,7 @@ public class GeoFenceWindow implements Editor<GeoFence> {
         uiBinder.createAndBindUi(this);
         
         grid.setSelectionModel(sel);
-        for(Device d : geoFence.getTransferDevices())
+        for(Device d : geoFence.getDevices())
             grid.getSelectionModel().select(d, true);
 
         driver.initialize(this);

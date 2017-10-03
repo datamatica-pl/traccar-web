@@ -286,7 +286,7 @@ public class GeoFenceController implements DeviceView.GeoFenceHandler {
     }
 
     public void geoFenceAdded(GeoFence geoFence) {
-        for (Device device : geoFence.getTransferDevices()) {
+        for (Device device : geoFence.getDevices()) {
             Set<GeoFence> geoFences = deviceGeoFences.get(device.getId());
             if (geoFences == null) {
                 geoFences = new HashSet<>();
