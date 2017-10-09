@@ -101,7 +101,7 @@ public abstract class MarkerIcon {
         
         @Override
         String getKey() {
-            return ""+id;
+            return "c_"+id;
         }
         
         @Override
