@@ -114,6 +114,12 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
                     JSONValue v = JSONParser.parseStrict(response);
                     List<Position> result = Application.getDecoder()
                             .decodePositions(device, v.isObject());
+                    Collections.sort(result, new Comparator<Position>() {
+                        @Override
+                        public int compare(Position o1, Position o2) {
+                            return o1.getTime().compareTo(o2.getTime());
+                        }
+                    });
                     archiveHandler.onClear(device);
                     if(result.isEmpty()) {
                         progress.hide();
