@@ -96,6 +96,7 @@ public class GeoFenceController implements DeviceView.GeoFenceHandler {
         final GeoFence geoFence = new GeoFence();
         geoFence.setName(i18n.newGeoFence());
         geoFence.setTransferDevices(new HashSet<Device>());
+        geoFence.setDevices(new HashSet<Device>());
         new GeoFenceWindow(geoFence, null, deviceStore, mapController.getMap(), mapController.getGeoFenceLayer(),
         new BaseGeoFenceHandler(geoFence) {
             @Override
