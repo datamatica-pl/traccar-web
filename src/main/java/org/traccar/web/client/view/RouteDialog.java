@@ -325,6 +325,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             }
         }
         StringComboBox cbName = new StringComboBox(gfNames);
+        cbName.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
         cbName.addValueChangeHandler(new ValueChangeHandler<String>(){
             @Override
             public void onValueChange(ValueChangeEvent<String> event) {

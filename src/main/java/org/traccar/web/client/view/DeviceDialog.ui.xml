@@ -83,7 +83,7 @@
                   <container:child layoutData="{verticalLayoutDataWithButtons}">
                       <form:FieldLabel text="{i18n.deviceModel}" labelWidth="180">
                           <form:widget>
-                              <form:ComboBox ui:field="deviceModelId" />
+                              <form:ComboBox ui:field="deviceModelId" triggerAction="ALL" />
                           </form:widget>
                       </form:FieldLabel>
                   </container:child>
