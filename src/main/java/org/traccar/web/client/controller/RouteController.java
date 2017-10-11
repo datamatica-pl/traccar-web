@@ -21,6 +21,7 @@ import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent.StoreRemoveHandler;
 import com.sencha.gxt.widget.core.client.ContentPanel;
+import java.util.HashSet;
 import java.util.List;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.i18n.Messages;
@@ -104,8 +105,11 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                 geoFenceStore.add(pt.getGeofence());
             }
         }
-        if(addedRoute.getCorridor() != null)
+        if(addedRoute.getCorridor() != null) {
+            addedRoute.getCorridor().setDevices(new HashSet<Device>(
+                    addedRoute.getCorridor().getTransferDevices()));
             geoFenceStore.add(addedRoute.getCorridor());
+        }
         geoFenceStore.applySort(false);
     }
 

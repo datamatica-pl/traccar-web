@@ -558,8 +558,11 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 corridor.points(gll);
                 corridor.setRadius(corridorWidth.getValue().floatValue()*1000);
                 corridor.setTransferDevices(new HashSet<Device>());
-                if(route.getDevice() != null)
+                corridor.setDevices(new HashSet<Device>());
+                if(route.getDevice() != null) {
                     corridor.getTransferDevices().add(route.getDevice());
+                    corridor.getDevices().add(route.getDevice());
+                }
                 route.setCorridor(corridor);
             } else {
                 route.setCorridor(null);
