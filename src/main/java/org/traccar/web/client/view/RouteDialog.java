@@ -331,7 +331,10 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             public void onValueChange(ValueChangeEvent<String> event) {
                 store.commitChanges();
                 RoutePointWrapper p = grid.getSelectionModel().getSelectedItem();
+                gfRenderer.removeGeoFence(p.getRoutePoint().getGeofence());
                 p.setGeofence(gfMap.get(event.getValue()));
+                gfRenderer.drawGeoFence(p.getRoutePoint().getGeofence(), true);
+                gfRenderer.selectGeoFence(p.getRoutePoint().getGeofence());
                 store.update(p);
             }
         });
@@ -412,8 +415,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
 
             @Override
             public void onUpdate(StoreUpdateEvent<RoutePointWrapper> event) {
-                updateAll(event.getItems());
-                drawPolyline();
+                if(!event.getItems().isEmpty())
+                    drawPolyline();
             }
 
             @Override
@@ -426,15 +429,6 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
 
             @Override
             public void onSort(StoreSortEvent<RoutePointWrapper> event) {
-            }
-            
-            private void updateAll(List<RoutePointWrapper> list) {
-                for(RoutePointWrapper pt : list) {
-                    GeoFence gf = pt.getRoutePoint().getGeofence();
-                    gfRenderer.removeGeoFence(gf);
-                    if(!gf.points().isEmpty())
-                        gfRenderer.drawGeoFence(gf, true);
-                }
             }
         });
         pl.datamatica.traccar.model.GeoFence.LonLat[] pts = route.getLinePoints();
@@ -474,7 +468,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         for(RoutePointWrapper pt : store.getAll()) {
             LonLat center = pt.getCenter();
             if(center == null)
-                continue;         
+                continue;
             pts.add(center);
         }
         if(pts.size() < 2 || !connect.getValue()) {
@@ -660,11 +654,13 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         
         public void setGeofence(GeoFence gf) {
             if(gf == null) {
-                if(pt.getGeofence().getId() != 0)
+                if(pt.getGeofence().getId() != 0) {
                     pt.setGeofence(createGF(pt.getGeofence().getName(),
                                    pt.getGeofence().getRadius()));
-            } else
+                }
+            } else {
                 pt.setGeofence(gf);
+            }
         }
         
         public void setLonLat(double lon, double lat) {
