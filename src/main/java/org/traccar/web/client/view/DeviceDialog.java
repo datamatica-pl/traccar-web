@@ -215,7 +215,7 @@ public class DeviceDialog implements Editor<Device> {
         idleSpeedThreshold.setValue(device.getIdleSpeedThreshold() * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactor());
         speedLimit.addValidator(new MaxNumberValidator<>(255.));
         if (device.getSpeedLimit() != null) {
-            speedLimit.setValue(device.getSpeedLimit() * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactor());
+            speedLimit.setValue(device.getSpeedLimit());
         }
 
         fuelCapacity.addValidator(new MaxNumberValidator<>(9000.));
@@ -270,7 +270,7 @@ public class DeviceDialog implements Editor<Device> {
         
         device.setIdleSpeedThreshold(ApplicationContext.getInstance().getUserSettings().getSpeedUnit().toKnots(device.getIdleSpeedThreshold()));
         if (device.getSpeedLimit() != null) {
-            device.setSpeedLimit(ApplicationContext.getInstance().getUserSettings().getSpeedUnit().toKnots(device.getSpeedLimit()));
+            device.setSpeedLimit(device.getSpeedLimit());
         }
 
         iconEditor.flush();
