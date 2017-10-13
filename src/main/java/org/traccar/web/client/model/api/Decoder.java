@@ -39,7 +39,7 @@ import pl.datamatica.traccar.model.UserGroup;
 import pl.datamatica.traccar.model.UserPermission;
 import pl.datamatica.traccar.model.UserSettings;
 
-public class Decoder {    
+public class Decoder {
     public List<Device> decodeDevices(JSONObject v) {
         JSONArray arr = v.get("changed").isArray();
         List<Device> devices = new ArrayList<>();
@@ -76,6 +76,7 @@ public class Decoder {
         d.setBlocked(bool(v, "blocked"));
         
         d.setSpeedLimit(aDouble(v, "speedLimit"));
+        d.setIdleSpeedThreshold(aDouble(v, "idleSpeedThreshold"));
         d.setStatus(string(v, "status"));
         d.setOwner(ApplicationContext.getInstance().getUser());
         
