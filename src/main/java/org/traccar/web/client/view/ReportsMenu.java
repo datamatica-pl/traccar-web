@@ -65,13 +65,15 @@ public class ReportsMenu extends Menu {
             reportItem.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override
                 public void onSelection(SelectionEvent<Item> event) {
-                    ReportsDialog dialog = reportHandler.createDialog();
-                    if(dialog != null) {
+                    if(!ApplicationContext.getInstance().getUser().isPremium()
+                            && type != ReportType.GENERAL_INFORMATION 
+                            && type != ReportType.EVENTS) {
+                        new AlertMessageBox(i18n.error(), i18n.reportsForPremium()).show();
+                    } else{
+                        ReportsDialog dialog = reportHandler.createDialog();
                         dialog.selectReportType(type);
                         reportSettingsHandler.setSettings(dialog);
                         dialog.show();
-                    } else {
-                        new AlertMessageBox(i18n.error(), i18n.reportsForPremium()).show();
                     }
                 }
             });
@@ -107,13 +109,15 @@ public class ReportsMenu extends Menu {
                 reportItem.addSelectionHandler(new SelectionHandler<Item>() {
                     @Override
                     public void onSelection(SelectionEvent<Item> event) {
-                        ReportsDialog dialog = reportHandler.createDialog();
-                        if(dialog != null) {
+                        if(!ApplicationContext.getInstance().getUser().isPremium()
+                                && report.getType() != ReportType.GENERAL_INFORMATION 
+                                && report.getType() != ReportType.EVENTS) {
+                            new AlertMessageBox(i18n.error(), i18n.reportsForPremium()).show();
+                        } else{
+                            ReportsDialog dialog = reportHandler.createDialog();
                             dialog.selectReport(report);
                             reportSettingsHandler.setSettings(dialog);
                             dialog.show();
-                        } else {
-                            new AlertMessageBox(i18n.error(), i18n.reportsForPremium()).show();
                         }
                     }
                 });

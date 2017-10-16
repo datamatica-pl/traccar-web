@@ -72,14 +72,6 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
         this.devMap = new HashMap<>();
         this.gfMap = new HashMap<>();
     }
-    
-    private boolean isEnabled() {
-        Date now = new Date();
-        for(Device d : deviceStore.getAll())
-            if(d.getSubscriptionDaysLeft(new Date()) > 0)
-                return true;
-        return false;
-    }
 
     @Override
     public ContentPanel getView() {
@@ -131,8 +123,6 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
 
     @Override
     public ReportsDialog createDialog() {
-        if(!isEnabled())
-            return null;
         final ReportsService service = new ReportsService();
         return new ReportsDialog(reportStore, deviceStore, geoFenceStore, new ReportsDialog.ReportHandler() {
             @Override

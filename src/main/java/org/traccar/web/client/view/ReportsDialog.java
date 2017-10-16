@@ -302,11 +302,25 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
         if(CalendarUtil.getDaysBetween(report.getFromDate(), report.getToDate()) > 31) {
             new AlertMessageBox(i18n.error(), i18n.errReportMax31Days()).show();
             return;
+        } else if(report.getType() != ReportType.GENERAL_INFORMATION && report.getType() != ReportType.EVENTS
+                && !allWithSubscription(report.getDevices())){
+            new AlertMessageBox(i18n.error(), i18n.reportsForPremium()).show();
+            return;
         }
 
         if (!driver.hasErrors()) {
             reportHandler.onGenerate(report);
         }
+    }
+    
+    private boolean allWithSubscription(Collection<Device> devices) {
+        if(devices.isEmpty())
+            devices = deviceStore.getAll();
+        for(Device d: devices) {
+            if(d.getValidTo() == null || d.getValidTo().before(new Date()))
+                return false;
+        }
+        return true;
     }
 
     private void reportTypeChanged(ReportType type) {
