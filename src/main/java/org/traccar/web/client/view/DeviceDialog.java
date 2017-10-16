@@ -211,11 +211,12 @@ public class DeviceDialog implements Editor<Device> {
         driver.edit(device);
         if(device.getUniqueId() != null)
             uniqueId.setReadOnly(true);
-
-        idleSpeedThreshold.setValue(device.getIdleSpeedThreshold() * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactor());
+        
+        idleSpeedThreshold.setValue(device.getIdleSpeedThreshold());
+        
         speedLimit.addValidator(new MaxNumberValidator<>(255.));
         if (device.getSpeedLimit() != null) {
-            speedLimit.setValue(device.getSpeedLimit() * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactor());
+            speedLimit.setValue(device.getSpeedLimit());
         }
 
         fuelCapacity.addValidator(new MaxNumberValidator<>(9000.));
@@ -267,10 +268,11 @@ public class DeviceDialog implements Editor<Device> {
         Device device = driver.flush();
         if(driver.hasErrors())
             return;
-        
-        device.setIdleSpeedThreshold(ApplicationContext.getInstance().getUserSettings().getSpeedUnit().toKnots(device.getIdleSpeedThreshold()));
+
+        device.setIdleSpeedThreshold(device.getIdleSpeedThreshold());
+
         if (device.getSpeedLimit() != null) {
-            device.setSpeedLimit(ApplicationContext.getInstance().getUserSettings().getSpeedUnit().toKnots(device.getSpeedLimit()));
+            device.setSpeedLimit(device.getSpeedLimit());
         }
 
         iconEditor.flush();
