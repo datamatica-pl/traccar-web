@@ -354,7 +354,6 @@ public class DeviceIconEditor {
                 device.setCustomIconId(selected.getId());
             } else {
                 device.setIconId(selected.getId());
-                device.setCustomIconId(null);
             }
             device.setIconType(selected.getBuiltInIcon());
             device.setIcon(selected.getDatabaseIcon());
@@ -400,6 +399,7 @@ public class DeviceIconEditor {
                     return;
                 selected = marker;
                 marker.id = defaultIcon.getId();
+                store.update(marker);
                 selectionChanged();
             }
         }).show();
