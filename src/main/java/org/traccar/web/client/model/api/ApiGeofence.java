@@ -38,6 +38,7 @@ public class ApiGeofence {
     public String type;
     public Set<Long> deviceIds;
     public String lastUpdate;
+    public String address;
     
     public ApiGeofence(){}
     
@@ -74,6 +75,7 @@ public class ApiGeofence {
         
         gf.setRadius(radius == null ? 0 : radius);
         gf.setType(GeoFenceType.valueOf(type));
+        gf.setAddress(address);
         
         gf.setDeleted(false);
         gf.setDevices(new HashSet<Device>());
