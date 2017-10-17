@@ -212,7 +212,8 @@ public class DeviceDialog implements Editor<Device> {
         if(device.getUniqueId() != null)
             uniqueId.setReadOnly(true);
         
-        idleSpeedThreshold.setValue(device.getIdleSpeedThreshold());
+        idleSpeedThreshold.setValue(device.getIdleSpeedThreshold()
+            * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactorFromKmh());
         
         speedLimit.addValidator(new MaxNumberValidator<>(255.));
         if (device.getSpeedLimit() != null) {
@@ -270,7 +271,8 @@ public class DeviceDialog implements Editor<Device> {
         if(driver.hasErrors())
             return;
 
-        device.setIdleSpeedThreshold(device.getIdleSpeedThreshold());
+        device.setIdleSpeedThreshold(device.getIdleSpeedThreshold()
+                * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactorToKmh());
 
         if (device.getSpeedLimit() != null) {
             device.setSpeedLimit(device.getSpeedLimit()
