@@ -108,6 +108,11 @@ public class DBMigrations {
             TypedQuery<UserGroup> query = em.createQuery("SELECT x FROM UserGroup x", UserGroup.class);
             List<UserGroup> results = query.getResultList();
             if (results.isEmpty()) {
+                UserGroup readonly = new UserGroup();
+                readonly.setName(UserGroup.READONLY_GROUP_NAME);
+                readonly.setPermissions(UserPermission.getReadOnlyPermissions());
+                em.persist(readonly);
+                
                 UserGroup users = new UserGroup();
                 users.setName(UserGroup.USERS_GROUP_NAME);
                 users.setPermissions(UserPermission.getUsersPermissions());
@@ -192,14 +197,22 @@ public class DBMigrations {
             List<UserGroup> userGroups = em.createQuery("SELECT u FROM UserGroup u", UserGroup.class).getResultList();
             List<UserGroup> adminsGroups = userGroups.stream().filter(g -> UserGroup.ADMINS_GROUP_NAME.equals(g.getName())).collect(Collectors.toList());
             List<UserGroup> usersGroups = userGroups.stream().filter(g -> UserGroup.USERS_GROUP_NAME.equals(g.getName())).collect(Collectors.toList());
+            List<UserGroup> readonlyGroups = userGroups.stream().filter(g->UserGroup.READONLY_GROUP_NAME.equals(g.getName())).collect(Collectors.toList());
             
-            if (adminsGroups.isEmpty() || usersGroups.isEmpty())
+            if (adminsGroups.isEmpty() || usersGroups.isEmpty() || readonlyGroups.isEmpty())
                 return;
             UserGroup admins = adminsGroups.get(0);
             UserGroup users = usersGroups.get(0);
+            UserGroup readonly = readonlyGroups.get(0);
             
-            em.createQuery("UPDATE " + User.class.getSimpleName() + " U SET U.userGroup = :group WHERE U.userGroup IS NULL AND (admin = :isAdmin OR admin IS NULL)")
-                    .setParameter("group", users).setParameter("isAdmin", false)
+            em.createQuery("UPDATE " + User.class.getSimpleName() + " U SET U.userGroup = :group "
+                    + "WHERE U.userGroup IS NULL AND (admin = :isAdmin OR admin IS NULL) "
+                        + "AND (U.readOnly = :readonly OR U.readOnly IS NULL)")
+                    .setParameter("group", users).setParameter("isAdmin", false).setParameter("readonly", false)
+                    .executeUpdate();
+            em.createQuery("UPDATE "+User.class.getSimpleName()+" U SET U.userGroup = :group "
+                    + "WHERE U.userGroup IS NULL AND (admin = :isAdmin OR admin IS NULL) AND U.readOnly = :readonly")
+                    .setParameter("group", readonly).setParameter("isAdmin", false).setParameter("readonly", true)
                     .executeUpdate();
             em.createQuery("UPDATE " + User.class.getSimpleName() + " U SET U.userGroup = :group WHERE U.userGroup IS NULL AND admin = :isAdmin")
                     .setParameter("group", admins).setParameter("isAdmin", true)
