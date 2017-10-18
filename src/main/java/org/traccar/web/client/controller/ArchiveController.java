@@ -30,7 +30,6 @@ import org.gwtopenmaps.openlayers.client.feature.VectorFeature;
 import org.gwtopenmaps.openlayers.client.format.EncodedPolyline;
 import org.traccar.web.client.*;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.view.ArchiveView;
 import org.traccar.web.client.view.FilterDialog;
 import org.traccar.web.client.view.ReportsMenu;
@@ -43,7 +42,6 @@ import com.google.gwt.user.datepicker.client.CalendarUtil;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
-import org.traccar.web.client.model.api.ApiError;
 import org.traccar.web.client.model.api.ApiRequestCallback;
 import org.traccar.web.client.model.api.DevicePositionsService;
 import org.traccar.web.client.widget.InfoMessageBox;
@@ -98,7 +96,7 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
     }
 
     @Override
-    public void onLoad(final Device device, Date from, Date to, boolean filter, final ArchiveStyle style) {
+    public void onLoad(final Device device, final Date from, final Date to, boolean filter, final ArchiveStyle style) {
         if (device != null && from != null && to != null) {
             if (!validateSubscription(device, from, to)) {
                 return;
@@ -120,6 +118,11 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
                             return o1.getTime().compareTo(o2.getTime());
                         }
                     });
+                    List<Position> valid = new ArrayList<>();
+                    for(Position p : result)
+                        if(!p.getTime().before(from) && !p.getTime().after(to))
+                            valid.add(p);
+                    result = valid;
                     archiveHandler.onClear(device);
                     if(result.isEmpty()) {
                         progress.hide();

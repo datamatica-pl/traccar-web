@@ -63,6 +63,7 @@ import org.traccar.web.client.widget.PeriodComboBox;
 
 import java.util.*;
 import org.traccar.web.client.ApplicationContext;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class ReportsDialog implements Editor<Report>, ReportsController.ReportHandler {
     private static ReportsDialogDialogUiBinder uiBinder = GWT.create(ReportsDialogDialogUiBinder.class);
@@ -299,6 +300,16 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
         report.setFormat(format);
         report.setPreview(isPreview);
         
+        int minHistory = 31;
+        for(Device d: report.getDevices()) {
+            if(d.getValidTo() == null || d.getValidTo().before(new Date()))
+                minHistory = 2;
+            else if(d.getHistoryLength() < minHistory)
+                minHistory = d.getHistoryLength();
+        }
+        Date historyStart = new Date();
+        CalendarUtil.addDaysToDate(historyStart, -minHistory);
+        
         if(CalendarUtil.getDaysBetween(report.getFromDate(), report.getToDate()) > 31) {
             new AlertMessageBox(i18n.error(), i18n.errReportMax31Days()).show();
             return;
@@ -306,6 +317,9 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
                 && !allWithSubscription(report.getDevices())){
             new AlertMessageBox(i18n.error(), i18n.reportsForPremium()).show();
             return;
+        } else if(!ApplicationContext.getInstance().getUser().hasPermission(UserPermission.ALL_HISTORY) 
+                && CalendarUtil.getDaysBetween(report.getFromDate(),historyStart) > 0) {
+            new AlertMessageBox(i18n.error(), i18n.errNoSubscriptionMessage()).show();
         }
 
         if (!driver.hasErrors()) {
