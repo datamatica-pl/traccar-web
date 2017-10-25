@@ -196,7 +196,7 @@ public class MapBuilder {
     }
     
     public static class MapBoundsBuilder {
-        private double minLon, minLat, maxLon, maxLat;
+        private double minLon=180, minLat=180, maxLon=-180, maxLat=-180;
         
         public MapBoundsBuilder addPosition(Position p) {
             minLat = Math.min(minLat, p.getLatitude());

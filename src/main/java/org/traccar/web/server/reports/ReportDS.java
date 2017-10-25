@@ -81,8 +81,7 @@ public class ReportDS extends ReportGenerator {
         
         for(Data data : datas) {
             if(data.idle) {
-                String label = String.format("T: %s D: %d m", data.start.getTime(),
-                        data.getDuration()/60000);
+                String label = String.format("D: %d m", data.getDuration()/60000);
                 builder.marker(data.start, MarkerStyle.event(DeviceEventType.STOPPED, label));
             }
         }
