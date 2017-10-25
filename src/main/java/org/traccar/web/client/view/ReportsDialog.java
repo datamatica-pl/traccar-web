@@ -33,6 +33,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.datepicker.client.CalendarUtil;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell;
 import com.sencha.gxt.core.client.Style;
 import com.sencha.gxt.data.shared.ListStore;
@@ -40,6 +41,7 @@ import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.Window;
+import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
@@ -93,6 +95,10 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
     @UiField(provided = true)
     final ListStore<Report> reportStore;
 
+    @UiField
+    @Ignore
+    TextButton generateButton;
+    
     @UiField
     MenuItem generateHtml;
     
@@ -183,12 +189,7 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
 
         ListStore<ReportType> reportTypeStore = new ListStore<>(
                 new EnumKeyProvider<ReportType>());
-        if(ApplicationContext.getInstance().getUser().isPremium())
-            reportTypeStore.addAll(Arrays.asList(ReportType.values()));
-        else
-            reportTypeStore.addAll(Arrays.asList(new ReportType[]{
-                ReportType.EVENTS, ReportType.GENERAL_INFORMATION
-            }));
+        reportTypeStore.addAll(Arrays.asList(ReportType.values()));
         type = new ComboBox<>(
                 reportTypeStore, new ReportProperties.ReportTypeLabelProvider());
         type.setForceSelection(true);
@@ -233,7 +234,7 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
         devices = new ListViewEditor<>(devicesList);
         fromDate = new DateTimeEditor(fromDateField, fromTimeField);
         toDate = new DateTimeEditor(toDateField, toTimeField);
-
+        
         driver.initialize(this);
         driver.edit(new Report());
         period.selectFirst();
@@ -241,6 +242,37 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
 
     public void show() {
         window.show();
+        
+        devicesList.getSelectionModel().addSelectionChangedHandler(
+                new SelectionChangedEvent.SelectionChangedHandler<Device>() {
+            @Override
+            public void onSelectionChanged(SelectionChangedEvent<Device> event) {
+                List<Device> devs = event.getSelection();
+                if(devs.isEmpty())
+                    devs = ReportsDialog.this.deviceStore.getAll();
+                boolean enableGenerate = true;
+                for(Device d:devs)
+                    if(d.getSubscriptionDaysLeft(new Date()) == 0) {
+                        enableGenerate = false;
+                        break;
+                    }
+                generateButton.setEnabled(enableGenerate);
+                if(!enableGenerate) {
+                    new AlertMessageBox(i18n.error(), i18n.errReportNoSubscription()).show();
+                }
+            }
+        });
+
+        List<Device> devs = new ArrayList<>(devices.getValue());
+        if(devs.isEmpty())
+            devs = deviceStore.getAll();
+        
+        for(Device d : devs)
+            if(d.getSubscriptionDaysLeft(new Date()) == 0) {
+                generateButton.setEnabled(false);
+                new AlertMessageBox(i18n.error(), i18n.errReportNoSubscription()).show();
+                break;
+            }
     }
 
     @UiHandler("saveButton")
@@ -292,10 +324,27 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
     }
     
     private void generateReport(ReportFormat format, boolean isPreview) {
-
+        
         Report report = driver.flush();
         report.setFormat(format);
         report.setPreview(isPreview);
+        
+        List<Device> devices = new ArrayList<>(report.getDevices());
+        if(devices.isEmpty())
+            devices = deviceStore.getAll();
+        int maxHistory = Integer.MAX_VALUE;
+        for(Device d : devices) {
+            if(d.getSubscriptionDaysLeft(new Date()) == 0) {
+                maxHistory = 2;
+                break;
+            } else if(d.getHistoryLength() < maxHistory) {
+                maxHistory = d.getHistoryLength();
+            }
+        }
+        if(CalendarUtil.getDaysBetween(report.getFromDate(), new Date()) > maxHistory) {
+            new AlertMessageBox(i18n.error(), i18n.errReportPeriodHistory()).show();
+            return;
+        }
 
         if (!driver.hasErrors()) {
             reportHandler.onGenerate(report);

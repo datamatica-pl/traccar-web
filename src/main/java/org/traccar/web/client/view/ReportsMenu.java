@@ -32,7 +32,6 @@ import pl.datamatica.traccar.model.ReportType;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import org.traccar.web.client.ApplicationContext;
 
 public class ReportsMenu extends Menu {
     public interface ReportHandler {
@@ -56,23 +55,16 @@ public class ReportsMenu extends Menu {
         this.reportHandler = reportHandler;
         this.reportSettingsHandler = reportSettingsHandler;
         syncReports();
-        ReportType[] available = ApplicationContext.getInstance().getUser()
-                .isPremium() ? ReportType.values() : new ReportType[] {
-                    ReportType.GENERAL_INFORMATION, ReportType.EVENTS
-                };
+        ReportType[] available = ReportType.values();
         for (final ReportType type : available) {
             MenuItem reportItem = new MenuItem(i18n.reportType(type));
             reportItem.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override
                 public void onSelection(SelectionEvent<Item> event) {
                     ReportsDialog dialog = reportHandler.createDialog();
-                    if(dialog != null) {
-                        dialog.selectReportType(type);
-                        reportSettingsHandler.setSettings(dialog);
-                        dialog.show();
-                    } else {
-                        new AlertMessageBox(i18n.error(), i18n.reportsForPremium()).show();
-                    }
+                    dialog.selectReportType(type);
+                    reportSettingsHandler.setSettings(dialog);
+                    dialog.show();
                 }
             });
             add(reportItem);
@@ -108,13 +100,9 @@ public class ReportsMenu extends Menu {
                     @Override
                     public void onSelection(SelectionEvent<Item> event) {
                         ReportsDialog dialog = reportHandler.createDialog();
-                        if(dialog != null) {
-                            dialog.selectReport(report);
-                            reportSettingsHandler.setSettings(dialog);
-                            dialog.show();
-                        } else {
-                            new AlertMessageBox(i18n.error(), i18n.reportsForPremium()).show();
-                        }
+                        dialog.selectReport(report);
+                        reportSettingsHandler.setSettings(dialog);
+                        dialog.show();
                     }
                 });
 
