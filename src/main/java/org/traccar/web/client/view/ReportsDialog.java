@@ -63,6 +63,7 @@ import org.traccar.web.client.widget.PeriodComboBox;
 
 import java.util.*;
 import org.traccar.web.client.ApplicationContext;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class ReportsDialog implements Editor<Report>, ReportsController.ReportHandler {
     private static ReportsDialogDialogUiBinder uiBinder = GWT.create(ReportsDialogDialogUiBinder.class);
@@ -297,14 +298,41 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
         report.setFormat(format);
         report.setPreview(isPreview);
         
+        int minHistory = 31;
+        for(Device d: report.getDevices()) {
+            if(d.getValidTo() == null || d.getValidTo().before(new Date()))
+                minHistory = 2;
+            else if(d.getHistoryLength() < minHistory)
+                minHistory = d.getHistoryLength();
+        }
+        Date historyStart = new Date();
+        CalendarUtil.addDaysToDate(historyStart, -minHistory);
+        
         if(CalendarUtil.getDaysBetween(report.getFromDate(), report.getToDate()) > 31) {
             new AlertMessageBox(i18n.error(), i18n.errReportMax31Days()).show();
             return;
+        } else if(report.getType() != ReportType.GENERAL_INFORMATION && report.getType() != ReportType.EVENTS
+                && !allWithSubscription(report.getDevices())){
+            new AlertMessageBox(i18n.error(), i18n.reportsForPremium()).show();
+            return;
+        } else if(!ApplicationContext.getInstance().getUser().hasPermission(UserPermission.ALL_HISTORY) 
+                && CalendarUtil.getDaysBetween(report.getFromDate(),historyStart) > 0) {
+            new AlertMessageBox(i18n.error(), i18n.errNoSubscriptionMessage()).show();
         }
 
         if (!driver.hasErrors()) {
             reportHandler.onGenerate(report);
         }
+    }
+    
+    private boolean allWithSubscription(Collection<Device> devices) {
+        if(devices.isEmpty())
+            devices = deviceStore.getAll();
+        for(Device d: devices) {
+            if(d.getValidTo() == null || d.getValidTo().before(new Date()))
+                return false;
+        }
+        return true;
     }
 
     private void reportTypeChanged(ReportType type) {

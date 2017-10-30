@@ -48,9 +48,7 @@ import org.traccar.web.client.InitialLoader.LoadFinishedListener;
 import org.traccar.web.client.model.api.Decoder;
 import org.traccar.web.client.model.api.DevicesService;
 import org.traccar.web.client.model.api.IUsersService.EditUserSettingsDto;
-import org.traccar.web.client.model.api.Resources;
 import org.traccar.web.client.model.api.UsersService;
-import pl.datamatica.traccar.model.ApplicationSettings;
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UserPermission;
 
@@ -59,7 +57,6 @@ public class Application {
     private static final DataServiceAsync dataService = GWT.create(DataService.class);
     private static final DevicesService devices = new DevicesService();
     private static final Decoder decoder = new Decoder();
-    private static final Resources resources = new Resources();
     private final static Messages i18n = GWT.create(Messages.class);
 
     public static DataServiceAsync getDataService() {
@@ -72,10 +69,6 @@ public class Application {
     
     public static Decoder getDecoder() {
         return decoder;
-    }
-    
-    public static Resources getResources() {
-        return resources;
     }
 
     private final SettingsController settingsController;
@@ -149,21 +142,25 @@ public class Application {
         initialLoader.load(new LoadFinishedListener() {
             @Override
             public void onLoadFinished() {
-                User user = ApplicationContext.getInstance().getUser();
+                final User user = ApplicationContext.getInstance().getUser();
                 navController.run();
                 deviceController.run();
                 mapController.run();
                 if(user.hasPermission(UserPermission.HISTORY_READ))
                     archiveController.run();
                 if(user.hasPermission(UserPermission.GEOFENCE_READ))
-                    geoFenceController.run();
+                    geoFenceController.run(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(user.hasPermission(UserPermission.REPORTS))
+                                reportsController.run();
+                        }
+                    });
                 if(user.hasPermission(UserPermission.COMMAND_TCP))
                     commandController.run();
                 if(user.hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT))
                     groupsController.run();
                 visibilityController.run();
-                if(user.hasPermission(UserPermission.REPORTS))
-                    reportsController.run();
                 updatesController.run();
                 if(user.hasPermission(UserPermission.TRACK_READ))
                     routeController.run();

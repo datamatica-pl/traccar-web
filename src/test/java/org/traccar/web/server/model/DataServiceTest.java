@@ -34,7 +34,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.traccar.web.client.model.DataService;
-import org.traccar.web.client.model.EventService;
 import org.traccar.web.client.model.NotificationService;
 
 import javax.inject.Inject;
@@ -68,7 +67,6 @@ public class DataServiceTest {
 
             bind(DataService.class).to(DataServiceImpl.class);
             bind(NotificationService.class).to(NotificationServiceImpl.class);
-            bind(EventService.class).to(EventServiceImpl.class);
             bind(HttpServletRequest.class).toProvider(new com.google.inject.Provider<HttpServletRequest>() {
                 @Override
                 public HttpServletRequest get() {

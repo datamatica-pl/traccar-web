@@ -120,10 +120,13 @@ public class FilterDialog implements Editor<UserSettings> {
     public void onSaveClicked(SelectEvent event) {
         window.hide();
         UserSettings filterSettings = driver.flush();
+        if(driver.hasErrors())
+            return;
+        
         if (filterSettings.getMinDistance() != null) {
             filterSettings.setMinDistance(filterSettings.getMinDistance() * filterSettings.getSpeedUnit().getDistanceUnit().getFactor());
         }
-        userSettingsHandler.onSave(driver.flush());
+        userSettingsHandler.onSave(filterSettings);
     }
 
     @UiHandler("cancelButton")

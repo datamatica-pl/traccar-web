@@ -20,6 +20,14 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class Resources {
+    private static Resources instance;
+    
+    public static Resources getInstance() {
+        if(instance == null)
+            instance = new Resources();
+        return instance;
+    }
+    
     private Map<Long, String> icons = new TreeMap<>();
     private Map<Long, ApiDeviceModel> models = new HashMap<>();
     private String defIcon = "img/GTS_pointer_car.png";

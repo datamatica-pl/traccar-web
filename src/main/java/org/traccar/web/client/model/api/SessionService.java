@@ -25,7 +25,7 @@ import org.fusesource.restygwt.client.RestService;
 //@Path("https://localhost/api/v1/session")
 public interface SessionService extends RestService{
     @GET
-    @Path("user")
+    @Path("user/web")
     void getUser(JsonCallback callback);
     
     @DELETE

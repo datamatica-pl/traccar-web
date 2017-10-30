@@ -30,7 +30,6 @@ import org.gwtopenmaps.openlayers.client.feature.VectorFeature;
 import org.gwtopenmaps.openlayers.client.format.EncodedPolyline;
 import org.traccar.web.client.*;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.view.ArchiveView;
 import org.traccar.web.client.view.FilterDialog;
 import org.traccar.web.client.view.ReportsMenu;
@@ -39,10 +38,14 @@ import org.traccar.web.client.view.UserSettingsDialog;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.json.client.JSONParser;
 import com.google.gwt.json.client.JSONValue;
+import com.google.gwt.user.datepicker.client.CalendarUtil;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import org.traccar.web.client.model.api.ApiRequestCallback;
 import org.traccar.web.client.model.api.DevicePositionsService;
+import org.traccar.web.client.widget.InfoMessageBox;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class ArchiveController implements ContentController, ArchiveView.ArchiveHandler {
 
@@ -93,18 +96,33 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
     }
 
     @Override
-    public void onLoad(final Device device, Date from, Date to, boolean filter, final ArchiveStyle style) {
+    public void onLoad(final Device device, final Date from, final Date to, boolean filter, final ArchiveStyle style) {
         if (device != null && from != null && to != null) {
+            if (!validateSubscription(device, from, to)) {
+                return;
+            }
+            
             final AutoProgressMessageBox progress = new AutoProgressMessageBox(i18n.archive(), i18n.loadingData());
             progress.auto();
             progress.show();
             DevicePositionsService service = new DevicePositionsService();
-            service.getPositions(device, from, to, filter, new RequestCallback() {
+            service.getPositions(device, from, to, filter, new ApiRequestCallback(i18n) {
                 @Override
-                public void onResponseReceived(Request request, Response response) {
-                    JSONValue v = JSONParser.parseStrict(response.getText());
+                public void onSuccess(String response) {
+                    JSONValue v = JSONParser.parseStrict(response);
                     List<Position> result = Application.getDecoder()
                             .decodePositions(device, v.isObject());
+                    Collections.sort(result, new Comparator<Position>() {
+                        @Override
+                        public int compare(Position o1, Position o2) {
+                            return o1.getTime().compareTo(o2.getTime());
+                        }
+                    });
+                    List<Position> valid = new ArrayList<>();
+                    for(Position p : result)
+                        if(!p.getTime().before(from) && !p.getTime().after(to))
+                            valid.add(p);
+                    result = valid;
                     archiveHandler.onClear(device);
                     if(result.isEmpty()) {
                         progress.hide();
@@ -122,14 +140,33 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
 
                 @Override
                 public void onError(Request request, Throwable exception) {
+                    super.onError(request, exception);
                     progress.hide();
-                    new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                 }
                 
             });
         } else {
             new AlertMessageBox(i18n.error(), i18n.errFillFields()).show();
         }
+    }
+    
+    private boolean validateSubscription(Device device, Date from, Date to) {
+        
+        if (ApplicationContext.getInstance().getUser().hasPermission(UserPermission.ALL_HISTORY))
+            return true;
+       
+        int sub = device.getHistoryLength();
+        if (device.getValidTo() != null && device.getValidTo().before(new Date()))
+            sub = 2;
+        
+        Date dev = new Date();
+        CalendarUtil.addDaysToDate(dev, -1 * sub);
+       
+        if (CalendarUtil.getDaysBetween(from, dev) > 0 && CalendarUtil.getDaysBetween(to, dev) > 0) {
+            new InfoMessageBox(i18n.errNoSubscriptionTitle(), i18n.errNoSubscriptionMessage()).show();
+            return false;
+        }
+        return true;
     }
 
     private void showArchive(Device device) {

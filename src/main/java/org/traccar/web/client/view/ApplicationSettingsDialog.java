@@ -68,13 +68,7 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
 
     @UiField
     CheckBox registrationEnabled;
-
-    @UiField
-    CheckBox disallowDeviceManagementByUsers;
-
-    @UiField
-    CheckBox allowCommandsOnlyForAdmins;
-
+    
     @UiField
     CheckBox eventRecordingEnabled;
 
@@ -131,8 +125,8 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
 
         uiBinder.createAndBindUi(this);
 
-        updateInterval.addValidator(new MinNumberValidator<>((short) 100));
-        updateInterval.addValidator(new MaxNumberValidator<>((short) 30000));
+        updateInterval.addValidator(new MinNumberValidator<>(ApplicationSettings.UPDATE_INTERVAL_MIN));
+        updateInterval.addValidator(new MaxNumberValidator<>(ApplicationSettings.UPDATE_INTERVAL_MAX));
         
         defaultGroupLbl.setVisible(canManageGroups);
 
@@ -173,8 +167,11 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
 
     @UiHandler("saveButton")
     public void onLoginClicked(SelectEvent event) {
-        window.hide();
-        applicationSettingsHandler.onSave(driver.flush());
+        ApplicationSettings as = driver.flush();
+        if(!driver.hasErrors()) {
+            window.hide();
+            applicationSettingsHandler.onSave(as);
+        }
     }
 
     @UiHandler("cancelButton")

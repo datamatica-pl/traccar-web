@@ -219,7 +219,7 @@ public class DeviceIconEditor {
         @Override
         public void load(Object loadConfig, AsyncCallback<List<MarkerIcon>> callback) {
             List<MarkerIcon> result = new ArrayList<>();
-            for(Long icon: Application.getResources().icons()) {
+            for(Long icon: org.traccar.web.client.model.api.Resources.getInstance().icons()) {
                 result.add(new MarkerIcon.BuiltIn(icon));
             }
             if(device.getCustomIconId() != null)
@@ -354,7 +354,6 @@ public class DeviceIconEditor {
                 device.setCustomIconId(selected.getId());
             } else {
                 device.setIconId(selected.getId());
-                device.setCustomIconId(null);
             }
             device.setIconType(selected.getBuiltInIcon());
             device.setIcon(selected.getDatabaseIcon());
@@ -400,6 +399,7 @@ public class DeviceIconEditor {
                     return;
                 selected = marker;
                 marker.id = defaultIcon.getId();
+                store.update(marker);
                 selectionChanged();
             }
         }).show();

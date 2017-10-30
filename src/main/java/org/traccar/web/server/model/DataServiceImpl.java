@@ -20,10 +20,8 @@ import pl.datamatica.traccar.model.RegistrationMaintenance;
 import pl.datamatica.traccar.model.Sensor;
 import pl.datamatica.traccar.model.Maintenance;
 import pl.datamatica.traccar.model.GeoFence;
-import pl.datamatica.traccar.model.CommandType;
 import pl.datamatica.traccar.model.ApplicationSettings;
 import pl.datamatica.traccar.model.Device;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
 
@@ -43,7 +41,6 @@ import org.hibernate.Session;
 import org.hibernate.proxy.HibernateProxy;
 import org.slf4j.LoggerFactory;
 import org.traccar.web.client.model.DataService;
-import org.traccar.web.client.model.EventService;
 import org.traccar.web.server.utils.JsonXmlParser;
 import org.traccar.web.server.utils.StopsDetector;
 import org.traccar.web.shared.model.*;
@@ -70,9 +67,6 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
 
     @Inject
     private Provider<HttpServletRequest> request;
-
-    @Inject
-    private EventService eventService;
 
     @Inject
     private MovementDetector movementDetector;
@@ -150,7 +144,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 if (storedPassword.equals(user.getPasswordHashMethod().doHash(password, ""))) {
                     user.setPassword(user.getPasswordHashMethod().doHash(password, getApplicationSettings().getSalt()));
                 } else {
-                    throw new IllegalStateException();
+                    System.out.print("WARNING: Login failed - wrong password");
+                    throw new AccessDeniedException();
                 }
             }
         }
@@ -289,7 +284,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         boolean full = true;
         User user = getSessionUser();
         List<Device> devices;
-        if (user.getAdmin()) {
+        if (user.hasPermission(UserPermission.ALL_DEVICES)) {
             devices = getSessionEntityManager().createQuery("SELECT x FROM Device x LEFT JOIN FETCH x.latestPosition ORDER BY x.name", Device.class).getResultList();
         } else {
             devices = new ArrayList<>(user.getAllAvailableDevices());
@@ -326,32 +321,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 Map<String, Object> other = JsonXmlParser.parse(device.getLatestPosition().getOther());
                 if(other.get(ALARM_KEY) != null)
                     device.setAlarmEnabled((boolean)other.get(ALARM_KEY));
-                
-                String protocolName = device.getProtocol();
-                if(protocolName == null)
-                    continue;
-                protocolName = protocolName.substring(0, 1).toUpperCase() + protocolName.substring(1);
-                
-                final Class<?> protocolClass;
-                Class<?> baseProtocol = Class.forName("org.traccar.BaseProtocol");
-                Boolean isOsmAndProtocol = "Osmand".equals(protocolName);
-                Boolean isMiniFinderProtocol = "Minifinder".equals(protocolName);
-                if (isOsmAndProtocol) {
-                    protocolClass = Class.forName("org.traccar.protocol.OsmAndProtocol");
-                } else if (isMiniFinderProtocol) {
-                    protocolClass = Class.forName("org.traccar.protocol.MiniFinderProtocol");
-                } else {
-                    protocolClass = Class.forName("org.traccar.protocol." + protocolName + "Protocol");
-                }
-                Object protocol = protocolClass.getConstructor().newInstance();
-                Method supportedCommands = baseProtocol.getDeclaredMethod("getSupportedCommands");
-                Set<String> commands = (Set<String>)supportedCommands.invoke(protocol);
-                
-                for(String command : commands)
-                    device.addSupportedCommand(CommandType.fromString(command));
             } catch (Exception | NoClassDefFoundError ex) {
 //                Logger.getLogger(Device.class.getName()).log(Level.SEVERE, null, ex);
-                device.clearSupportedCommands();
             }
         }
         if (full && !devices.isEmpty()) {

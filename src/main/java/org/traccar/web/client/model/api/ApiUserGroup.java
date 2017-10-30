@@ -61,6 +61,8 @@ public class ApiUserGroup {
     }
     
     public Set<UserPermission> getPermissions() {
+        if(permissions.isEmpty())
+            return EnumSet.noneOf(UserPermission.class);
         return EnumSet.copyOf(permissions);
     }
     
@@ -88,7 +90,10 @@ public class ApiUserGroup {
         UserGroup ug = new UserGroup();
         ug.setId(id);
         ug.setName(name);
-        ug.setPermissions(EnumSet.copyOf(permissions));
+        if(permissions.isEmpty())
+            ug.setPermissions(EnumSet.noneOf(UserPermission.class));
+        else
+            ug.setPermissions(EnumSet.copyOf(permissions));
         return ug;
     }
 }

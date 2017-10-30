@@ -55,7 +55,14 @@
           </gxt:child>
 
           <gxt:child config="{geoFencesTabConfig}">
-            <gxt:ListView ui:field="geoFenceList" store="{geoFenceStore}" />
+            <container:VerticalLayoutContainer ui:field="geoFenceList">
+              <container:child layoutData="{toolBarRowData}">
+                <form:StoreFilterField ui:field="gfFilter" emptyText="{i18n.filter}..." />
+              </container:child>
+              <container:child layoutData="{layoutData}">
+                <gxt:ListView store="{geoFenceStore}" ui:field="geoFenceListView" />
+              </container:child>
+            </container:VerticalLayoutContainer>
           </gxt:child>
           
           <gxt:child config="{tracksTabConfig}">

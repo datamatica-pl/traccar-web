@@ -31,6 +31,8 @@ import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.UserGroupProperties;
 import org.traccar.web.client.model.UserProperties;
+import org.traccar.web.client.model.api.ApiMethodCallback;
+import org.traccar.web.client.model.api.ApiRequestCallback;
 import org.traccar.web.client.model.api.UserGroupsService;
 import org.traccar.web.client.view.NavView;
 import org.traccar.web.client.view.UserGroupDialog;
@@ -52,12 +54,7 @@ public class UserGroupsController implements NavView.GroupsHandler,
     private ListStore<ApiUserGroup> userGroups;
     
     public void onShowGroups() {
-        service.getGroups(new MethodCallback<List<ApiUserGroup>>() {
-            @Override
-            public void onFailure(Method method, Throwable exception) {
-                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-            }
-
+        service.getGroups(new ApiMethodCallback<List<ApiUserGroup>>(i18n) {
             @Override
             public void onSuccess(Method method, List<ApiUserGroup> response) {
                 userGroups = new ListStore<>(uGrpProperties.id());
@@ -73,12 +70,7 @@ public class UserGroupsController implements NavView.GroupsHandler,
         new UserGroupDialog(group, userGroups, new UserGroupDialog.UserGroupHandler() {
             @Override
             public void onSave(ApiUserGroup group) {
-                service.addGroup(group, new MethodCallback<ApiUserGroup>(){
-                    @Override
-                    public void onFailure(Method method, Throwable exception) {
-                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                    }
-
+                service.addGroup(group, new ApiMethodCallback<ApiUserGroup>(i18n){
                     @Override
                     public void onSuccess(Method method, ApiUserGroup response) {
                         userGroups.add(response);
@@ -93,15 +85,10 @@ public class UserGroupsController implements NavView.GroupsHandler,
         new UserGroupDialog(group, null, new UserGroupDialog.UserGroupHandler() {
             @Override
             public void onSave(final ApiUserGroup group) {
-                service.updateGroup(group.getId(), group, new RequestCallback() {
+                service.updateGroup(group.getId(), group, new ApiRequestCallback(i18n) {
                     @Override
-                    public void onResponseReceived(Request request, Response response) {
+                    public void onSuccess(String response) {
                         userGroups.update(group);
-                    }
-
-                    @Override
-                    public void onError(Request request, Throwable exception) {
-                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                     }
                 });
             }
@@ -110,12 +97,7 @@ public class UserGroupsController implements NavView.GroupsHandler,
 
     @Override
     public void onRemove(final ApiUserGroup group) {
-        service.removeGroup(group.getId(), new MethodCallback<Void>(){
-            @Override
-            public void onFailure(Method method, Throwable exception) {
-                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-            }
-
+        service.removeGroup(group.getId(), new ApiMethodCallback<Void>(i18n){
             @Override
             public void onSuccess(Method method, Void response) {
                 userGroups.remove(group);
@@ -126,12 +108,7 @@ public class UserGroupsController implements NavView.GroupsHandler,
     
     @Override
     public void onShowUsers(final ApiUserGroup group) {
-        service.getGroupUsers(group.getId(), new MethodCallback<Set<Long>>() {
-            @Override
-            public void onFailure(Method method, Throwable exception) {
-                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-            }
-
+        service.getGroupUsers(group.getId(), new ApiMethodCallback<Set<Long>>(i18n) {
             @Override
             public void onSuccess(Method method, Set<Long> response) {
                 boolean isDefault = group.getId() == ApplicationContext.getInstance().getApplicationSettings().getDefaultGroupId();
@@ -139,17 +116,10 @@ public class UserGroupsController implements NavView.GroupsHandler,
                 new UserShareDialog(response, new UserShareHandler() {
                     @Override
                     public void onSaveShares(List<Long> uids, Window window) {
-                        service.updateGroupUsers(group.getId(), uids, new RequestCallback(){
+                        service.updateGroupUsers(group.getId(), uids, new ApiRequestCallback(i18n){
                             @Override
-                            public void onResponseReceived(Request request, Response response) {
-                                //do nothing
+                            public void onSuccess(String response) {
                             }
-
-                            @Override
-                            public void onError(Request request, Throwable exception) {
-                                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                            }
-
                         });
                     }
                 }, !isDefault).show();
@@ -162,14 +132,9 @@ public class UserGroupsController implements NavView.GroupsHandler,
         userGroups.commitChanges();
         for(ApiUserGroup grp : userGroups.getAll())
             if(grp.isChanged())
-                service.updateGroup(grp.getId(), grp, new RequestCallback() {
+                service.updateGroup(grp.getId(), grp, new ApiRequestCallback(i18n) {
                     @Override
-                    public void onResponseReceived(Request request, Response response) {
-                    }
-
-                    @Override
-                    public void onError(Request request, Throwable exception) {
-                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                    public void onSuccess(String response) {
                     }
                 });
     }

@@ -25,9 +25,7 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
-import pl.datamatica.traccar.model.CommandType;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.DeviceEventType;
 import pl.datamatica.traccar.model.DeviceIconMode;
@@ -41,7 +39,7 @@ import pl.datamatica.traccar.model.UserGroup;
 import pl.datamatica.traccar.model.UserPermission;
 import pl.datamatica.traccar.model.UserSettings;
 
-public class Decoder {    
+public class Decoder {
     public List<Device> decodeDevices(JSONObject v) {
         JSONArray arr = v.get("changed").isArray();
         List<Device> devices = new ArrayList<>();
@@ -78,6 +76,7 @@ public class Decoder {
         d.setBlocked(bool(v, "blocked"));
         
         d.setSpeedLimit(aDouble(v, "speedLimit"));
+        d.setIdleSpeedThreshold(aDouble(v, "idleSpeedThreshold"));
         d.setStatus(string(v, "status"));
         d.setOwner(ApplicationContext.getInstance().getUser());
         
@@ -105,22 +104,6 @@ public class Decoder {
         
         d.setIconMode(DeviceIconMode.ICON);
         
-        ApiDeviceModel model = Application.getResources().model(d.getDeviceModelId());
-        if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.COMMAND_CUSTOM)) {
-            d.addSupportedCommand(CommandType.custom);
-            d.addSupportedCommand(CommandType.extendedCustom);
-        }
-        if(model != null) {
-            for(ApiCommandType ct : model.getCommandTypes()) {
-                try {
-                    d.addSupportedCommand(CommandType.fromString(ct.getCommandName()));
-                } catch (IllegalArgumentException e) {
-                    // We want to process rest of commands
-                    // It will be thrown only in case of developer mistake.
-                }
-            }
-            d.setProtocol(model.getProtocolName());
-        }
         List<Maintenance> ms = new ArrayList<>();
         if(v.get("maintenances") != null && v.get("maintenances").isArray() != null) {
             JSONArray arr = v.get("maintenances").isArray();
@@ -213,11 +196,7 @@ public class Decoder {
         u.setMaxNumOfDevices(anInt(v, "maxNumOfDevices"));
         u.setManagedBy(null);
         u.setManagedById(aLong(v, "managedById"));
-        u.setManager(bool(v, "manager"));
-        u.setAdmin(bool(v, "admin"));
-        u.setArchive(bool(v, "archive"));
         u.setBlocked(bool(v, "blocked"));
-        u.setReadOnly(bool(v, "readOnly"));
         u.setPassword(string(v, "password"));
         if(v.get("notificationEvents") != null && v.get("notificationEvents").isArray() != null) {
             JSONArray ne = v.get("notificationEvents").isArray();

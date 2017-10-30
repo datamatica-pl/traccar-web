@@ -152,4 +152,32 @@ public class ApplicationContext {
             this.groups.put(g.getId(), g);
         }
     }
+    
+    private String lang;
+    
+    public String getLang() {
+        String language = lang;
+        if(language == null)
+            language = applicationSettings.getLanguage();
+        if("default".equals(language))
+            return "en";
+        return language;
+    }
+    
+    public void setLang(String lang) {
+        this.lang = lang;
+    }
+    
+    private Map<String, String> messages = new HashMap<>();
+    
+    public String getMessage(String key) {
+        if(messages.containsKey(key))
+            return messages.get(key);
+        return key;
+    }
+    
+    public void setMessages(Map<String, String> messages) {
+        this.messages.clear();
+        this.messages.putAll(messages);
+    }
 }

@@ -16,14 +16,10 @@
 package org.traccar.web.client.controller;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.http.client.Request;
-import com.google.gwt.http.client.RequestCallback;
-import com.google.gwt.http.client.Response;
 import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Window;
-import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.view.DeviceGroupsDialog;
 import org.traccar.web.client.view.NavView;
@@ -33,9 +29,10 @@ import pl.datamatica.traccar.model.User;
 
 import java.util.*;
 import org.fusesource.restygwt.client.Method;
-import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.model.GroupStore;
+import org.traccar.web.client.model.api.ApiMethodCallback;
+import org.traccar.web.client.model.api.ApiRequestCallback;
 import org.traccar.web.client.model.api.GroupService;
 import org.traccar.web.client.model.api.IGroupService.AddDeviceGroupDto;
 import org.traccar.web.client.model.api.IGroupService.DeviceGroupDto;
@@ -105,12 +102,7 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
             handler = new DeviceGroupsDialog.GroupsHandler() {
             @Override
             public void onAdd(Group parent, Group group, final GroupAddHandler groupsHandler) {
-                service.addGroup(new AddDeviceGroupDto(group), new MethodCallback<DeviceGroupDto>() {
-                    @Override
-                    public void onFailure(Method method, Throwable exception) {
-                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                    }
-
+                service.addGroup(new AddDeviceGroupDto(group), new ApiMethodCallback<DeviceGroupDto>(i18n) {
                     @Override
                     public void onSuccess(Method method, DeviceGroupDto response) {
                         groupsHandler.groupAdded(response.toGroup());
@@ -133,19 +125,13 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
 
                 for(Group g : setToSave)
                     service.updateGroup(g.getId(), new AddDeviceGroupDto(g),
-                            new RequestCallback() {
+                            new ApiRequestCallback(i18n) {
                     @Override
-                    public void onResponseReceived(Request request, Response response) {
+                    public void onSuccess(String response) {
                         syncOriginalParents();
                         groupsHandler.changesSaved();
                         groupStore.commitChanges();
                     }
-
-                    @Override
-                    public void onError(Request request, Throwable exception) {
-                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                    }
-                                
                             });
             }
 
@@ -154,17 +140,12 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
                 List<Group> toRemove = new ArrayList<>();
                 toRemove.add(group);
                 toRemove.addAll(groupStore.getAllChildren(group));
-                service.removeGroup(group.getId(), new RequestCallback(){
+                service.removeGroup(group.getId(), new ApiRequestCallback(i18n){
                     @Override
-                    public void onResponseReceived(Request request, Response response) {
+                    public void onSuccess(String response) {
                         groupStore.remove(group);
                         syncOriginalParents();
                         removeHandler.groupRemoved(group);
-                    }
-
-                    @Override
-                    public void onError(Request request, Throwable exception) {
-                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                     }
                 });
             }
@@ -188,48 +169,33 @@ public class GroupsController implements NavView.GroupsHandler, ContentControlle
                     }
                 }
                 for(final Group g : newGroups)
-                    service.removeGroup(g.getId(), new RequestCallback(){
-                    @Override
-                    public void onResponseReceived(Request request, Response response) {
-                        groupStore.remove(g);
-                    }
-
-                    @Override
-                    public void onError(Request request, Throwable exception) {
-                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                    }
+                    service.removeGroup(g.getId(), new ApiRequestCallback(i18n){
+                        @Override
+                        public void onSuccess(String response) {
+                            groupStore.remove(g);
+                        }
                     });
                 groupStore.rejectChanges();
             }
 
             @Override
             public void onShare(final Group group) {
-                service.getGroupShare(group.getId(), new MethodCallback<Set<Long>>() {
-                    @Override
-                    public void onFailure(Method method, Throwable exception) {
-                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                    }
-
+                service.getGroupShare(group.getId(), new ApiMethodCallback<Set<Long>>(i18n) {
                     @Override
                     public void onSuccess(Method method, Set<Long> response) {
                         new UserShareDialog(response, new UserShareDialog.UserShareHandler() {
                             @Override
                             public void onSaveShares(final List<Long> uids, final Window window) {
                                 service.updateGroupShare(group.getId(), uids, 
-                                        new RequestCallback() {
-
+                                        new ApiRequestCallback(i18n) {
+                                            
                                     @Override
-                                    public void onResponseReceived(Request request, Response response) {
+                                    public void onSuccess(String response) {
                                         User u = ApplicationContext.getInstance().getUser();
                                         if(!u.hasPermission(UserPermission.ALL_DEVICES)
                                                 && !uids.contains(u.getId()))
                                             groupStore.remove(group);
                                         window.hide();
-                                    }
-
-                                    @Override
-                                    public void onError(Request request, Throwable exception) {
-                                        new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
                                     }
                                         });
                             }

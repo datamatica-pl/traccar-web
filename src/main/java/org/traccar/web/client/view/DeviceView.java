@@ -600,6 +600,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
 
     TreeGridView<GroupedDevice> view;
 
+    @UiField
+    VerticalLayoutContainer geoFenceList;
+    
     @UiField(provided = true)
     TabItemConfig geoFencesTabConfig;
 
@@ -607,7 +610,10 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     ListStore<GeoFence> geoFenceStore;
 
     @UiField(provided = true)
-    ListView<GeoFence, String> geoFenceList;
+    ListView<GeoFence, String> geoFenceListView;
+    
+    @UiField(provided = true)
+    StoreFilterField<GeoFence> gfFilter;
     
     @UiField(provided=true)
     TabItemConfig tracksTabConfig;
@@ -915,20 +921,30 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         GeoFenceProperties geoFenceProperties = GWT.create(GeoFenceProperties.class);
 
-        geoFenceList = new ListView<GeoFence, String>(geoFenceStore, geoFenceProperties.name()) {
+        geoFenceListView = new ListView<GeoFence, String>(geoFenceStore, geoFenceProperties.name()) {
             @Override
             protected void onMouseDown(Event e) {
                 int index = indexOf(e.getEventTarget().<Element>cast());
                 if (index != -1) {
-                    geoFenceHandler.onSelected(geoFenceList.getStore().get(index));
+                    geoFenceHandler.onSelected(geoFenceListView.getStore().get(index));
                 }
                 super.onMouseDown(e);
             }
         };
-        geoFenceList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        geoFenceList.getSelectionModel().addSelectionChangedHandler(geoFenceSelectionHandler);
+        geoFenceListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        geoFenceListView.getSelectionModel().addSelectionChangedHandler(geoFenceSelectionHandler);
+        
+        gfFilter = new StoreFilterField<GeoFence>() {
+            @Override
+            protected boolean doSelect(Store<GeoFence> store, GeoFence parent, GeoFence item, String filter) {
+                return filter.trim().isEmpty() 
+                        || item.getName().toLowerCase().contains(filter.toLowerCase());
+            }
+            
+        };
+        gfFilter.bind(this.geoFenceStore);
 
-        geoFenceHandler.setGeoFenceListView(geoFenceList);
+        geoFenceHandler.setGeoFenceListView(geoFenceListView);
         
         tracksTabConfig = new TabItemConfig(i18n.tracks());
         prepareRouteGrid(routeStore);
@@ -1090,7 +1106,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         if(editingRoutes()) {
             routeHandler.onEdit(routeGrid.getSelectionModel().getSelectedItem());
         } else if (editingGeoFences()) {
-            geoFenceHandler.onEdit(geoFenceList.getSelectionModel().getSelectedItem());
+            geoFenceHandler.onEdit(geoFenceListView.getSelectionModel().getSelectedItem());
         } else {
             editDevice();
         }
@@ -1106,7 +1122,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     @UiHandler("shareButton")
     public void onShareClicked(SelectEvent event) {
         if (editingGeoFences()) {
-            geoFenceHandler.onShare(geoFenceList.getSelectionModel().getSelectedItem());
+            geoFenceHandler.onShare(geoFenceListView.getSelectionModel().getSelectedItem());
         } else {
             shareDevice();
         }
@@ -1124,7 +1140,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         if(editingRoutes()) {
             routeHandler.onRemove(routeGrid.getSelectionModel().getSelectedItem());
         } else if (editingGeoFences()) {
-            geoFenceHandler.onRemove(geoFenceList.getSelectionModel().getSelectedItem());
+            geoFenceHandler.onRemove(geoFenceListView.getSelectionModel().getSelectedItem());
         } else {
            removeDevice();
         }
@@ -1157,7 +1173,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     public void onTabSelected(SelectionEvent<Widget> event) {
         grid.getSelectionModel().deselectAll();
         deviceHandler.onClearSelection();
-        geoFenceList.getSelectionModel().deselectAll();
+        geoFenceListView.getSelectionModel().deselectAll();
         routeGrid.getSelectionModel().deselectAll();
         routeHandler.onSelected(null);
         toggleManagementButtons(null);

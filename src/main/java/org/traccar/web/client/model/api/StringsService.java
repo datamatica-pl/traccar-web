@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Vitaly Litvak (vitavaque@gmail.com)
+ * Copyright 2017 Datamatica (dev@datamatica.pl)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.traccar.web.client.model;
+package org.traccar.web.client.model.api;
 
-import com.google.gwt.user.client.rpc.RemoteService;
-import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import org.fusesource.restygwt.client.JsonCallback;
+import org.fusesource.restygwt.client.RestService;
 
-@RemoteServiceRelativePath("eventService")
-public interface EventService extends RemoteService {
-    void applicationSettingsChanged();
+@Path("../api/v1/strings")
+public interface StringsService extends RestService {
+    @GET
+    @Path("/{lang}.json")
+    void get(@PathParam("lang") String language, JsonCallback mc);
 }

@@ -30,7 +30,6 @@ import com.sencha.gxt.widget.core.client.box.MessageBox;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.model.GroupStore;
 import org.traccar.web.client.state.DeviceVisibilityHandler;
 import org.traccar.web.client.view.*;
@@ -49,16 +48,15 @@ import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
-import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
-import org.fusesource.restygwt.client.MethodCallback;
-import org.traccar.web.client.model.api.DevicesService;
+import org.traccar.web.client.model.api.ApiJsonCallback;
+import org.traccar.web.client.model.api.ApiMethodCallback;
+import org.traccar.web.client.model.api.ApiRequestCallback;
 import org.traccar.web.client.model.api.IDevicesService.AddDeviceDto;
 import org.traccar.web.client.model.api.IDevicesService.EditDeviceDto;
 import pl.datamatica.traccar.model.ReportFormat;
 import pl.datamatica.traccar.model.ReportType;
 import pl.datamatica.traccar.model.Route;
-import org.traccar.web.client.model.api.IDevicesService;
 
 public class DeviceController implements ContentController, DeviceView.DeviceHandler, 
         GroupsController.GroupRemoveHandler, UpdatesController.DevicesListener {
@@ -161,14 +159,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
             @Override
             public void onImei(String imei) {
                 AddDeviceDto dto = new AddDeviceDto(imei);
-                Application.getDevicesService().addDevice(dto, new JsonCallback(){
-                    @Override
-                    public void onFailure(Method method, Throwable exception) {
-                        MessageBox msg = new AlertMessageBox(i18n.error(), i18n.errInvalidImeiNoContact());
-                        msg.show();
-                    }
-                    
-                    
+                Application.getDevicesService().addDevice(dto, new ApiJsonCallback(i18n){
                     @Override
                     public void onSuccess(Method method, JSONValue response) {
                         if(response == null) {
@@ -194,18 +185,10 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
             @Override
             public void onSave(final Device device) {
                 Application.getDevicesService().updateDevice(device.getId(),
-                        new EditDeviceDto(device), new RequestCallback() {
+                        new EditDeviceDto(device), new ApiRequestCallback(i18n) {
                             @Override
-                            public void onResponseReceived(Request request, Response response) {
-                                if(response.getStatusCode() == 400) {
-                                    new AlertMessageBox(i18n.error(), i18n.errNoDeviceNameOrId()).show();
-                                } else
-                                    onDevicesUpdated(Collections.singletonList(device));
-                            }
-
-                            @Override
-                            public void onError(Request request, Throwable exception) {
-                                new AlertMessageBox(i18n.error(), i18n.errUpdateFailed()).show();
+                            public void onSuccess(String response) {
+                                onDevicesUpdated(Collections.singletonList(device));
                             }
                         });
             }
@@ -221,28 +204,18 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
     @Override
     public void onShare(final Device device) {
         Application.getDevicesService().getDeviceShare(device.getId(),
-                new MethodCallback<Set<Long>>() {
-            @Override
-            public void onFailure(Method method, Throwable exception) {
-                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-            }
-
+                new ApiMethodCallback<Set<Long>>(i18n) {
             @Override
             public void onSuccess(Method method, Set<Long> response) {
                 new UserShareDialog(response, new UserShareDialog.UserShareHandler() {
                     @Override
                     public void onSaveShares(List<Long> uids, final Window window) {
                         Application.getDevicesService().updateDeviceShare(device.getId(),
-                                uids, new RequestCallback() {
-                            @Override
-                            public void onResponseReceived(Request request, Response response) {
-                                window.hide();
-                            }
-
-                            @Override
-                            public void onError(Request request, Throwable exception) {
-                                new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                            }
+                                uids, new ApiRequestCallback(i18n) {
+                                    @Override
+                                    public void onSuccess(String response) {
+                                        window.hide();
+                                    }
                                 });
                     }
                 }).show();
@@ -256,12 +229,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
             @Override
             public void onDialogHide(DialogHideEvent event) {
                 if (event.getHideButton() == PredefinedButton.YES) {
-                    Application.getDevicesService().removeDevice(device.getId(), new JsonCallback(){
-                        @Override
-                        public void onFailure(Method method, Throwable exception) {
-                            new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                        }
-
+                    Application.getDevicesService().removeDevice(device.getId(), new ApiJsonCallback(i18n){
                         @Override
                         public void onSuccess(Method method, JSONValue response) {
                             deviceStore.remove(device);

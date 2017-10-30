@@ -47,6 +47,7 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.TextField;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.model.api.ApiDeviceModel;
+import org.traccar.web.client.model.api.Resources;
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UserPermission;
 
@@ -186,7 +187,7 @@ public class DeviceDialog implements Editor<Device> {
                 return item+"";
             }
         });
-        for(long id : Application.getResources().models())
+        for(long id : Resources.getInstance().models())
             modelStore.add(id);
         modelStore.add(-1L);
         this.deviceModelId = new ComboBox<>(modelStore, new LabelProvider<Long>() {
@@ -194,7 +195,7 @@ public class DeviceDialog implements Editor<Device> {
             public String getLabel(Long id) {
                 if(id == null)
                     return i18n.unknownModel();
-                ApiDeviceModel m = Application.getResources().model(id);
+                ApiDeviceModel m = Resources.getInstance().model(id);
                 if(m == null)
                     return i18n.unknownModel();
                 return m.getModelName();
@@ -210,11 +211,14 @@ public class DeviceDialog implements Editor<Device> {
         driver.edit(device);
         if(device.getUniqueId() != null)
             uniqueId.setReadOnly(true);
-
-        idleSpeedThreshold.setValue(device.getIdleSpeedThreshold() * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactor());
+        
+        idleSpeedThreshold.setValue(device.getIdleSpeedThreshold()
+            * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactorFromKmh());
+        
         speedLimit.addValidator(new MaxNumberValidator<>(255.));
         if (device.getSpeedLimit() != null) {
-            speedLimit.setValue(device.getSpeedLimit() * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactor());
+            speedLimit.setValue(device.getSpeedLimit() 
+                    * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactorFromKmh());
         }
 
         fuelCapacity.addValidator(new MaxNumberValidator<>(9000.));
@@ -265,9 +269,15 @@ public class DeviceDialog implements Editor<Device> {
     @UiHandler("saveButton")
     public void onSaveClicked(SelectEvent event) {
         Device device = driver.flush();
-        device.setIdleSpeedThreshold(ApplicationContext.getInstance().getUserSettings().getSpeedUnit().toKnots(device.getIdleSpeedThreshold()));
+        if(driver.hasErrors())
+            return;
+
+        device.setIdleSpeedThreshold(device.getIdleSpeedThreshold()
+                * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactorToKmh());
+
         if (device.getSpeedLimit() != null) {
-            device.setSpeedLimit(ApplicationContext.getInstance().getUserSettings().getSpeedUnit().toKnots(device.getSpeedLimit()));
+            device.setSpeedLimit(device.getSpeedLimit()
+                    * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactorToKmh());
         }
 
         iconEditor.flush();

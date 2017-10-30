@@ -117,111 +117,8 @@ public class UserCheckTest {
         injector.getInstance(ManagesDevicesObject.class).manageDevices();
     }
 
-    @Test
-    public void testManagesDevicesRestricted() {
-        settingsProvider.settings.setDisallowDeviceManagementByUsers(true);
-        user();
-        thrown.expect(SecurityException.class);
-        injector.getInstance(ManagesDevicesObject.class).manageDevices();
-    }
-
-    static class RequireUserObject {
-        @RequireUser
-        public void requireUser() {
-        }
-
-        @RequireUser(roles = { Role.ADMIN })
-        public void requireAdmin() {
-        }
-
-        @RequireUser(roles = { Role.MANAGER })
-        public void requireManager() {
-        }
-
-        @RequireUser(roles = { Role.ADMIN, Role.MANAGER })
-        public void requireAdminOrManager() {
-        }
-    }
-
-    @Test
-    public void testRequireUserNoUser() {
-        thrown.expect(SecurityException.class);
-        injector.getInstance(RequireUserObject.class).requireUser();
-    }
-
-    @Test
-    public void testRequireUserOrdinaryUser() {
-        user();
-        injector.getInstance(RequireUserObject.class).requireUser();
-    }
-
-    @Test
-    public void testRequireUserReadOnlyUser() {
-        user().setReadOnly(true);
-        injector.getInstance(RequireUserObject.class).requireUser();
-    }
-
-    @Test
-    public void testRequireAdminOrdinaryUser() {
-        user();
-        thrown.expect(SecurityException.class);
-        injector.getInstance(RequireUserObject.class).requireAdmin();
-    }
-
-    @Test
-    public void testRequireAdminManager() {
-        manager();
-        thrown.expect(SecurityException.class);
-        injector.getInstance(RequireUserObject.class).requireAdmin();
-    }
-
-    @Test
-    public void testRequireAdmin() {
-        admin();
-        injector.getInstance(RequireUserObject.class).requireAdmin();
-    }
-
-    @Test
-    public void testRequireManagerOrdinaryUser() {
-        user();
-        thrown.expect(SecurityException.class);
-        injector.getInstance(RequireUserObject.class).requireManager();
-    }
-
-    @Test
-    public void testRequireManagerAdmin() {
-        admin();
-        thrown.expect(SecurityException.class);
-        injector.getInstance(RequireUserObject.class).requireManager();
-    }
-
-    @Test
-    public void testRequireManager() {
-        manager();
-        injector.getInstance(RequireUserObject.class).requireManager();
-    }
-
-    @Test
-    public void testRequireAdminOrManagerOrdinaryUser() {
-        user();
-        thrown.expect(SecurityException.class);
-        injector.getInstance(RequireUserObject.class).requireAdminOrManager();
-    }
-
-    @Test
-    public void testRequireAdminOrManagerAdmin() {
-        admin();
-        injector.getInstance(RequireUserObject.class).requireAdminOrManager();
-    }
-
-    @Test
-    public void testRequireAdminOrManagerManager() {
-        manager();
-        injector.getInstance(RequireUserObject.class).requireAdminOrManager();
-    }
-
     public static class MultipleAnnotationsObject {
-        @RequireUser(roles = { Role.ADMIN })
+        @RequireUser
         @ManagesDevices
         @RequireWrite
         public void someMethod() {
@@ -240,23 +137,8 @@ public class UserCheckTest {
     }
 
     @Test
-    public void testMultipleAnnotationsOrdinaryUser() {
-        user();
-        thrown.expect(SecurityException.class);
-        injector.getInstance(MultipleAnnotationsObject.class).someMethod();
-    }
-
-    @Test
     public void testMultipleAnnotationsAdmin() {
         admin();
         injector.getInstance(MultipleAnnotationsObject.class).someMethod();
-    }
-
-    @Test
-    public void testMultipleAnnotationsUserDisallowedDeviceManagement() {
-        user();
-        settingsProvider.settings.setDisallowDeviceManagementByUsers(true);
-        thrown.expect(SecurityException.class);
-        injector.getInstance(MultipleAnnotationsObject.class).anotherMethod();
     }
 }
