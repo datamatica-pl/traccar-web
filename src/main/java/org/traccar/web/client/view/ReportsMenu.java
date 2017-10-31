@@ -55,11 +55,8 @@ public class ReportsMenu extends Menu {
         this.reports = reports;
         this.reportHandler = reportHandler;
         this.reportSettingsHandler = reportSettingsHandler;
-        syncReports();
         ReportType[] available = ApplicationContext.getInstance().getUser()
-                .isPremium() ? ReportType.values() : new ReportType[] {
-                    ReportType.GENERAL_INFORMATION, ReportType.EVENTS
-                };
+                .isPremium() ? ReportType.values() : ReportType.getFreeTypes();
         for (final ReportType type : available) {
             MenuItem reportItem = new MenuItem(i18n.reportType(type));
             reportItem.addSelectionHandler(new SelectionHandler<Item>() {
@@ -78,59 +75,6 @@ public class ReportsMenu extends Menu {
                 }
             });
             add(reportItem);
-        }
-        this.reports.addStoreHandlers(new BaseStoreHandlers<Report>() {
-            @Override
-            public void onAnything() {
-                syncReports();
-            }
-        });
-    }
-
-    private void syncReports() {
-        // process deleted reports
-        for (Iterator<String> it = userReports.keySet().iterator(); it.hasNext(); ) {
-            String key = it.next();
-            if (reports.findModelWithKey(key) == null) {
-                MenuItem menuItem = userReports.get(key);
-                it.remove();
-                remove(menuItem);
-            }
-        }
-
-        // process added and updated reports
-        for (int i = 0; i < reports.size(); i++) {
-            final Report report = reports.get(i);
-            String key = reports.getKeyProvider().getKey(report);
-            MenuItem reportItem = userReports.get(key);
-
-            if (reportItem == null) {
-                reportItem = new MenuItem(report.getName());
-                reportItem.addSelectionHandler(new SelectionHandler<Item>() {
-                    @Override
-                    public void onSelection(SelectionEvent<Item> event) {
-                        if(!ApplicationContext.getInstance().getUser().isPremium()
-                                && report.getType() != ReportType.GENERAL_INFORMATION 
-                                && report.getType() != ReportType.EVENTS) {
-                            new AlertMessageBox(i18n.error(), i18n.reportsForPremium()).show();
-                        } else{
-                            ReportsDialog dialog = reportHandler.createDialog();
-                            dialog.selectReport(report);
-                            reportSettingsHandler.setSettings(dialog);
-                            dialog.show();
-                        }
-                    }
-                });
-
-                if (userReports.isEmpty()) {
-                    insert(new SeparatorMenuItem(), 0);
-                }
-                insert(reportItem, i);
-
-                userReports.put(key, reportItem);
-            } else {
-                reportItem.setText(report.getName());
-            }
         }
     }
 }

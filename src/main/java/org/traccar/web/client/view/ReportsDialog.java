@@ -15,6 +15,9 @@
  */
 package org.traccar.web.client.view;
 
+import com.google.gwt.cell.client.AbstractCell;
+import com.google.gwt.cell.client.Cell;
+import com.google.gwt.cell.client.TextCell;
 import pl.datamatica.traccar.model.Period;
 import pl.datamatica.traccar.model.UserSettings;
 import pl.datamatica.traccar.model.ReportFormat;
@@ -29,32 +32,23 @@ import com.google.gwt.event.logical.shared.BeforeSelectionEvent;
 import com.google.gwt.event.logical.shared.BeforeSelectionHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.datepicker.client.CalendarUtil;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell;
-import com.sencha.gxt.core.client.Style;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
-import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
-import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
-import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.event.ViewReadyEvent;
 import com.sencha.gxt.widget.core.client.form.*;
-import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
-import com.sencha.gxt.widget.core.client.grid.ColumnModel;
-import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
-import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
-import org.traccar.web.client.controller.ReportsController;
 import org.traccar.web.client.editor.DateTimeEditor;
 import org.traccar.web.client.editor.ListViewEditor;
 import org.traccar.web.client.i18n.Messages;
@@ -65,7 +59,7 @@ import java.util.*;
 import org.traccar.web.client.ApplicationContext;
 import pl.datamatica.traccar.model.UserPermission;
 
-public class ReportsDialog implements Editor<Report>, ReportsController.ReportHandler {
+public class ReportsDialog implements Editor<Report> {
     private static ReportsDialogDialogUiBinder uiBinder = GWT.create(ReportsDialogDialogUiBinder.class);
 
     interface ReportsDialogDialogUiBinder extends UiBinder<Widget, ReportsDialog> {
@@ -75,9 +69,6 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
     }
 
     public interface ReportHandler {
-        void onAdd(Report report, ReportsController.ReportHandler handler);
-        void onUpdate(Report report, ReportsController.ReportHandler handler);
-        void onRemove(Report report, ReportsController.ReportHandler handler);
         void onGenerate(Report report);
     }
 
@@ -87,15 +78,13 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
     @UiField
     Window window;
 
-    @UiField
-    Grid<Report> grid;
-
-    @UiField(provided = true)
-    ColumnModel<Report> columnModel;
-
     @UiField(provided = true)
     final ListStore<Report> reportStore;
 
+    @UiField
+    @Ignore
+    TextButton generateButton;
+    
     @UiField
     MenuItem generateHtml;
     
@@ -151,10 +140,6 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
     final DateTimeEditor toDate;
 
     @UiField
-    @Ignore
-    TextButton removeButton;
-
-    @UiField
     ContentPanel geoFencesPanel;
 
     @UiField(provided = true)
@@ -170,15 +155,16 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
 
         this.reportStore = reportStore;
         this.reportHandler = reportHandler;
-
-        List<ColumnConfig<Report, ?>> columnConfigList = new LinkedList<>();
-        columnConfigList.add(new ColumnConfig<>(reportProperties.name(), 25, i18n.name()));
-        columnConfigList.add(new ColumnConfig<>(new ReportProperties.ReportTypeLabelProvider(), 25, i18n.type()));
-        columnModel = new ColumnModel<>(columnConfigList);
-
+        
         DeviceProperties deviceProperties = GWT.create(DeviceProperties.class);
         this.deviceStore = deviceStore;
-        this.devicesList = new ListView<>(deviceStore, deviceProperties.name());
+        this.devicesList = new ListView<>(deviceStore, deviceProperties.name(),
+            new TextCell(){
+                @Override
+                public void render(Cell.Context context, String value, SafeHtmlBuilder sb) {
+                    super.render(context, value, sb);
+                }
+            });
 
         GeoFenceProperties geoFenceProperties = GWT.create(GeoFenceProperties.class);
         this.geoFenceStore = geoFenceStore;
@@ -200,22 +186,7 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
         period = new PeriodComboBox();
 
         uiBinder.createAndBindUi(this);
-
-        grid.getSelectionModel().setSelectionMode(Style.SelectionMode.SINGLE);
-        grid.getSelectionModel().addSelectionChangedHandler(new SelectionChangedEvent.SelectionChangedHandler<Report>() {
-            @Override
-            public void onSelectionChanged(SelectionChangedEvent<Report> event) {
-                Report report = event.getSelection().isEmpty() ? new Report() : event.getSelection().get(0);
-                driver.edit(report);
-                if (event.getSelection().isEmpty()) {
-                    period.selectFirst();
-                } else {
-                    period.update(); // recalculate dates once again
-                }
-                reportTypeChanged(report.getType());
-                removeButton.setEnabled(!event.getSelection().isEmpty());
-            }
-        });
+        
         type.addBeforeSelectionHandler(new BeforeSelectionHandler<ReportType>() {
             @Override
             public void onBeforeSelection(BeforeSelectionEvent<ReportType> event) {
@@ -240,43 +211,13 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
         driver.initialize(this);
         driver.edit(new Report());
         period.selectFirst();
+        
+        if(!ApplicationContext.getInstance().getUser().isPremium())
+            generateButton.setEnabled(false);
     }
 
     public void show() {
         window.show();
-    }
-
-    @UiHandler("saveButton")
-    public void onSaveClicked(SelectEvent event) {
-        Report report = driver.flush();
-        if (driver.hasErrors()) {
-            return;
-        }
-        if (grid.getSelectionModel().getSelectedItem() == null) {
-            reportHandler.onAdd(report, this);
-        } else {
-            reportHandler.onUpdate(report, this);
-        }
-    }
-
-    @UiHandler("removeButton")
-    public void onRemoveClicked(SelectEvent event) {
-        ConfirmMessageBox dialog = new ConfirmMessageBox(i18n.confirm(), i18n.confirmReportRemoval());
-        final Report report = driver.flush();
-        dialog.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
-            @Override
-            public void onDialogHide(DialogHideEvent event) {
-                if (event.getHideButton() == Dialog.PredefinedButton.YES) {
-                    reportHandler.onRemove(report, ReportsDialog.this);
-                }
-            }
-        });
-        dialog.show();
-    }
-
-    @UiHandler("newButton")
-    public void onNewClicked(SelectEvent event) {
-        grid.getSelectionModel().deselectAll();
     }
 
     @UiHandler("generateHtml")
@@ -346,35 +287,6 @@ public class ReportsDialog implements Editor<Report>, ReportsController.ReportHa
                   || name.getCurrentValue().trim().isEmpty()
                   || (prevReportType != null && i18n.reportType(prevReportType).equals(name.getCurrentValue())))) {
             name.setValue(i18n.reportType(type));
-        }
-    }
-
-    @Override
-    public void reportAdded(Report report) {
-        reportStore.add(report);
-    }
-
-    @Override
-    public void reportUpdated(Report report) {
-        reportStore.update(report);
-    }
-
-    @Override
-    public void reportRemoved(Report report) {
-        reportStore.remove(report);
-    }
-
-    public void selectReport(final Report report) {
-        grid.getSelectionModel().select(report, false);
-        if (grid.isVisible()) {
-            grid.getView().focusRow(reportStore.indexOf(report));
-        } else {
-            grid.addViewReadyHandler(new ViewReadyEvent.ViewReadyHandler() {
-                @Override
-                public void onViewReady(ViewReadyEvent event) {
-                    grid.getView().focusRow(reportStore.indexOf(report));
-                }
-            });
         }
     }
 

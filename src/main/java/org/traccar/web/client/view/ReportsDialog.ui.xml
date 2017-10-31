@@ -60,11 +60,6 @@
   </ui:with>
 
   <ui:with type="com.sencha.gxt.data.shared.ListStore" field="reportStore" />
-  <ui:with type="com.sencha.gxt.widget.core.client.grid.ColumnModel" field="columnModel" />
-
-  <ui:with type="com.sencha.gxt.widget.core.client.grid.GridView" field="view">
-    <ui:attributes stripeRows="true" autoFill="true" />
-  </ui:with>
 
   <ui:with type="com.sencha.gxt.data.shared.ListStore" field="geoFenceStore" />
 
@@ -81,13 +76,10 @@
     }
   </ui:style>
 
-  <gxt:Window ui:field="window" pixelSize="700, 614" modal="true" headingText="{i18n.reports}">
+  <gxt:Window ui:field="window" pixelSize="700, -1" modal="true" headingText="{i18n.reports}">
     <container:VerticalLayoutContainer>
         <container:child layoutData="{toolBarRowData}">
             <toolbar:ToolBar>
-                <button:TextButton ui:field="newButton" text="{i18n.newReport}" />
-                <button:TextButton ui:field="saveButton" text="{i18n.save}" />
-                <button:TextButton ui:field="removeButton" text="{i18n.remove}" enabled="false" />
                 <toolbar:FillToolItem />
                 <button:TextButton ui:field="previewButton" text="{i18n.preview}" />
                 <button:TextButton text="{i18n.generate}" ui:field="generateButton">
@@ -99,9 +91,6 @@
                     </button:menu>
                 </button:TextButton>
             </toolbar:ToolBar>
-        </container:child>
-        <container:child layoutData="{reportsGridLayoutData}">
-            <grid:Grid ui:field="grid" store="{reportStore}" cm="{columnModel}" view="{view}" />
         </container:child>
         <container:child layoutData="{reportParamsLayoutData}">
             <container:HBoxLayoutContainer padding="{padding5}" hBoxLayoutAlign="STRETCH">
