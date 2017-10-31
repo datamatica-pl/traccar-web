@@ -176,6 +176,16 @@ public class ApplicationContext {
         return key;
     }
     
+    public String getMessageTryLowerCase(String key) {
+        final String lowerCaseKey = key.toLowerCase();
+        if (messages.containsKey(key)) {
+            return messages.get(key);
+        } else if (messages.containsKey(lowerCaseKey)) {
+            return messages.get(lowerCaseKey);
+        }
+        return key;
+    }
+    
     public void setMessages(Map<String, String> messages) {
         this.messages.clear();
         this.messages.putAll(messages);

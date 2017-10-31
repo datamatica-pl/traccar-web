@@ -96,7 +96,7 @@ public class CommandDialog {
         this.typeCombo = new ComboBox<>(commandTypes, new LabelProvider<ApiCommandType>() {
             @Override
             public String getLabel(ApiCommandType item) {
-                return ApplicationContext.getInstance().getMessage("command_"+item.getCommandName());
+                return ApplicationContext.getInstance().getMessageTryLowerCase("command_" + item.getCommandName());
             }
         });
 
