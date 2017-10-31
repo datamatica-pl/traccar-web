@@ -52,7 +52,7 @@
       </container:child>
       <container:child layoutData="{verticalLayoutData}">
           <g:HTMLPanel>
-            <a href="http://www.petio.eu/?page_id=2406">
+            <a href="http://www.petio.eu/?page_id=2554">
                 <g:Label text="{i18n.termsLabel}" />
             </a>
           </g:HTMLPanel>
