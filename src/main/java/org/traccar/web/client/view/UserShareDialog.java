@@ -176,6 +176,7 @@ public class UserShareDialog {
     @UiHandler("saveButton")
     public void onSaveClicked(SelectEvent event) {
         window.hide();
+        shareStore.setEnableFilters(false);
         shareStore.commitChanges();
         List<Long> uids = new ArrayList<>();
         for(UserShared us : shareStore.getAll())
