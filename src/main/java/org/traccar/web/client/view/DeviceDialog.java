@@ -122,9 +122,6 @@ public class DeviceDialog implements Editor<Device> {
     NumberField<Double> speedLimit;
 
     @UiField
-    NumberField<Double> fuelCapacity;
-
-    @UiField
     NumberField<Integer> timezoneOffset;
 
     @UiField
@@ -220,9 +217,6 @@ public class DeviceDialog implements Editor<Device> {
             speedLimit.setValue(device.getSpeedLimit() 
                     * ApplicationContext.getInstance().getUserSettings().getSpeedUnit().getFactorFromKmh());
         }
-
-        fuelCapacity.addValidator(new MaxNumberValidator<>(9000.));
-        fuelCapacity.addValidator(new MinNumberValidator<>(1.));
 
         User currentUser = ApplicationContext.getInstance().getUser();
         if (currentUser.hasPermission(UserPermission.ALL_DEVICES)) {
