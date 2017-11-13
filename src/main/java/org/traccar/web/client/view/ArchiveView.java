@@ -103,6 +103,8 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
 
     @UiField
     TextButton reportButton;
+    
+    ReportsMenu reportsMenu;
 
     final Map<Long, ArchivePanel> archivePanels;
 
@@ -119,8 +121,15 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
 
         DeviceProperties deviceProperties = GWT.create(DeviceProperties.class);
         deviceCombo = new ComboBox<>(deviceStore, deviceProperties.label());
+        deviceCombo.addSelectionHandler(new SelectionHandler<Device>() {
+            @Override
+            public void onSelection(SelectionEvent<Device> event) {
+                boolean isValid = event.getSelectedItem().getSubscriptionDaysLeft(new Date()) > 0;
+                reportsMenu.setPremiumAllowed(isValid);
+            }
+        });
 
-		periodCombo = new PeriodComboBox();
+	periodCombo = new PeriodComboBox();
 
         // Markers
         for (Object[] obj : new Object[][] { { i18n.noMarkers(), null },
@@ -160,8 +169,7 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
         periodCombo.init(fromDate, fromTime, toDate, toTime);
 
         User user = ApplicationContext.getInstance().getUser();
-        reportButton.setVisible(user.hasPermission(UserPermission.REPORTS));
-        reportButton.setMenu(new ReportsMenu(reportStore, reportHandler, new ReportsMenu.ReportSettingsHandler() {
+        reportsMenu = new ReportsMenu(reportHandler, new ReportsMenu.ReportSettingsHandler() {
             @Override
             public void setSettings(ReportsDialog dialog) {
                 if (deviceCombo.getCurrentValue() != null) {
@@ -173,7 +181,9 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
                     dialog.selectPeriod(periodCombo.getCurrentValue());
                 }
             }
-        }));
+        });
+        reportButton.setVisible(user.hasPermission(UserPermission.REPORTS));
+        reportButton.setMenu(reportsMenu);
     }
 
     @Override
@@ -245,6 +255,8 @@ public class ArchiveView implements SelectionChangedEvent.SelectionChangedHandle
 
     public void selectDevice(Device device) {
         deviceCombo.setValue(device, false);
+        boolean isValid = device.getSubscriptionDaysLeft(new Date()) > 0;
+        reportsMenu.setPremiumAllowed(isValid);
     }
 
     public void showPositions(Device device, List<Position> positions) {
