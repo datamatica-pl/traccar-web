@@ -23,15 +23,12 @@ import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
-import com.sencha.gxt.widget.core.client.menu.SeparatorMenuItem;
+import java.util.ArrayList;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.BaseStoreHandlers;
 import pl.datamatica.traccar.model.Report;
 import pl.datamatica.traccar.model.ReportType;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 import org.traccar.web.client.ApplicationContext;
 
 public class ReportsMenu extends Menu {
@@ -44,17 +41,11 @@ public class ReportsMenu extends Menu {
     }
 
     private final Messages i18n = GWT.create(Messages.class);
-    private final ListStore<Report> reports;
-    private final Map<String, MenuItem> userReports = new HashMap<>();
-    private final ReportHandler reportHandler;
-    private final ReportSettingsHandler reportSettingsHandler;
+    private final List<MenuItem> premiumReports;
 
-    public ReportsMenu(ListStore<Report> reports,
-                       final ReportHandler reportHandler,
+    public ReportsMenu(final ReportHandler reportHandler,
                        final ReportSettingsHandler reportSettingsHandler) {
-        this.reports = reports;
-        this.reportHandler = reportHandler;
-        this.reportSettingsHandler = reportSettingsHandler;
+        premiumReports = new ArrayList<>();
         ReportType[] available = ApplicationContext.getInstance().getUser()
                 .isPremium() ? ReportType.values() : ReportType.getFreeTypes();
         for (final ReportType type : available) {
@@ -74,7 +65,16 @@ public class ReportsMenu extends Menu {
                     }
                 }
             });
+            if(type.isPremium()) {
+                premiumReports.add(reportItem);
+            }
             add(reportItem);
+        }
+    }
+    
+    public void setPremiumAllowed(boolean allowed) {
+        for(MenuItem mi : premiumReports) {
+            mi.setEnabled(allowed);
         }
     }
 }

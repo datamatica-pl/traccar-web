@@ -16,6 +16,7 @@
 package org.traccar.web.client.view;
 
 import com.google.gwt.cell.client.AbstractCell;
+import com.google.gwt.cell.client.AbstractSafeHtmlCell;
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.TextCell;
 import pl.datamatica.traccar.model.Period;
@@ -26,12 +27,14 @@ import pl.datamatica.traccar.model.Report;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.Device;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.SelectElement;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;
 import com.google.gwt.event.logical.shared.BeforeSelectionEvent;
 import com.google.gwt.event.logical.shared.BeforeSelectionHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -39,7 +42,18 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.datepicker.client.CalendarUtil;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell;
+import com.sencha.gxt.core.client.IdentityValueProvider;
+import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.event.StoreAddEvent;
+import com.sencha.gxt.data.shared.event.StoreClearEvent;
+import com.sencha.gxt.data.shared.event.StoreDataChangeEvent;
+import com.sencha.gxt.data.shared.event.StoreFilterEvent;
+import com.sencha.gxt.data.shared.event.StoreHandlers;
+import com.sencha.gxt.data.shared.event.StoreRecordChangeEvent;
+import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
+import com.sencha.gxt.data.shared.event.StoreSortEvent;
+import com.sencha.gxt.data.shared.event.StoreUpdateEvent;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.Window;
@@ -104,7 +118,7 @@ public class ReportsDialog implements Editor<Report> {
     final ListStore<Device> deviceStore;
 
     @UiField(provided = true)
-    final ListView<Device, String> devicesList;
+    final ListView<Device, Device> devicesList;
 
     final ListViewEditor<Device> devices;
 
@@ -148,21 +162,25 @@ public class ReportsDialog implements Editor<Report> {
     ReportType prevReportType;
 
     public ReportsDialog(ListStore<Report> reportStore,
-                         ListStore<Device> deviceStore,
+                         final ListStore<Device> deviceStore,
                          ListStore<GeoFence> geoFenceStore,
                          ReportHandler reportHandler) {
-        ReportProperties reportProperties = GWT.create(ReportProperties.class);
 
         this.reportStore = reportStore;
         this.reportHandler = reportHandler;
         
-        DeviceProperties deviceProperties = GWT.create(DeviceProperties.class);
         this.deviceStore = deviceStore;
-        this.devicesList = new ListView<>(deviceStore, deviceProperties.name(),
-            new TextCell(){
+        this.devicesList = new ListView<>(deviceStore, new IdentityValueProvider(),
+            new AbstractCell<Device>() {
                 @Override
-                public void render(Cell.Context context, String value, SafeHtmlBuilder sb) {
-                    super.render(context, value, sb);
+                public void render(Cell.Context context, Device value, SafeHtmlBuilder sb) {
+                    String style="";
+                    if(type.getCurrentValue().isPremium()
+                            && value.getSubscriptionDaysLeft(new Date()) == 0)
+                        style=" style=\"color:#ccc\"";
+                    sb.appendHtmlConstant("<label" + style + ">")
+                            .appendEscaped(value.getName())
+                            .appendHtmlConstant("</label>");
                 }
             });
 
@@ -204,13 +222,24 @@ public class ReportsDialog implements Editor<Report> {
 
         geoFencesPanel.setHeadingText(i18n.overlayType(UserSettings.OverlayType.GEO_FENCES));
         geoFences = new ListViewEditor<>(geoFencesList);
-        devices = new ListViewEditor<>(devicesList);
+        devices = new ListViewEditor<Device>(devicesList);
+        devicesList.getSelectionModel().addBeforeSelectionHandler(new BeforeSelectionHandler<Device>() {
+            @Override
+            public void onBeforeSelection(BeforeSelectionEvent<Device> event) {
+                Device d = event.getItem();
+                if(type.getValue() != null && type.getValue().isPremium() 
+                        && d.getSubscriptionDaysLeft(new Date()) <= 0) {
+                    event.cancel();
+                }
+            }
+        });
         fromDate = new DateTimeEditor(fromDateField, fromTimeField);
         toDate = new DateTimeEditor(toDateField, toTimeField);
 
         driver.initialize(this);
         driver.edit(new Report());
         period.selectFirst();
+        devices.setValue(new HashSet<>(deviceStore.getAll()));
         
         if(!ApplicationContext.getInstance().getUser().isPremium())
             generateButton.setEnabled(false);
@@ -241,7 +270,7 @@ public class ReportsDialog implements Editor<Report> {
         report.setFormat(format);
         report.setPreview(isPreview);
         
-        int minHistory = 31;
+        int minHistory = 180;
         for(Device d: report.getDevices()) {
             if(d.getValidTo() == null || d.getValidTo().before(new Date()))
                 minHistory = 2;
@@ -250,17 +279,18 @@ public class ReportsDialog implements Editor<Report> {
         }
         Date historyStart = new Date();
         CalendarUtil.addDaysToDate(historyStart, -minHistory);
+        CalendarUtil.resetTime(historyStart);
         
         if(CalendarUtil.getDaysBetween(report.getFromDate(), report.getToDate()) > 31) {
             new AlertMessageBox(i18n.error(), i18n.errReportMax31Days()).show();
             return;
-        } else if(report.getType() != ReportType.GENERAL_INFORMATION && report.getType() != ReportType.EVENTS
-                && !allWithSubscription(report.getDevices())){
-            new AlertMessageBox(i18n.error(), i18n.reportsForPremium()).show();
+        } else if(report.getDevices().isEmpty()){
+            new AlertMessageBox(i18n.error(), i18n.errNoReportDevicesSelected()).show();
             return;
         } else if(!ApplicationContext.getInstance().getUser().hasPermission(UserPermission.ALL_HISTORY) 
                 && CalendarUtil.getDaysBetween(report.getFromDate(),historyStart) > 0) {
             new AlertMessageBox(i18n.error(), i18n.errNoSubscriptionMessage()).show();
+            return;
         }
 
         if (!driver.hasErrors()) {
@@ -288,6 +318,15 @@ public class ReportsDialog implements Editor<Report> {
                   || (prevReportType != null && i18n.reportType(prevReportType).equals(name.getCurrentValue())))) {
             name.setValue(i18n.reportType(type));
         }
+        
+        if(type.isPremium()) {
+            Set<Device> sel = new HashSet<>();
+            for(Device d : devices.getValue())
+                if(d.getSubscriptionDaysLeft(new Date()) > 0) 
+                    sel.add(d);
+            devices.setValue(sel);
+        }
+        devicesList.refresh();
     }
 
     public void selectDevice(Device device) {
