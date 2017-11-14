@@ -909,6 +909,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                     return false;
                 } else {
                     Device d = (Device) item;
+                    for(User u : d.getUsers())
+                        if(u.getLogin().toLowerCase().contains(filter.toLowerCase()))
+                            return true;
                     return item.getName().toLowerCase().contains(filter.toLowerCase())
                             || d.getUniqueId().contains(filter);
                 }
