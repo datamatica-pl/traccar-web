@@ -46,7 +46,7 @@ public class PositionInfoPopup {
         this.toolTip = new ToolTip(new ToolTipConfig());
         
         this.alwaysVisibleOthers = new HashSet<>();
-        Collections.addAll(alwaysVisibleOthers, "ignition", "battery", "power");
+        Collections.addAll(alwaysVisibleOthers, "ignition");
     }
 
     public void show(int x, int y, final Position position) {
@@ -114,11 +114,18 @@ public class PositionInfoPopup {
                     }
                 } else if (parameterName.equals("protocol")) {
                     parameterName = i18n.protocol();
-                }
+                } else if(parameterName.equals("battery"))
+                    continue;
                 if (!valueText.isEmpty()) {
                     body += "<tr><td style=\"padding: 3px 0px 3px 0px;\">" + parameterName + "</td><td>" + valueText + "</td></tr>";
                 }
             }
+        }
+        Device d = position.getDevice();
+        if(d.getBatteryLevel() != null
+                && (new Date().getTime() - d.getBatteryTime().getTime())/1000 < d.getBatteryTimeout()) {
+            body += "<tr><td style=\"padding: 3px 0px 3px 0px;\">" + "battery" + "</td><td>" + 
+                    position.getDevice().getBatteryLevel() + "</td></tr>";
         }
         
     if (position.getGeoFences() != null && !position.getGeoFences().isEmpty()) {

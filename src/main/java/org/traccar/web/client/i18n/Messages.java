@@ -667,6 +667,8 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String errNoGeoFences();
 
     public String emailResent();
+    String moreLoginOptionsTitle();
+    String moreLoginOptionsInfo();
     String resendLink();
     String loginDialogMoreInfo();
     String more();
@@ -694,4 +696,6 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     
     String errInitialLoadFailed();
     String errValMustBeDivisibleBy(int val);
+
+    public String errNoReportDevicesSelected();
 }

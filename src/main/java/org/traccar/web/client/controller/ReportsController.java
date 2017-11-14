@@ -27,7 +27,6 @@ import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.view.ReportsDialog;
@@ -58,12 +57,6 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
 
     interface ReportMapper extends ObjectMapper<ApiReport> {}
 
-    public interface ReportHandler {
-        void reportAdded(Report report);
-        void reportUpdated(Report report);
-        void reportRemoved(Report report);
-    }
-
     public ReportsController(ListStore<Report> reportStore, ListStore<Device> deviceStore, ListStore<GeoFence> geoFenceStore) {
         this.reportStore = reportStore;
         this.deviceStore = deviceStore;
@@ -85,19 +78,6 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
             devMap.put(d.getId(), d);
         for(GeoFence gf : geoFenceStore.getAll())
             gfMap.put(gf.getId(), gf);
-        service.getReports(new ApiJsonCallback(i18n) {
-            @Override
-            public void onSuccess(Method method, JSONValue response) {
-                List<Report> reports = new ArrayList<>();
-                JSONArray arr = response.isArray();
-                for(int i=0;i<arr.size();++i) {
-                    ApiReport ar = new ApiReport(arr.get(i).isObject());
-                    reports.add(ar.toReport(devMap, gfMap));
-                }
-                reportStore.addAll(reports);
-            }
-            
-        });
     }
 
     public void generate(Report report) {
@@ -125,39 +105,6 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
     public ReportsDialog createDialog() {
         final ReportsService service = new ReportsService();
         return new ReportsDialog(reportStore, deviceStore, geoFenceStore, new ReportsDialog.ReportHandler() {
-            @Override
-            public void onAdd(Report report, final ReportHandler handler) {
-                service.createReport(new ApiReport(report), new ApiJsonCallback(i18n) {
-                    @Override
-                    public void onSuccess(Method method, JSONValue response) {
-                        handler.reportAdded(new ApiReport(response.isObject())
-                                .toReport(devMap, gfMap));
-                    }
-                });
-            }
-
-            @Override
-            public void onUpdate(final Report report, final ReportHandler handler) {
-                service.updateReport(report.getId(), new ApiReport(report), 
-                        new ApiRequestCallback(i18n) {
-                            @Override
-                            public void onSuccess(String response) {
-                                handler.reportUpdated(report);
-                            }
-                    
-                });
-            }
-
-            @Override
-            public void onRemove(final Report report, final ReportHandler handler) {
-                service.removeReport(report.getId(), new ApiMethodCallback<Void>(i18n) {
-                        @Override
-                        public void onSuccess(Method method, Void response) {
-                            handler.reportRemoved(report);
-                        }
-                });
-            }
-
             @Override
             public void onGenerate(Report report) {
                 generate(report);

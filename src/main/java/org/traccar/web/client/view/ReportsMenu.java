@@ -18,20 +18,15 @@ package org.traccar.web.client.view;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
-import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
-import com.sencha.gxt.widget.core.client.menu.SeparatorMenuItem;
+import java.util.ArrayList;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.BaseStoreHandlers;
-import pl.datamatica.traccar.model.Report;
 import pl.datamatica.traccar.model.ReportType;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 import org.traccar.web.client.ApplicationContext;
 
 public class ReportsMenu extends Menu {
@@ -44,19 +39,14 @@ public class ReportsMenu extends Menu {
     }
 
     private final Messages i18n = GWT.create(Messages.class);
-    private final ListStore<Report> reports;
-    private final Map<String, MenuItem> userReports = new HashMap<>();
-    private final ReportHandler reportHandler;
-    private final ReportSettingsHandler reportSettingsHandler;
+    private final List<MenuItem> premiumReports;
 
-    public ReportsMenu(ListStore<Report> reports,
-                       final ReportHandler reportHandler,
+    public ReportsMenu(final ReportHandler reportHandler,
                        final ReportSettingsHandler reportSettingsHandler) {
-        this.reports = reports;
-        this.reportHandler = reportHandler;
-        this.reportSettingsHandler = reportSettingsHandler;
-        syncReports();
-        for (final ReportType type : new ReportType[]{ReportType.EVENTS, ReportType.GENERAL_INFORMATION}) {
+        premiumReports = new ArrayList<>();
+        ReportType[] available = ApplicationContext.getInstance().getUser()
+                .isPremium() ? ReportType.values() : ReportType.getFreeTypes();
+        for (final ReportType type : available) {
             MenuItem reportItem = new MenuItem(i18n.reportType(type));
             reportItem.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override
@@ -73,60 +63,16 @@ public class ReportsMenu extends Menu {
                     }
                 }
             });
+            if(type.isPremium()) {
+                premiumReports.add(reportItem);
+            }
             add(reportItem);
         }
-        this.reports.addStoreHandlers(new BaseStoreHandlers<Report>() {
-            @Override
-            public void onAnything() {
-                syncReports();
-            }
-        });
     }
-
-    private void syncReports() {
-        // process deleted reports
-        for (Iterator<String> it = userReports.keySet().iterator(); it.hasNext(); ) {
-            String key = it.next();
-            if (reports.findModelWithKey(key) == null) {
-                MenuItem menuItem = userReports.get(key);
-                it.remove();
-                remove(menuItem);
-            }
-        }
-
-        // process added and updated reports
-        for (int i = 0; i < reports.size(); i++) {
-            final Report report = reports.get(i);
-            String key = reports.getKeyProvider().getKey(report);
-            MenuItem reportItem = userReports.get(key);
-
-            if (reportItem == null) {
-                reportItem = new MenuItem(report.getName());
-                reportItem.addSelectionHandler(new SelectionHandler<Item>() {
-                    @Override
-                    public void onSelection(SelectionEvent<Item> event) {
-                        if(!ApplicationContext.getInstance().getUser().isPremium()
-                                && report.getType() != ReportType.GENERAL_INFORMATION 
-                                && report.getType() != ReportType.EVENTS) {
-                            new AlertMessageBox(i18n.error(), i18n.reportsForPremium()).show();
-                        } else{
-                            ReportsDialog dialog = reportHandler.createDialog();
-                            dialog.selectReport(report);
-                            reportSettingsHandler.setSettings(dialog);
-                            dialog.show();
-                        }
-                    }
-                });
-
-                if (userReports.isEmpty()) {
-                    insert(new SeparatorMenuItem(), 0);
-                }
-                insert(reportItem, i);
-
-                userReports.put(key, reportItem);
-            } else {
-                reportItem.setText(report.getName());
-            }
+    
+    public void setPremiumAllowed(boolean allowed) {
+        for(MenuItem mi : premiumReports) {
+            mi.setEnabled(allowed);
         }
     }
 }

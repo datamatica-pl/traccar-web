@@ -1287,7 +1287,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         }
         if(user.hasPermission(UserPermission.REPORTS)) {
             MenuItem report = new MenuItem(i18n.report());
-            report.setSubMenu(new ReportsMenu(reportStore, reportHandler, new ReportsMenu.ReportSettingsHandler() {
+            report.setSubMenu(new ReportsMenu(reportHandler, new ReportsMenu.ReportSettingsHandler() {
                 @Override
                 public void setSettings(ReportsDialog dialog) {
                     GroupedDevice node = grid.getSelectionModel().getSelectedItem();

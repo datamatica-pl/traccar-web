@@ -163,7 +163,7 @@ public class NavView {
         dGroupsButton.setVisible(user.hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT));
         uGroupsButton.setVisible(user.hasPermission(UserPermission.USER_GROUP_MANAGEMENT));
 
-        reportsButton.setMenu(new ReportsMenu(reportListStore, reportHandler, new ReportsMenu.ReportSettingsHandler() {
+        reportsButton.setMenu(new ReportsMenu(reportHandler, new ReportsMenu.ReportSettingsHandler() {
             @Override
             public void setSettings(ReportsDialog dialog) {
             }
