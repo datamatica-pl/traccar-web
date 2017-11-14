@@ -49,7 +49,6 @@ import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.data.shared.ListStore;
-import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
@@ -91,7 +90,6 @@ import org.traccar.web.client.state.DeviceVisibilityChangeHandler;
 import org.traccar.web.client.state.DeviceVisibilityHandler;
 
 import java.util.*;
-import pl.datamatica.traccar.model.GeoFenceType;
 import pl.datamatica.traccar.model.Route;
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UserPermission;
@@ -906,6 +904,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                     return false;
                 } else {
                     Device d = (Device) item;
+                    for(User u : d.getUsers())
+                        if(u.getLogin().toLowerCase().contains(filter.toLowerCase()))
+                            return true;
                     return item.getName().toLowerCase().contains(filter.toLowerCase())
                             || d.getUniqueId().contains(filter);
                 }
