@@ -71,6 +71,7 @@ import org.traccar.web.client.widget.PeriodComboBox;
 
 import java.util.*;
 import org.traccar.web.client.ApplicationContext;
+import pl.datamatica.traccar.model.Route;
 import pl.datamatica.traccar.model.UserPermission;
 
 public class ReportsDialog implements Editor<Report> {
@@ -129,6 +130,8 @@ public class ReportsDialog implements Editor<Report> {
     final ListView<GeoFence, String> geoFencesList;
 
     final ListViewEditor<GeoFence> geoFences;
+    
+    Route route;
 
     @UiField(provided = true)
     final PeriodComboBox period;
@@ -269,6 +272,7 @@ public class ReportsDialog implements Editor<Report> {
         Report report = driver.flush();
         report.setFormat(format);
         report.setPreview(isPreview);
+        report.setRoute(route);
         
         int minHistory = 180;
         for(Device d: report.getDevices()) {
@@ -297,16 +301,6 @@ public class ReportsDialog implements Editor<Report> {
             reportHandler.onGenerate(report);
         }
     }
-    
-    private boolean allWithSubscription(Collection<Device> devices) {
-        if(devices.isEmpty())
-            devices = deviceStore.getAll();
-        for(Device d: devices) {
-            if(d.getValidTo() == null || d.getValidTo().before(new Date()))
-                return false;
-        }
-        return true;
-    }
 
     private void reportTypeChanged(ReportType type) {
         geoFencesList.setEnabled(type != null && type.supportsGeoFences());
@@ -331,6 +325,11 @@ public class ReportsDialog implements Editor<Report> {
 
     public void selectDevice(Device device) {
         devices.setValue(Collections.singleton(device));
+    }
+    
+    public void selectRoute(Route route) {
+        this.route = route;
+        devices.setValue(null);
     }
 
     public void selectReportType(ReportType type) {
