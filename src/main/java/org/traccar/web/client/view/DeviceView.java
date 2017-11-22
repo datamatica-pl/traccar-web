@@ -1047,7 +1047,6 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         ColumnModel<Route> cm = new ColumnModel<>(ccList);
         routeGrid = new Grid<>(routeStore, cm);
         routeGrid.getView().setAutoExpandColumn(cName);
-        routeGrid.setContextMenu(createRouteGridContextMenu(rHandler));
         routeGrid.setHideHeaders(true);
         
         routeGrid.getSelectionModel().addSelectionChangedHandler(new SelectionChangedEvent.SelectionChangedHandler<Route>() {
@@ -1304,27 +1303,6 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                     }
                 }
             }));
-            menu.add(report);
-        }
-
-        return menu;
-    }
-    
-    private Menu createRouteGridContextMenu(final ReportsMenu.ReportHandler reportHandler) {
-        Menu menu = new Menu();
-        User user = ApplicationContext.getInstance().getUser();
-        if(user.hasPermission(UserPermission.REPORTS)) {
-            MenuItem report = new MenuItem(i18n.report());
-            report.addSelectionHandler(new SelectionHandler<Item>(){
-                @Override
-                public void onSelection(SelectionEvent<Item> event) {
-                    Route route = routeGrid.getSelectionModel().getSelectedItem();
-                    ReportsDialog dialog = reportHandler.createDialog();
-                    dialog.selectReportType(ReportType.TRACK);
-                    dialog.selectRoute(route);
-                    dialog.show();
-                }
-            });
             menu.add(report);
         }
 

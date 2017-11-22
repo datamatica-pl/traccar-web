@@ -36,6 +36,7 @@ import java.util.Map;
 import org.traccar.web.client.model.api.ApiReport;
 import org.traccar.web.client.model.api.ReportsService;
 import pl.datamatica.traccar.model.ReportFormat;
+import pl.datamatica.traccar.model.Route;
 
 public class ReportsController implements ContentController, ReportsMenu.ReportHandler {
     private final Messages i18n = GWT.create(Messages.class);
@@ -43,16 +44,19 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
     private final ListStore<Report> reportStore;
     private final ListStore<Device> deviceStore;
     private final ListStore<GeoFence> geoFenceStore;
+    private final ListStore<Route> routeStore;
     
     private final Map<Long, Device> devMap;
     private final Map<Long, GeoFence> gfMap;
 
     interface ReportMapper extends ObjectMapper<ApiReport> {}
 
-    public ReportsController(ListStore<Report> reportStore, ListStore<Device> deviceStore, ListStore<GeoFence> geoFenceStore) {
+    public ReportsController(ListStore<Report> reportStore, ListStore<Device> deviceStore, 
+            ListStore<GeoFence> geoFenceStore, ListStore<Route> routeStore) {
         this.reportStore = reportStore;
         this.deviceStore = deviceStore;
         this.geoFenceStore = geoFenceStore;
+        this.routeStore = routeStore;
         
         this.devMap = new HashMap<>();
         this.gfMap = new HashMap<>();
@@ -96,7 +100,8 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
     @Override
     public ReportsDialog createDialog() {
         final ReportsService service = new ReportsService();
-        return new ReportsDialog(reportStore, deviceStore, geoFenceStore, new ReportsDialog.ReportHandler() {
+        return new ReportsDialog(reportStore, deviceStore, geoFenceStore, 
+                routeStore, new ReportsDialog.ReportHandler() {
             @Override
             public void onGenerate(Report report) {
                 generate(report);

@@ -694,4 +694,5 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String errValMustBeDivisibleBy(int val);
 
     public String errNoReportDevicesSelected();
+    String errNoReportRouteSelected();
 }
