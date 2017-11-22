@@ -69,6 +69,7 @@ import com.sencha.gxt.widget.core.client.form.StoreFilterField;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
+import com.sencha.gxt.widget.core.client.grid.GridView;
 import com.sencha.gxt.widget.core.client.grid.editing.GridEditing;
 import com.sencha.gxt.widget.core.client.grid.editing.GridInlineEditing;
 import com.sencha.gxt.widget.core.client.menu.CheckMenuItem;
@@ -90,6 +91,7 @@ import org.traccar.web.client.state.DeviceVisibilityChangeHandler;
 import org.traccar.web.client.state.DeviceVisibilityHandler;
 
 import java.util.*;
+import pl.datamatica.traccar.model.ReportType;
 import pl.datamatica.traccar.model.Route;
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UserPermission;
@@ -945,7 +947,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         geoFenceHandler.setGeoFenceListView(geoFenceListView);
         
         tracksTabConfig = new TabItemConfig(i18n.tracks());
-        prepareRouteGrid(routeStore);
+        prepareRouteGrid(routeStore, reportHandler);
 
         // tab panel
         objectsTabs = new TabPanel();
@@ -1006,7 +1008,8 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         toggleManagementButtons(null);
     }
 
-    private void prepareRouteGrid(ListStore<Route> routeStore) {        
+    private void prepareRouteGrid(ListStore<Route> routeStore, 
+            ReportsMenu.ReportHandler rHandler) {        
         List<ColumnConfig<Route, ?>> ccList = new ArrayList<>();
         ColumnConfig<Route, String> cName = new ColumnConfig<>(new ValueProvider<Route, String>() {
             @Override

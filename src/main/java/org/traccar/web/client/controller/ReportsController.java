@@ -18,15 +18,12 @@ package org.traccar.web.client.controller;
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.i18n.client.LocaleInfo;
-import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.Hidden;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
-import java.util.ArrayList;
 import java.util.HashMap;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.view.ReportsDialog;
@@ -35,15 +32,11 @@ import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.Report;
 
-import java.util.List;
 import java.util.Map;
-import org.fusesource.restygwt.client.Method;
-import org.traccar.web.client.model.api.ApiJsonCallback;
-import org.traccar.web.client.model.api.ApiMethodCallback;
 import org.traccar.web.client.model.api.ApiReport;
-import org.traccar.web.client.model.api.ApiRequestCallback;
 import org.traccar.web.client.model.api.ReportsService;
 import pl.datamatica.traccar.model.ReportFormat;
+import pl.datamatica.traccar.model.Route;
 
 public class ReportsController implements ContentController, ReportsMenu.ReportHandler {
     private final Messages i18n = GWT.create(Messages.class);
@@ -51,16 +44,19 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
     private final ListStore<Report> reportStore;
     private final ListStore<Device> deviceStore;
     private final ListStore<GeoFence> geoFenceStore;
+    private final ListStore<Route> routeStore;
     
     private final Map<Long, Device> devMap;
     private final Map<Long, GeoFence> gfMap;
 
     interface ReportMapper extends ObjectMapper<ApiReport> {}
 
-    public ReportsController(ListStore<Report> reportStore, ListStore<Device> deviceStore, ListStore<GeoFence> geoFenceStore) {
+    public ReportsController(ListStore<Report> reportStore, ListStore<Device> deviceStore, 
+            ListStore<GeoFence> geoFenceStore, ListStore<Route> routeStore) {
         this.reportStore = reportStore;
         this.deviceStore = deviceStore;
         this.geoFenceStore = geoFenceStore;
+        this.routeStore = routeStore;
         
         this.devMap = new HashMap<>();
         this.gfMap = new HashMap<>();
@@ -104,7 +100,8 @@ public class ReportsController implements ContentController, ReportsMenu.ReportH
     @Override
     public ReportsDialog createDialog() {
         final ReportsService service = new ReportsService();
-        return new ReportsDialog(reportStore, deviceStore, geoFenceStore, new ReportsDialog.ReportHandler() {
+        return new ReportsDialog(reportStore, deviceStore, geoFenceStore, 
+                routeStore, new ReportsDialog.ReportHandler() {
             @Override
             public void onGenerate(Report report) {
                 generate(report);
