@@ -142,6 +142,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     VectorFeature polyline;
     GeoFenceRenderer gfRenderer;
     boolean recomputingPath = false;
+    boolean pathInvalid = false;
     LonLat[] lineString;
     RoutePolylineFinder.Callback routeDrawer = new RoutePolylineFinder.Callback() {
         @Override
@@ -456,8 +457,10 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     
     private void drawPolyline() {
         //drag'n'drop!
-        if(recomputingPath)
+        if(recomputingPath) {
+            pathInvalid = true;
             return;
+        }
         startComputingPath();
         if(polyline != null) {
             gfLayer.removeFeature(polyline);
@@ -486,7 +489,11 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     
     private void endComputingPath() {
         recomputingPath = false;
-        addButton.setEnabled(!recomputingPath);
+        if(pathInvalid) {
+            pathInvalid = false;
+            drawPolyline();
+        } else
+            addButton.setEnabled(!recomputingPath);
     }
     
     @Override
