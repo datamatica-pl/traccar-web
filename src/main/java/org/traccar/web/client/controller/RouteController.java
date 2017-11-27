@@ -100,6 +100,8 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     
     private void updateGeofences(final Route addedRoute) {
         for(RoutePoint pt : addedRoute.getRoutePoints()) {
+            pt.getGeofence().setDevices(new HashSet<>(
+                    pt.getGeofence().getTransferDevices()));
             String key = Long.toString(pt.getGeofence().getId());
             if(geoFenceStore.findModelWithKey(key) == null) {
                 geoFenceStore.add(pt.getGeofence());
