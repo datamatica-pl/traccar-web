@@ -62,6 +62,8 @@ import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.CellDoubleClickEvent;
 import com.sencha.gxt.widget.core.client.event.HeaderClickEvent;
 import com.sencha.gxt.widget.core.client.event.HeaderClickEvent.HeaderClickHandler;
+import com.sencha.gxt.widget.core.client.event.MaximizeEvent;
+import com.sencha.gxt.widget.core.client.event.MaximizeEvent.MaximizeHandler;
 import com.sencha.gxt.widget.core.client.event.RowMouseDownEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
@@ -132,6 +134,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         void onEdit(Route selectedItem);
         void onRemove(Route selectedItem);
         void onSelected(Route route);
+        void onAddToArchive(Route selectedItem);
     }
 
     public interface CommandHandler {
@@ -887,7 +890,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             }
         };
         grid.setView(view);
-        grid.setContextMenu(createDeviceGridContextMenu(reportStore, reportHandler));
+        grid.setContextMenu(createDeviceGridContextMenu(reportHandler));
 
         // configure device store filtering
         deviceFilter = new StoreFilterField<GroupedDevice>() {
@@ -1030,7 +1033,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         ColumnConfig<Route, String> cStatus = new ColumnConfig<>(new ValueProvider<Route, String>() {
             @Override
             public String getValue(Route object) {
-                return object.getStatus();
+                return object.getStatus().name();
             }
 
             @Override
@@ -1058,6 +1061,8 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                 }
             }
         });
+        
+        routeGrid.setContextMenu(createRouteContextMenu(rHandler));
     }
 
     final SelectionChangedEvent.SelectionChangedHandler<GroupedDevice> deviceSelectionHandler = new SelectionChangedEvent.SelectionChangedHandler<GroupedDevice>() {
@@ -1248,8 +1253,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         ImageResource speedAlarmActive();
     }
 
-    private Menu createDeviceGridContextMenu(final ListStore<Report> reportStore,
-                                             final ReportsMenu.ReportHandler reportHandler) {
+    private Menu createDeviceGridContextMenu(final ReportsMenu.ReportHandler reportHandler) {
         Menu menu = new Menu();
         User user = ApplicationContext.getInstance().getUser();
         if (user.hasPermission(UserPermission.DEVICE_EDIT)) {
@@ -1306,6 +1310,70 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             menu.add(report);
         }
 
+        return menu;
+    }
+    
+    private Menu createRouteContextMenu(final ReportsMenu.ReportHandler reportHandler) {
+        Menu menu = new Menu();
+        User user = ApplicationContext.getInstance().getUser();
+        if (user.hasPermission(UserPermission.TRACK_EDIT)) {
+            MenuItem edit = new MenuItem(i18n.edit());
+            edit.addSelectionHandler(new SelectionHandler<Item>() {
+                @Override
+                public void onSelection(SelectionEvent<Item> event) {
+                    routeHandler.onEdit(routeGrid.getSelectionModel().getSelectedItem());
+                }
+            });
+            menu.add(edit);
+        }
+        if (user.hasPermission(UserPermission.TRACK_EDIT)) {
+            MenuItem remove = new MenuItem(i18n.remove());
+            remove.addSelectionHandler(new SelectionHandler<Item>() {
+                @Override
+                public void onSelection(SelectionEvent<Item> event) {
+                    routeHandler.onRemove(routeGrid.getSelectionModel().getSelectedItem());
+                }
+            });
+            menu.add(remove);
+        }
+        final MenuItem archive = new MenuItem(i18n.addToArchive());
+        if(user.hasPermission(UserPermission.TRACK_EDIT)) {
+            archive.addSelectionHandler(new SelectionHandler<Item>() {
+                @Override
+                public void onSelection(SelectionEvent<Item> event) {
+                    routeHandler.onAddToArchive(routeGrid.getSelectionModel().getSelectedItem());
+                }
+            });
+            menu.add(archive);
+        }
+        
+        final MenuItem report = new MenuItem(i18n.report());
+        if(user.hasPermission(UserPermission.REPORTS) && user.isPremium()) {
+            report.addSelectionHandler(new SelectionHandler<Item>() {
+                @Override
+                public void onSelection(SelectionEvent<Item> event) {
+                    Route route = routeGrid.getSelectionModel().getSelectedItem();
+                    ReportsDialog dialog = reportHandler.createDialog();
+                    dialog.selectReportType(ReportType.TRACK);
+                    dialog.selectRoute(route);
+                    dialog.show();
+                }
+            });
+            menu.add(report);
+        }
+        
+        menu.addMaximizeHandler(new MaximizeHandler() {
+            @Override
+            public void onMaximize(MaximizeEvent event) {
+                Route route = routeGrid.getSelectionModel().getSelectedItem();
+                report.setVisible(route.getDevice() != null &&
+                        route.getDevice().getSubscriptionDaysLeft(new Date()) > 0);
+                archive.setVisible(route.getStatus() == Route.Status.IN_PROGRESS_OK
+                        || route.getStatus() == Route.Status.IN_PROGRESS_LATE);
+            }
+            
+        });
+        
         return menu;
     }
 }

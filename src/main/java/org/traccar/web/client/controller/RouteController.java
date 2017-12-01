@@ -152,4 +152,9 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
             }
         });
     }
+
+    @Override
+    public void onAddToArchive(Route selectedItem) {
+        //todo 2017-12-01
+    }
 }

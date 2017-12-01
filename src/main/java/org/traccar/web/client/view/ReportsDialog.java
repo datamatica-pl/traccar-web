@@ -411,6 +411,11 @@ public class ReportsDialog implements Editor<Report> {
     public void selectDevice(Device device) {
         devices.setValue(Collections.singleton(device));
     }
+    
+    public void selectRoute(Route route) {
+        selectDevice(route.getDevice());
+        this.route.setValue(route);
+    }
 
     public void selectReportType(ReportType type) {
         this.type.setValue(type);

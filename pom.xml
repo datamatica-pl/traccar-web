@@ -284,6 +284,7 @@
           <execution>
             <configuration>
               <module>org.traccar.web.Traccar</module>
+              <style>PRETTY</style>
             </configuration>
             <goals>
               <goal>compile</goal>
