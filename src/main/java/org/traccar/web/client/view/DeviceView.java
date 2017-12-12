@@ -59,11 +59,11 @@ import com.sencha.gxt.widget.core.client.TabItemConfig;
 import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
+import com.sencha.gxt.widget.core.client.event.BeforeShowContextMenuEvent;
+import com.sencha.gxt.widget.core.client.event.BeforeShowContextMenuEvent.BeforeShowContextMenuHandler;
 import com.sencha.gxt.widget.core.client.event.CellDoubleClickEvent;
 import com.sencha.gxt.widget.core.client.event.HeaderClickEvent;
 import com.sencha.gxt.widget.core.client.event.HeaderClickEvent.HeaderClickHandler;
-import com.sencha.gxt.widget.core.client.event.MaximizeEvent;
-import com.sencha.gxt.widget.core.client.event.MaximizeEvent.MaximizeHandler;
 import com.sencha.gxt.widget.core.client.event.RowMouseDownEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
@@ -71,7 +71,6 @@ import com.sencha.gxt.widget.core.client.form.StoreFilterField;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
-import com.sencha.gxt.widget.core.client.grid.GridView;
 import com.sencha.gxt.widget.core.client.grid.editing.GridEditing;
 import com.sencha.gxt.widget.core.client.grid.editing.GridInlineEditing;
 import com.sencha.gxt.widget.core.client.menu.CheckMenuItem;
@@ -134,7 +133,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         void onEdit(Route selectedItem);
         void onRemove(Route selectedItem);
         void onSelected(Route route);
-        void onAddToArchive(Route selectedItem);
+        public void onAbort(Route selectedItem);
+        public void onArchivedChanged(Route selectedItem, boolean archived);
+        public void onShowArchived();
     }
 
     public interface CommandHandler {
@@ -570,18 +571,6 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     @UiField
     TextButton addButton;
 
-    @UiField
-    TextButton editButton;
-
-    @UiField
-    TextButton shareButton;
-
-    @UiField
-    TextButton removeButton;
-
-    @UiField
-    TextButton commandButton;
-
     @UiField(provided = true)
     TabPanel objectsTabs;
     
@@ -618,6 +607,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     @UiField(provided=true)
     TabItemConfig tracksTabConfig;
     
+    @UiField
+    VerticalLayoutContainer routeList;
+    
     @UiField(provided = true)
     Grid<Route> routeGrid;
 
@@ -644,10 +636,99 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         // create a new devices store so the filtering will not affect global store
         this.deviceStore = new DeviceStore(groupStore, globalDeviceStore);
         this.deviceStore.setAutoCommit(true);
+        
+        prepareDeviceGrid(globalDeviceStore, groupStore,
+                deviceVisibilityHandler, reportHandler);
+        
+        // configure device store filtering
+        deviceFilter = new StoreFilterField<GroupedDevice>() {
+            @Override
+            protected boolean doSelect(Store<GroupedDevice> store, GroupedDevice parent, GroupedDevice item, String filter) {
+                return filter.trim().isEmpty() || matches(item, filter);
+            }
 
+            boolean matches(GroupedDevice item, String filter) {
+                if (deviceStore.isGroup(item)) {
+                    for (GroupedDevice child : deviceStore.getChildren(item)) {
+                        if (matches(child, filter)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                } else {
+                    Device d = (Device) item;
+                    for(User u : d.getUsers())
+                        if(u.getLogin().toLowerCase().contains(filter.toLowerCase()))
+                            return true;
+                    return item.getName().toLowerCase().contains(filter.toLowerCase())
+                            || d.getUniqueId().contains(filter);
+                }
+            }
+        };
+        deviceFilter.bind(this.deviceStore);
+
+        // geo-fences
+        geoFencesTabConfig = new TabItemConfig(i18n.overlayType(UserSettings.OverlayType.GEO_FENCES));
+        
+        GeoFenceProperties geoFenceProperties = GWT.create(GeoFenceProperties.class);
+
+        geoFenceListView = new ListView<GeoFence, String>(geoFenceStore, geoFenceProperties.name()) {
+            @Override
+            protected void onMouseDown(Event e) {
+                int index = indexOf(e.getEventTarget().<Element>cast());
+                if (index != -1) {
+                    geoFenceHandler.onSelected(geoFenceListView.getStore().get(index));
+                }
+                super.onMouseDown(e);
+            }
+        };
+        geoFenceListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        geoFenceListView.getSelectionModel().addSelectionChangedHandler(geoFenceSelectionHandler);
+        geoFenceListView.setContextMenu(createGfContextMenu());
+        
+        gfFilter = new StoreFilterField<GeoFence>() {
+            @Override
+            protected boolean doSelect(Store<GeoFence> store, GeoFence parent, GeoFence item, String filter) {
+                return filter.trim().isEmpty() 
+                        || item.getName().toLowerCase().contains(filter.toLowerCase());
+            }
+            
+        };
+        gfFilter.bind(this.geoFenceStore);
+
+        geoFenceHandler.setGeoFenceListView(geoFenceListView);
+        
+        tracksTabConfig = new TabItemConfig(i18n.tracks());
+        prepareRouteGrid(routeStore, reportHandler);
+
+        // tab panel
+        objectsTabs = new TabPanel();
+
+        uiBinder.createAndBindUi(this);
+        
+        User user = ApplicationContext.getInstance().getUser();
+        if(!user.hasPermission(UserPermission.GEOFENCE_READ)) {
+            objectsTabs.remove(geoFenceList);
+        }
+        if(!user.hasPermission(UserPermission.TRACK_READ)) {
+            objectsTabs.remove(routeGrid);
+        }
+        
+        grid.getSelectionModel().addSelectionChangedHandler(deviceSelectionHandler);
+        grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+
+        view.setAutoFill(true);
+        view.setForceFit(true);
+        view.setSortingEnabled(false);
+        
+        toggleManagementButtons(null);
+    }
+
+    private void prepareDeviceGrid(final ListStore<Device> globalDeviceStore,
+            final GroupStore groupStore,
+            final DeviceVisibilityHandler deviceVisibilityHandler,
+            final ReportsMenu.ReportHandler reportHandler) {
         final Resources resources = GWT.create(Resources.class);
-        HeaderIconTemplate headerTemplate = GWT.create(HeaderIconTemplate.class);
-
         List<ColumnConfig<GroupedDevice, ?>> columnConfigList = new LinkedList<>();
 
         //'Visible' column
@@ -709,13 +790,13 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         }, 0, i18n.name());
         colName.setCell(new AbstractCell<GroupedDeviceBinding>(BrowserEvents.MOUSEOVER, BrowserEvents.MOUSEOUT) {
             @Override
-            public void render(Context context, GroupedDeviceBinding value, SafeHtmlBuilder sb) {
+            public void render(Cell.Context context, GroupedDeviceBinding value, SafeHtmlBuilder sb) {
                 if (value == null) 
                     return;
                 value.bindName(sb);
             }
 
-            public void onBrowserEvent(Context context, Element parent, GroupedDeviceBinding value, NativeEvent event, ValueUpdater<GroupedDeviceBinding> valueUpdater) {
+            public void onBrowserEvent(Cell.Context context, Element parent, GroupedDeviceBinding value, NativeEvent event, ValueUpdater<GroupedDeviceBinding> valueUpdater) {
                 if (event.getType().equals(BrowserEvents.MOUSEOVER) || event.getType().equals(BrowserEvents.MOUSEOUT)) {
                     Element target = Element.as(event.getEventTarget());
                     Tree.TreeNode<GroupedDevice> node = grid.findNode(target);
@@ -891,82 +972,6 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         };
         grid.setView(view);
         grid.setContextMenu(createDeviceGridContextMenu(reportHandler));
-
-        // configure device store filtering
-        deviceFilter = new StoreFilterField<GroupedDevice>() {
-            @Override
-            protected boolean doSelect(Store<GroupedDevice> store, GroupedDevice parent, GroupedDevice item, String filter) {
-                return filter.trim().isEmpty() || matches(item, filter);
-            }
-
-            boolean matches(GroupedDevice item, String filter) {
-                if (deviceStore.isGroup(item)) {
-                    for (GroupedDevice child : deviceStore.getChildren(item)) {
-                        if (matches(child, filter)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                } else {
-                    Device d = (Device) item;
-                    for(User u : d.getUsers())
-                        if(u.getLogin().toLowerCase().contains(filter.toLowerCase()))
-                            return true;
-                    return item.getName().toLowerCase().contains(filter.toLowerCase())
-                            || d.getUniqueId().contains(filter);
-                }
-            }
-        };
-        deviceFilter.bind(this.deviceStore);
-
-        // geo-fences
-        geoFencesTabConfig = new TabItemConfig(i18n.overlayType(UserSettings.OverlayType.GEO_FENCES));
-        
-        GeoFenceProperties geoFenceProperties = GWT.create(GeoFenceProperties.class);
-
-        geoFenceListView = new ListView<GeoFence, String>(geoFenceStore, geoFenceProperties.name()) {
-            @Override
-            protected void onMouseDown(Event e) {
-                int index = indexOf(e.getEventTarget().<Element>cast());
-                if (index != -1) {
-                    geoFenceHandler.onSelected(geoFenceListView.getStore().get(index));
-                }
-                super.onMouseDown(e);
-            }
-        };
-        geoFenceListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        geoFenceListView.getSelectionModel().addSelectionChangedHandler(geoFenceSelectionHandler);
-        
-        gfFilter = new StoreFilterField<GeoFence>() {
-            @Override
-            protected boolean doSelect(Store<GeoFence> store, GeoFence parent, GeoFence item, String filter) {
-                return filter.trim().isEmpty() 
-                        || item.getName().toLowerCase().contains(filter.toLowerCase());
-            }
-            
-        };
-        gfFilter.bind(this.geoFenceStore);
-
-        geoFenceHandler.setGeoFenceListView(geoFenceListView);
-        
-        tracksTabConfig = new TabItemConfig(i18n.tracks());
-        prepareRouteGrid(routeStore, reportHandler);
-
-        // tab panel
-        objectsTabs = new TabPanel();
-
-        uiBinder.createAndBindUi(this);
-        
-        User user = ApplicationContext.getInstance().getUser();
-        if(!user.hasPermission(UserPermission.GEOFENCE_READ)) {
-            objectsTabs.remove(geoFenceList);
-        }
-        if(!user.hasPermission(UserPermission.TRACK_READ)) {
-            objectsTabs.remove(routeGrid);
-        }
-        
-        grid.getSelectionModel().addSelectionChangedHandler(deviceSelectionHandler);
-        grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         
         grid.addHeaderClickHandler(new HeaderClickHandler() {
             private static final String CHECKED = "<input type=\"checkbox\" checked></input>";
@@ -999,18 +1004,12 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         grid.addCellDoubleClickHandler(this);
         grid.setAutoExpand(true);
 
-        view.setAutoFill(true);
-        view.setForceFit(true);
-        view.setSortingEnabled(false);
-
         GridEditing<GroupedDevice> editing = new GridInlineEditing<>(grid);
         view.setShowDirtyCells(false);
         editing.addEditor(colFollow, new CheckBox());
         editing.addEditor(colRecordTrace, new CheckBox());
-        
-        toggleManagementButtons(null);
     }
-
+    
     private void prepareRouteGrid(ListStore<Route> routeStore, 
             ReportsMenu.ReportHandler rHandler) {        
         List<ColumnConfig<Route, ?>> ccList = new ArrayList<>();
@@ -1030,6 +1029,24 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             } 
         }, 1, "name");
         ccList.add(cName);
+        ColumnConfig<Route, String> cProgress = new ColumnConfig<>(new ValueProvider<Route, String>() {
+            @Override
+            public String getValue(Route object) {
+                return object.getDonePointsCount()+"/"+object.getRoutePoints().size();
+            }
+
+            @Override
+            public void setValue(Route object, String value) {
+            }
+
+            @Override
+            public String getPath() {
+                return "progress";
+            }
+            
+        }, 50, "progress");
+        ccList.add(cProgress);
+        
         ColumnConfig<Route, String> cStatus = new ColumnConfig<>(new ValueProvider<Route, String>() {
             @Override
             public String getValue(Route object) {
@@ -1107,30 +1124,10 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         }
     }
 
-    @UiHandler("editButton")
-    public void onEditClicked(SelectEvent event) {
-        if(editingRoutes()) {
-            routeHandler.onEdit(routeGrid.getSelectionModel().getSelectedItem());
-        } else if (editingGeoFences()) {
-            geoFenceHandler.onEdit(geoFenceListView.getSelectionModel().getSelectedItem());
-        } else {
-            editDevice();
-        }
-    }
-
     private void editDevice() {
         GroupedDevice node = grid.getSelectionModel().getSelectedItem();
         if (deviceStore.isDevice(node)) {
             deviceHandler.onEdit(deviceStore.getDevice(node));
-        }
-    }
-
-    @UiHandler("shareButton")
-    public void onShareClicked(SelectEvent event) {
-        if (editingGeoFences()) {
-            geoFenceHandler.onShare(geoFenceListView.getSelectionModel().getSelectedItem());
-        } else {
-            shareDevice();
         }
     }
 
@@ -1141,27 +1138,11 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         }
     }
 
-    @UiHandler("removeButton")
-    public void onRemoveClicked(SelectEvent event) {
-        if(editingRoutes()) {
-            routeHandler.onRemove(routeGrid.getSelectionModel().getSelectedItem());
-        } else if (editingGeoFences()) {
-            geoFenceHandler.onRemove(geoFenceListView.getSelectionModel().getSelectedItem());
-        } else {
-           removeDevice();
-        }
-    }
-
     private void removeDevice() {
         GroupedDevice node = grid.getSelectionModel().getSelectedItem();
         if (deviceStore.isDevice(node)) {
             deviceHandler.onRemove(deviceStore.getDevice(node));
         }
-    }
-
-    @UiHandler("commandButton")
-    public void onCommandClicked(SelectEvent event) {
-        sendCommand();
     }
 
     private void sendCommand() {
@@ -1194,7 +1175,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     }
     
     private boolean editingRoutes() {
-        return objectsTabs.getActiveWidget() == routeGrid;
+        return objectsTabs.getActiveWidget() == routeList;
     }
 
     private void toggleManagementButtons(Object selection) {
@@ -1206,19 +1187,13 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         addButton.setEnabled((editingDevices() && user.hasPermission(UserPermission.DEVICE_EDIT))|| 
                 (editingGeoFences() && user.hasPermission(UserPermission.GEOFENCE_EDIT)) || 
                 (editingRoutes() && user.hasPermission(UserPermission.TRACK_EDIT)));
-        editButton.setEnabled(selection != null && (
-                (editingDevices() && user.hasPermission(UserPermission.DEVICE_EDIT)) || 
-                (editingGeoFences() && user.hasPermission(UserPermission.GEOFENCE_EDIT)) || 
-                (editingRoutes() && user.hasPermission(UserPermission.TRACK_EDIT))));
-        removeButton.setEnabled(editButton.isEnabled());
-        commandButton.setEnabled(selection != null && editingDevices() &&
-                user.hasPermission(UserPermission.COMMAND_TCP));
-        shareButton.setEnabled(selection != null && (
-                (editingDevices() && user.hasPermission(UserPermission.DEVICE_SHARE)) ||
-                (editingGeoFences() && user.hasPermission(UserPermission.GEOFENCE_SHARE)) ||
-                (editingRoutes() && user.hasPermission(UserPermission.TRACK_SHARE))));
     }
 
+    @UiHandler("showArchivedRoutes")
+    public void onShowArchivedRoutesClicked(SelectEvent event) {
+        routeHandler.onShowArchived();
+    }
+    
     interface HeaderIconTemplate extends XTemplates {
         @XTemplate("<div style=\"text-align:center;\">{img}</div>")
         SafeHtml render(SafeHtml img);
@@ -1313,11 +1288,51 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         return menu;
     }
     
+    private Menu createGfContextMenu() {
+        Menu menu = new Menu();
+        User user = ApplicationContext.getInstance().getUser();
+        if(user.hasPermission(UserPermission.GEOFENCE_EDIT)) {
+            MenuItem edit = new MenuItem(i18n.edit());
+            edit.addSelectionHandler(new SelectionHandler<Item>() {
+                @Override
+                public void onSelection(SelectionEvent<Item> event) {
+                    geoFenceHandler.onEdit(geoFenceListView.getSelectionModel().getSelectedItem());
+                }
+            });
+            menu.add(edit);
+        }
+        
+        if(user.hasPermission(UserPermission.GEOFENCE_SHARE)) {
+            MenuItem share = new MenuItem(i18n.share());
+            share.addSelectionHandler(new SelectionHandler<Item>(){
+                @Override
+                public void onSelection(SelectionEvent<Item> event) {
+                    geoFenceHandler.onShare(geoFenceListView.getSelectionModel().getSelectedItem());
+                }
+            });
+            menu.add(share);
+        }
+        
+        if(user.hasPermission(UserPermission.GEOFENCE_EDIT)) {
+            MenuItem remove = new MenuItem(i18n.remove());
+            remove.addSelectionHandler(new SelectionHandler<Item>() {
+                @Override
+                public void onSelection(SelectionEvent<Item> event) {
+                    geoFenceHandler.onRemove(geoFenceListView.getSelectionModel().getSelectedItem());
+                }
+            });
+            menu.add(remove);
+        }
+        
+        return menu;
+    }
+    
     private Menu createRouteContextMenu(final ReportsMenu.ReportHandler reportHandler) {
         Menu menu = new Menu();
         User user = ApplicationContext.getInstance().getUser();
+        
+        final MenuItem edit = new MenuItem(i18n.edit());
         if (user.hasPermission(UserPermission.TRACK_EDIT)) {
-            MenuItem edit = new MenuItem(i18n.edit());
             edit.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override
                 public void onSelection(SelectionEvent<Item> event) {
@@ -1326,8 +1341,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             });
             menu.add(edit);
         }
+        
+        final MenuItem remove = new MenuItem(i18n.remove());
         if (user.hasPermission(UserPermission.TRACK_EDIT)) {
-            MenuItem remove = new MenuItem(i18n.remove());
             remove.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override
                 public void onSelection(SelectionEvent<Item> event) {
@@ -1336,15 +1352,28 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             });
             menu.add(remove);
         }
+        
         final MenuItem archive = new MenuItem(i18n.addToArchive());
         if(user.hasPermission(UserPermission.TRACK_EDIT)) {
             archive.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override
                 public void onSelection(SelectionEvent<Item> event) {
-                    routeHandler.onAddToArchive(routeGrid.getSelectionModel().getSelectedItem());
+                    Route route = routeGrid.getSelectionModel().getSelectedItem();
+                    routeHandler.onArchivedChanged(route, true);
                 }
             });
             menu.add(archive);
+        }
+        
+        final MenuItem duplicate = new MenuItem(i18n.duplicateRoute());
+        if(user.hasPermission(UserPermission.TRACK_EDIT)) {
+            duplicate.addSelectionHandler(new SelectionHandler<Item>() {
+                @Override
+                public void onSelection(SelectionEvent<Item> event) {
+                    Route r = new Route(routeGrid.getSelectionModel().getSelectedItem());
+                    routeHandler.onEdit(r);
+                }
+            });
         }
         
         final MenuItem report = new MenuItem(i18n.report());
@@ -1362,16 +1391,31 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             menu.add(report);
         }
         
-        menu.addMaximizeHandler(new MaximizeHandler() {
+        final MenuItem abort = new MenuItem(i18n.abortRoute());
+        if(user.hasPermission(UserPermission.TRACK_EDIT)) {
+            abort.addSelectionHandler(new SelectionHandler<Item>() {
+                @Override 
+                public void onSelection(SelectionEvent<Item> event) {
+                    routeHandler.onAbort(routeGrid.getSelectionModel().getSelectedItem());
+                }
+            });
+            menu.add(abort);
+        }
+        
+        routeGrid.addBeforeShowContextMenuHandler(new BeforeShowContextMenuHandler() {
             @Override
-            public void onMaximize(MaximizeEvent event) {
+            public void onBeforeShowContextMenu(BeforeShowContextMenuEvent event) {
                 Route route = routeGrid.getSelectionModel().getSelectedItem();
-                report.setVisible(route.getDevice() != null &&
+                boolean inProgress = route.getStatus() == Route.Status.IN_PROGRESS_OK
+                        || route.getStatus() == Route.Status.IN_PROGRESS_LATE;
+                report.setEnabled(route.getStatus() != Route.Status.NEW && 
+                        route.getDevice() != null &&
                         route.getDevice().getSubscriptionDaysLeft(new Date()) > 0);
-                archive.setVisible(route.getStatus() == Route.Status.IN_PROGRESS_OK
-                        || route.getStatus() == Route.Status.IN_PROGRESS_LATE);
+                edit.setEnabled(inProgress || route.getStatus() == Route.Status.NEW);
+                archive.setEnabled(!inProgress);
+                remove.setEnabled(!inProgress);
+                abort.setEnabled(inProgress);
             }
-            
         });
         
         return menu;

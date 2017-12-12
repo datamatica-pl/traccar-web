@@ -34,10 +34,6 @@
       <container:child layoutData="{toolBarRowData}">
         <toolbar:ToolBar ui:field="toolbar">
           <button:TextButton ui:field="addButton" text="{i18n.add}" />
-          <button:TextButton ui:field="editButton" text="{i18n.edit}" enabled="false" />
-          <button:TextButton ui:field="shareButton" text="{i18n.share}" enabled="false" />
-          <button:TextButton ui:field="removeButton" text="{i18n.remove}" enabled="false" />
-          <button:TextButton ui:field="commandButton" text="{i18n.command}" enabled="false" />
         </toolbar:ToolBar>
       </container:child>
       
@@ -66,7 +62,14 @@
           </gxt:child>
           
           <gxt:child config="{tracksTabConfig}">
-            <grid:Grid ui:field="routeGrid" />
+            <container:VerticalLayoutContainer ui:field="routeList">
+              <container:child layoutData="{layoutData}">
+                <grid:Grid ui:field="routeGrid" />
+              </container:child>
+              <container:child layoutData="{toolBarRowData}">
+                <button:TextButton ui:field="showArchivedRoutes" text="Pokaż zarchiwizowane trasy"/>
+              </container:child>
+            </container:VerticalLayoutContainer>
           </gxt:child>
         </gxt:TabPanel>
       </container:child>

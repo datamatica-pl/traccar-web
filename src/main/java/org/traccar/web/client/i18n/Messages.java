@@ -698,4 +698,11 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String errNoReportRouteSelected();
 
     String addToArchive();
+    String abortRoute();
+    String duplicateRoute();
+    String showArchivedRoutes();
+    String restoreRoute();
+    String deadline();
+    String archiveAfter();
+    String tolerance();
 }
