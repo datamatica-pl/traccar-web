@@ -49,7 +49,7 @@ public class DevicePositionsService {
         if(us.isHideZeroCoordinates())
             url.append("&hideZero");
         if(us.getMinDistance() != null)
-            url.append("&minDistance=").append(us.getMinDistance()*1000);
+            url.append("&minDistance=").append(Math.round(us.getMinDistance() * 1000));
         if(us.getSpeedForFilter() != null && us.getSpeedModifier() != null) {
             String speedComp = speedCompFromSpeedModifier(us.getSpeedModifier());
             url.append("&speedComp=").append(speedComp)
