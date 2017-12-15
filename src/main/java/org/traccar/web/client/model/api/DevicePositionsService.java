@@ -53,8 +53,7 @@ public class DevicePositionsService {
         if(us.getSpeedForFilter() != null && us.getSpeedModifier() != null) {
             String speedComp = speedCompFromSpeedModifier(us.getSpeedModifier());
             url.append("&speedComp=").append(speedComp)
-                    .append("&speedValue=").append(SpeedUnit.kilometersPerHour.getFactor()
-                            *us.getSpeedForFilter()/us.getSpeedUnit().getFactor());
+                    .append("&speedValue=").append(us.getSpeedForFilter() / us.getSpeedUnit().getFactor());
         }
         String addr = url.toString().replace("+", "%2B");
         RequestBuilder rb = new RequestBuilder(RequestBuilder.GET, addr);
