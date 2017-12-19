@@ -400,6 +400,10 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String errUserSessionExpired();
 
     String errUserDisconnected();
+    
+    String userAddedTitle();
+    
+    String userAddedMessage();
 
     String firstName();
 
