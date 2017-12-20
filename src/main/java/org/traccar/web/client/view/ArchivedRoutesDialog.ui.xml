@@ -24,7 +24,7 @@
     <gxt:Window ui:field="window" pixelSize="400, -1" modal="true" headingText="{i18n.archivedRoutes}">
         <gxt:ListView ui:field="routesListView" />
         <gxt:button>
-          <button:TextButton text="{i18n.close}"/>
+          <button:TextButton ui:field="closeButton" text="{i18n.close}"/>
         </gxt:button>
     </gxt:Window>
     

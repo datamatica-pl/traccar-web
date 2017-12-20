@@ -293,8 +293,10 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             public void onBrowserEvent(Cell.Context context, Element parent, ImageResource value,
                     NativeEvent event, ValueUpdater<ImageResource> valueUpdater) {
                 super.onBrowserEvent(context, parent, value, event, valueUpdater);
-                if(!store.get(context.getIndex()).isDone())
+                if(!store.get(context.getIndex()).isDone()) {
+                    edit.cancelEditing();
                     store.remove(context.getIndex());
+                }
             }
             
         });
