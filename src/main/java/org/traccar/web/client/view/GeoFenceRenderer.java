@@ -46,6 +46,7 @@ public class GeoFenceRenderer {
     }
 
     public void drawGeoFence(GeoFence geoFence, boolean drawTitle) {
+        RouteDialog.log("draw: "+geoFence.getName());
         switch (geoFence.getType()) {
             case CIRCLE:
                 drawCircle(geoFence, drawTitle);
@@ -63,9 +64,16 @@ public class GeoFenceRenderer {
         GeoFenceDrawing drawing = getDrawing(geoFence);
         if (drawing != null) {
             getVectorLayer().removeFeature(drawing.getShape());
+            drawing.getShape().destroy();
             getVectorLayer().removeFeature(drawing.getTitle());
+            drawing.getTitle().destroy();
+//            RouteDialog.log("redraw:"+getVectorLayer().redraw());
+//            RouteDialog.log("id == 0?"+(geoFence.getId() == 0));
+            RouteDialog.log("removed "+geoFence.getName());
             drawings.remove(geoFence.getId());
-        }
+            id0.remove(geoFence);
+        } else
+            RouteDialog.log("NOT removing!");
     }
 
     private void drawCircle(GeoFence circle, boolean drawTitle) {

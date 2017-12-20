@@ -352,6 +352,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 store.commitChanges();
                 final RoutePointWrapper p = grid.getSelectionModel().getSelectedItem();
                 
+                gfRenderer.removeGeoFence(p.getRoutePoint().getGeofence());
                 MatchResult m = latLonPatt.exec(event.getValue());
                 if(m == null) {
                     Geocoder.search(event.getValue(), new SearchCallback() {
@@ -382,6 +383,14 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         rad.addValidator(new MaxNumberValidator<>(1500));
         rad.addValidator(new MinNumberValidator<>(300));
         edit.addEditor(cRadius, rad);
+        rad.addValueChangeHandler(new ValueChangeHandler<Integer>(){
+            @Override
+            public void onValueChange(ValueChangeEvent<Integer> event) {
+                RoutePointWrapper rpw = grid.getSelectionModel().getSelectedItem();
+                rpw.setRadius(event.getValue());
+                store.update(rpw);
+            }
+        });
         
         List<String> gfNames = new ArrayList<>();
         final Map<String, GeoFence> gfMap= new HashMap<>();
@@ -399,9 +408,12 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 store.commitChanges();
                 RoutePointWrapper p = grid.getSelectionModel().getSelectedItem();
                 gfRenderer.removeGeoFence(p.getRoutePoint().getGeofence());
-                p.setGeofence(gfMap.get(event.getValue()));
-                gfRenderer.drawGeoFence(p.getRoutePoint().getGeofence(), true);
-                gfRenderer.selectGeoFence(p.getRoutePoint().getGeofence());
+                if(gfMap.containsKey(event.getValue())) {
+                    p.setGeofence(gfMap.get(event.getValue()));
+                    gfRenderer.drawGeoFence(p.getRoutePoint().getGeofence(), true);
+                    gfRenderer.selectGeoFence(p.getRoutePoint().getGeofence());
+                } else
+                    p.setName(event.getValue());
                 store.update(p);
             }
         });
@@ -421,6 +433,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         edit.addBeforeStartEditHandler(new BeforeStartEditHandler<RoutePointWrapper>() {
             @Override
             public void onBeforeStartEdit(BeforeStartEditEvent<RoutePointWrapper> event) {
+                log("before edit");
                 RoutePointWrapper pt = store.get(event.getEditCell().getRow());
                 if(pt.isLoading() || pt.isDone())
                     event.setCancelled(true);
@@ -432,6 +445,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 gfRenderer.selectGeoFence(pt.getRoutePoint().getGeofence());
                 if(event.getEditCell().getCol() == 5)
                     previousDeadline = pt.getDeadline();
+                log("cancelled?"+event.isCancelled());
             }
         });
         
@@ -485,6 +499,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         store.addStoreHandlers(new StoreHandlers<RoutePointWrapper>() {
             @Override
             public void onAdd(StoreAddEvent<RoutePointWrapper> event) {
+                log("add");
                 for(RoutePointWrapper pt : event.getItems()) {
                     GeoFence gf = pt.getRoutePoint().getGeofence();
                     if(!gf.points().isEmpty())
@@ -495,6 +510,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
 
             @Override
             public void onRemove(StoreRemoveEvent<RoutePointWrapper> event) {
+                log("remove");
                 GeoFence gf = event.getItem().getRoutePoint().getGeofence();
                 gfRenderer.removeGeoFence(gf);
                 drawPolyline();
@@ -510,10 +526,18 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
 
             @Override
             public void onUpdate(StoreUpdateEvent<RoutePointWrapper> event) {
+                log("update");
                 if(ignoreUpdate)
                     return;
-                if(!event.getItems().isEmpty())
+                if(!event.getItems().isEmpty()) {
+                    for(RoutePointWrapper rpw : event.getItems()) {
+                        gfRenderer.removeGeoFence(rpw.getRoutePoint().getGeofence());
+                    }
                     drawPolyline();
+                    for(RoutePointWrapper rpw : event.getItems()) {
+                        gfRenderer.drawGeoFence(rpw.getRoutePoint().getGeofence(), true);
+                    }
+                }
             }
 
             @Override
@@ -543,6 +567,10 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             gfRenderer.drawGeoFence(route.getCorridor(), false);
         routeDrawer.onResult(lineString, new double[0]);
     }
+    
+    public static native void log(String msg) /*-{
+        console.log(msg);
+    }-*/;
     
     private void prepareDND() {
         GridDragSource<RoutePointWrapper> dragSource = new GridDragSource<>(grid);

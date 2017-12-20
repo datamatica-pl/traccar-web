@@ -701,6 +701,7 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String abortRoute();
     String duplicateRoute();
     String showArchivedRoutes();
+    String archivedRoutes();
     String restoreRoute();
     String deadline();
     String archiveAfter();
