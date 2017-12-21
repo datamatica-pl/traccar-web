@@ -167,22 +167,6 @@
             </container:HorizontalLayoutContainer>
         </container:child>
         
-        <container:child layoutData="{v24px}">
-            <form:FieldLabel ui:text="Wymuś pierwszy">
-                <form:widget>
-                    <form:CheckBox ui:field="forceFirst" />
-                </form:widget>
-            </form:FieldLabel>
-        </container:child>
-        
-        <container:child layoutData="{v24px}">
-            <form:FieldLabel ui:text="Wymuś ostatni">
-                <form:widget>
-                    <form:CheckBox ui:field="forceLast" />
-                </form:widget>
-            </form:FieldLabel>
-        </container:child>
-        
       </container:VerticalLayoutContainer>
       
     <gxt:button>
