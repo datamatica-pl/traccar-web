@@ -23,11 +23,8 @@ import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
-import com.google.gwt.editor.client.EditorError;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.event.shared.GwtEvent;
-import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 import com.google.gwt.regexp.shared.MatchResult;
@@ -46,7 +43,6 @@ import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
-import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreClearEvent;
 import com.sencha.gxt.data.shared.event.StoreDataChangeEvent;
@@ -67,20 +63,16 @@ import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent.BeforeStartEditHandler;
-import com.sencha.gxt.widget.core.client.event.BlurEvent;
 import com.sencha.gxt.widget.core.client.event.CompleteEditEvent;
 import com.sencha.gxt.widget.core.client.event.CompleteEditEvent.CompleteEditHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
-import com.sencha.gxt.widget.core.client.form.DateField;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
-import com.sencha.gxt.widget.core.client.form.IsField;
 import com.sencha.gxt.widget.core.client.form.NumberField;
 import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor;
 import com.sencha.gxt.widget.core.client.form.StringComboBox;
 import com.sencha.gxt.widget.core.client.form.TextField;
-import com.sencha.gxt.widget.core.client.form.TimeField;
 import com.sencha.gxt.widget.core.client.form.validator.MaxNumberValidator;
 import com.sencha.gxt.widget.core.client.form.validator.MinNumberValidator;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
@@ -109,7 +101,6 @@ import org.gwtopenmaps.openlayers.client.layer.OSM;
 import org.gwtopenmaps.openlayers.client.layer.Vector;
 import org.gwtopenmaps.openlayers.client.Style;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.utils.ConstValueProvider;
 import org.traccar.web.client.utils.Geocoder;
 import org.traccar.web.client.utils.Geocoder.SearchCallback;
 import org.traccar.web.client.utils.RoutePolylineFinder;
@@ -185,7 +176,11 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             polyline = new VectorFeature(ls, st);
             gfLayer.addFeature(polyline);
             
-            List<RoutePointWrapper> rpws = store.getAll();
+            List<RoutePointWrapper> rpws = new ArrayList<>(store.getAll());
+            if(!rpws.get(0).getForced())
+                rpws.remove(0);
+            if(!rpws.get(rpws.size()-1).getForced())
+                rpws.remove(rpws.size()-1);
             Date deadline = rpws.get(0).getDeadline();
             if(deadline != null) {
                 for(int i=1;i < rpws.size();++i) {
@@ -617,8 +612,10 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         }
         for(RoutePointWrapper pt : list) {
             LonLat center = pt.getCenter();
-            if(center == null)
-                continue;
+            if(center == null) {
+                endComputingPath();
+                return;
+            }
             pts.add(center);
         }
         if(pts.size() < 2) {
