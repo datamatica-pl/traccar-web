@@ -31,6 +31,7 @@ import com.google.gwt.dom.client.EventTarget;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.resources.client.ClientBundle.Source;
 import com.google.gwt.resources.client.ImageResource;
@@ -82,6 +83,7 @@ import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 import com.sencha.gxt.widget.core.client.treegrid.TreeGrid;
 import com.sencha.gxt.widget.core.client.treegrid.TreeGridView;
+import java.text.DateFormat;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseStoreHandlers;
@@ -131,6 +133,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     public interface RouteHandler {
         void onAdd();
         void onEdit(Route selectedItem);
+        void onDuplicate(Route selectedItem);
         void onRemove(Route selectedItem);
         void onSelected(Route route);
         public void onAbort(Route selectedItem);
@@ -1370,10 +1373,10 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             duplicate.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override
                 public void onSelection(SelectionEvent<Item> event) {
-                    Route r = new Route(routeGrid.getSelectionModel().getSelectedItem());
-                    routeHandler.onEdit(r);
+                    routeHandler.onDuplicate(routeGrid.getSelectionModel().getSelectedItem());
                 }
             });
+            menu.add(duplicate);
         }
         
         final MenuItem report = new MenuItem(i18n.report());

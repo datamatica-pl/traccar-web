@@ -16,11 +16,17 @@
 package org.traccar.web.client.controller;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.i18n.client.DateTimeFormat;
+import com.google.gwt.user.datepicker.client.CalendarUtil;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent.StoreRemoveHandler;
 import com.sencha.gxt.widget.core.client.ContentPanel;
+import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
+import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
+import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import org.traccar.web.client.Application;
@@ -100,10 +106,32 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
         }, deviceStore, geoFenceStore).show();
     }
     
+    @Override
+    public void onDuplicate(final Route selectedItem) {
+        DateTimeFormat sdf = DateTimeFormat.getFormat("yyyyMMdd");
+        Route r = new Route(selectedItem);
+        r.setName(r.getName()+"_"+sdf.format(new Date()));
+        if(!selectedItem.getRoutePoints().isEmpty()) {
+            int dayDiff = CalendarUtil.getDaysBetween(selectedItem.getRoutePoints()
+                    .get(0).getDeadline(), new Date());
+            r.getRoutePoints().clear();
+            for(RoutePoint rp : selectedItem.getRoutePoints()) {
+                RoutePoint pt = new RoutePoint();
+                Date deadline = new Date(rp.getDeadline().getTime());
+                CalendarUtil.addDaysToDate(deadline, dayDiff);
+                pt.setDeadline(deadline);
+                pt.setGeofence(rp.getGeofence());
+                r.getRoutePoints().add(pt);
+            }
+        }
+        onEdit(r);
+    }
+    
     private void updateGeofences(final Route addedRoute) {
         for(RoutePoint pt : addedRoute.getRoutePoints()) {
-            pt.getGeofence().setDevices(new HashSet<>(
-                    pt.getGeofence().getTransferDevices()));
+            if(pt.getGeofence().getTransferDevices() != null)
+                pt.getGeofence().setDevices(new HashSet<>(
+                        pt.getGeofence().getTransferDevices()));
             String key = Long.toString(pt.getGeofence().getId());
             if(geoFenceStore.findModelWithKey(key) == null) {
                 geoFenceStore.add(pt.getGeofence());
@@ -120,13 +148,22 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     
     @Override
     public void onRemove(final Route route) {
-        Application.getDataService().removeRoute(route,
-                new BaseAsyncCallback<Route>(i18n) {
-                    @Override
-                    public void onSuccess(final Route removed) {
-                        routeStore.remove(route);
-                    }
-                });
+        final ConfirmMessageBox dialog = new ConfirmMessageBox(i18n.confirm(), i18n.confirmRouteRemoval());
+        dialog.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {
+            @Override
+            public void onDialogHide(DialogHideEvent event) {
+                if (event.getHideButton() == PredefinedButton.YES) {
+                    Application.getDataService().removeRoute(route,
+                        new BaseAsyncCallback<Route>(i18n) {
+                            @Override
+                            public void onSuccess(final Route removed) {
+                                routeStore.remove(route);
+                            }
+                        });
+                }
+            }
+        });
+        dialog.show();
     }
     
     @Override
@@ -145,6 +182,10 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
         throw new UnsupportedOperationException();
     }
 
+    public static native void log(String msg) /*-{
+        console.log(msg);
+    }-*/;
+    
     @Override
     public void run() {
         Application.getDataService().getRoutes(new BaseAsyncCallback<List<Route>>(i18n) {
@@ -157,7 +198,14 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
 
     @Override
     public void onAbort(Route selectedItem) {
-        //todo 2017-12-04
+        selectedItem.setStatus(Route.Status.CANCELLED);
+        selectedItem.setCancelTimestamp(new Date());
+        Application.getDataService().updateRoute(selectedItem, new BaseAsyncCallback<Route>(i18n) {
+            @Override
+            public void onSuccess(Route result) {
+                routeStore.update(result);
+            }
+        });
     }
     
     @Override

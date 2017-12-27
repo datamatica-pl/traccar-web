@@ -100,6 +100,7 @@ import org.gwtopenmaps.openlayers.client.geometry.Point;
 import org.gwtopenmaps.openlayers.client.layer.OSM;
 import org.gwtopenmaps.openlayers.client.layer.Vector;
 import org.gwtopenmaps.openlayers.client.Style;
+import org.traccar.web.client.controller.RouteController;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.utils.Geocoder;
 import org.traccar.web.client.utils.Geocoder.SearchCallback;
@@ -136,9 +137,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     TextButton addButton;
     
     @UiField
-    NumberField tolerance;
+    NumberField<Integer> tolerance;
     @UiField
-    NumberField archiveAfter;
+    NumberField<Integer> archiveAfter;
     
     @UiField
     CheckBox createCorridor;
@@ -182,11 +183,12 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             if(!rpws.get(rpws.size()-1).getForced())
                 rpws.remove(rpws.size()-1);
             Date deadline = rpws.get(0).getDeadline();
-            if(deadline != null) {
+            if(deadline != null && distances != null) {
                 for(int i=1;i < rpws.size();++i) {
                     if(distances.length > i-1)
                         deadline = new Date(deadline.getTime() + (long)(distances[i-1]/1000)*60*1000);
-                    rpws.get(i).setDeadline(deadline);
+                    if(rpws.get(i).getDeadline() == null)
+                        rpws.get(i).setDeadline(deadline);
                     ignoreUpdate = true;
                     store.update(rpws.get(i));
                     ignoreUpdate = false;
@@ -330,6 +332,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 new ValueProvider<RoutePointWrapper, Date>() {
             @Override
             public Date getValue(RoutePointWrapper object) {
+                if(object.getDeadline() == null)
+                    return new Date();
                 return object.getDeadline();
             }
 
@@ -569,7 +573,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         }
         if(route.getCorridor() != null)
             gfRenderer.drawGeoFence(route.getCorridor(), false);
-        routeDrawer.onResult(lineString, new double[0]);
+        routeDrawer.onResult(lineString, null);
     }
     
     private void prepareDND() {
@@ -704,6 +708,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             gll[i] = new pl.datamatica.traccar.model.GeoFence.LonLat(lineString[i].lon(),
                 lineString[i].lat());
         route.setLinePoints(gll);
+        
+        route.setTolerance(tolerance.getValue());
+        route.setArchiveAfter(archiveAfter.getValue());
 
         if(createCorridor.getValue()) {
             GeoFence corridor;
@@ -814,9 +821,6 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         }
         
         public Date getDeadline() {
-            if(pt.getDeadline() == null) {
-                pt.setDeadline(new Date());
-            }
             return pt.getDeadline();
         }
         
