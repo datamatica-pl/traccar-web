@@ -160,7 +160,6 @@ public class UserDialog implements Editor<User> {
         }
         email.addValidator(new RegExValidator(".+@.+\\.[a-z]+", i18n.invalidEmail()));
 
-        login.setReadOnly(user.getLogin() != null);
         driver.initialize(this);
         driver.edit(user);
     }
