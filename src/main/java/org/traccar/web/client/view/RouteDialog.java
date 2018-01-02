@@ -269,7 +269,18 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         List<ColumnConfig<RoutePointWrapper, ?>> ccList = new ArrayList<>();
         ColumnConfig<RoutePointWrapper, String> cName = new ColumnConfig<>(
                 pointsAccessor.name(), 109, i18n.name());
-        cName.setCell(new GridCell<String>(store));
+        cName.setCell(new GridCell<String>(store) {
+            @Override
+            public void render(Cell.Context context, String value, SafeHtmlBuilder sb) {
+                if(context.getIndex() == 0 && "".equals(value))
+                    super.render(context, "start point", sb);
+                else if(context.getIndex() == store.size()-1 && "".equals(value))
+                    super.render(context, "end point", sb);
+                else
+                    super.render(context, value, sb);
+            }
+            
+        });
         ccList.add(cName);
         
         ColumnConfig<RoutePointWrapper, String> cAddress = new ColumnConfig<>(
@@ -461,7 +472,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         edit.addCompleteEditHandler(new CompleteEditHandler<RoutePointWrapper>() {
             @Override
             public void onCompleteEdit(CompleteEditEvent<RoutePointWrapper> event) {
-                if(event.getEditCell().getCol() != 5)
+                if(event.getEditCell().getCol() != 5 || previousDeadline == null)
                     return;
                 store.commitChanges();
                 RoutePointWrapper pt = store.get(event.getEditCell().getRow());
