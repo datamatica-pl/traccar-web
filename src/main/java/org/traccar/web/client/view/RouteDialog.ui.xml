@@ -106,7 +106,15 @@
 
   <gxt:Window ui:field="window" pixelSize="1150, 640" modal="true" 
               headingText="{i18n.trackCreation}" focusWidget="{saveButton}">
-      <container:VerticalLayoutContainer addStyleNames="{style.tabBody}">
+      <gxt:tool>
+        <g:HTMLPanel>
+          <a target="_blank" href="http://trackman.pl/#supports">
+            <g:Image url="img/help_icon.png" />
+          </a>
+        </g:HTMLPanel>
+      </gxt:tool>
+      
+    <container:VerticalLayoutContainer addStyleNames="{style.tabBody}">
         
         <container:child layoutData="{v24px}">
             <container:HorizontalLayoutContainer>
@@ -169,14 +177,6 @@
                 <container:child layoutData="{hlWrapContent}">
                     <button:TextButton ui:field="addButton" ui:text="{i18n.addToRoute}" />
                 </container:child>
-                
-                <container:child layoutData="{hlWrapContent}">
-                  <g:HTMLPanel>
-                    <a href="http://trackman.pl/#supports">
-                      <g:Label text="?" />
-                    </a>
-                  </g:HTMLPanel>
-                </container:child>
             </container:HorizontalLayoutContainer>
         </container:child>
         
@@ -194,7 +194,7 @@
           </container:HorizontalLayoutContainer>
         </container:child>
         
-      </container:VerticalLayoutContainer>
+    </container:VerticalLayoutContainer>
       
     <gxt:button>
       <button:TextButton ui:field="saveButton" text="{i18n.save}" />

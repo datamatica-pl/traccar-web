@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import org.traccar.web.client.Application;
+import org.traccar.web.client.controller.UpdatesController.RoutesListener;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.view.ArchivedRoutesDialog;
@@ -41,7 +42,7 @@ import pl.datamatica.traccar.model.Route;
 import pl.datamatica.traccar.model.RoutePoint;
 
 public class RouteController implements DeviceView.RouteHandler, ContentController,
-        ArchivedRoutesDialog.RouteHandler {
+        ArchivedRoutesDialog.RouteHandler, RoutesListener {
     private ListStore<Device> deviceStore;
     private ListStore<GeoFence> geoFenceStore;
     private MapController mapController;
@@ -181,10 +182,6 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     public ContentPanel getView() {
         throw new UnsupportedOperationException();
     }
-
-    public static native void log(String msg) /*-{
-        console.log(msg);
-    }-*/;
     
     @Override
     public void run() {
@@ -242,5 +239,10 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                 dialog.show();
             }
         });
+    }
+
+    @Override
+    public void onRoutesUpdated(List<Route> routes) {
+        routeStore.replaceAll(routes);
     }
 }
