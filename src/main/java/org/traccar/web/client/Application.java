@@ -104,9 +104,10 @@ public class Application {
         geoFenceController = new GeoFenceController(deviceStore, mapController);
         geoFenceController.getGeoFenceStore().addStoreHandlers(geoFenceStoreHandler);
         commandController = new CommandController();
-        reportsController = new ReportsController(reportStore, deviceStore, geoFenceController.getGeoFenceStore());
         routeController = new RouteController(deviceStore, geoFenceController.getGeoFenceStore(),
                 mapController);
+        reportsController = new ReportsController(reportStore, deviceStore, 
+                geoFenceController.getGeoFenceStore(), routeController.getStore());
         deviceController = new DeviceController(mapController,
                 geoFenceController,
                 commandController,

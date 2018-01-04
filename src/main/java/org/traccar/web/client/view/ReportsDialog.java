@@ -29,6 +29,7 @@ import pl.datamatica.traccar.model.Device;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.SelectElement;
 import com.google.gwt.editor.client.Editor;
+import com.google.gwt.editor.client.LeafValueEditor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;
 import com.google.gwt.event.logical.shared.BeforeSelectionEvent;
 import com.google.gwt.event.logical.shared.BeforeSelectionHandler;
@@ -43,8 +44,13 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.datepicker.client.CalendarUtil;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell;
 import com.sencha.gxt.core.client.IdentityValueProvider;
+import com.sencha.gxt.core.client.Style;
+import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.ModelKeyProvider;
+import com.sencha.gxt.data.shared.Store;
+import com.sencha.gxt.data.shared.Store.StoreFilter;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreClearEvent;
 import com.sencha.gxt.data.shared.event.StoreDataChangeEvent;
@@ -63,6 +69,7 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.*;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
+import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 import org.traccar.web.client.editor.DateTimeEditor;
 import org.traccar.web.client.editor.ListViewEditor;
 import org.traccar.web.client.i18n.Messages;
@@ -71,6 +78,7 @@ import org.traccar.web.client.widget.PeriodComboBox;
 
 import java.util.*;
 import org.traccar.web.client.ApplicationContext;
+import pl.datamatica.traccar.model.Route;
 import pl.datamatica.traccar.model.UserPermission;
 
 public class ReportsDialog implements Editor<Report> {
@@ -129,6 +137,17 @@ public class ReportsDialog implements Editor<Report> {
     final ListView<GeoFence, String> geoFencesList;
 
     final ListViewEditor<GeoFence> geoFences;
+    
+    @UiField(provided = true)
+    final ListStore<Route> routeStore;
+    
+    @UiField
+    ContentPanel routesPanel;        
+    
+    @UiField(provided = true)
+    ListView<Route, String> routesList;   
+    
+    final LeafValueEditor<Route> route;
 
     @UiField(provided = true)
     final PeriodComboBox period;
@@ -164,6 +183,7 @@ public class ReportsDialog implements Editor<Report> {
     public ReportsDialog(ListStore<Report> reportStore,
                          final ListStore<Device> deviceStore,
                          ListStore<GeoFence> geoFenceStore,
+                         ListStore<Route> routeStore,
                          ReportHandler reportHandler) {
 
         this.reportStore = reportStore;
@@ -187,7 +207,40 @@ public class ReportsDialog implements Editor<Report> {
         GeoFenceProperties geoFenceProperties = GWT.create(GeoFenceProperties.class);
         this.geoFenceStore = geoFenceStore;
         this.geoFencesList = new ListView<>(geoFenceStore, geoFenceProperties.name());
+        
+        this.routeStore = new ListStore<>(new ModelKeyProvider<Route>() {
+            @Override
+            public String getKey(Route item) {
+                return Long.toString(item.getId());
+            }
+        });
+        this.routeStore.addAll(routeStore.getAll());
+        this.routeStore.addFilter(new StoreFilter<Route>() {
+            @Override
+            public boolean select(Store<Route> store, Route parent, Route item) {
+                List<Device> sel = devicesList.getSelectionModel().getSelectedItems();
+                return item.getDevice() != null 
+                    && ((sel.isEmpty() && item.getDevice().getSubscriptionDaysLeft(new Date()) > 0)
+                        || sel.contains(item.getDevice()));
+            }
+        });
+        routesList = new ListView<>(this.routeStore, new ValueProvider<Route, String>() {
+            @Override
+            public String getValue(Route object) {
+                return object.getName();
+            }
 
+            @Override
+            public void setValue(Route object, String value) {
+            }
+
+            @Override
+            public String getPath() {
+                return "name";
+            }
+        });
+        routesList.getSelectionModel().setSelectionMode(Style.SelectionMode.SINGLE);
+        
         ListStore<ReportType> reportTypeStore = new ListStore<>(
                 new EnumKeyProvider<ReportType>());
         reportTypeStore.addAll(Arrays.asList(new ReportType[]{
@@ -221,6 +274,21 @@ public class ReportsDialog implements Editor<Report> {
         geoFencesPanel.setHeadingText(i18n.overlayType(UserSettings.OverlayType.GEO_FENCES));
         geoFences = new ListViewEditor<>(geoFencesList);
         devices = new ListViewEditor<Device>(devicesList);
+        route = new LeafValueEditor<Route>() {
+            @Override
+            public void setValue(Route value) {
+                if(value == null)
+                    routesList.getSelectionModel().deselectAll();
+                else
+                    routesList.getSelectionModel().select(Collections.singletonList(value), false);
+            }
+
+            @Override
+            public Route getValue() {
+                return routesList.getSelectionModel().getSelectedItem();
+            }
+            
+        };
         devicesList.getSelectionModel().addBeforeSelectionHandler(new BeforeSelectionHandler<Device>() {
             @Override
             public void onBeforeSelection(BeforeSelectionEvent<Device> event) {
@@ -229,6 +297,13 @@ public class ReportsDialog implements Editor<Report> {
                         && d.getSubscriptionDaysLeft(new Date()) <= 0) {
                     event.cancel();
                 }
+            }
+        });
+        devicesList.getSelectionModel().addSelectionChangedHandler(new SelectionChangedEvent.SelectionChangedHandler<Device>() {
+            @Override
+            public void onSelectionChanged(SelectionChangedEvent<Device> event) {
+                ReportsDialog.this.routeStore.setEnableFilters(false);
+                ReportsDialog.this.routeStore.setEnableFilters(true);
             }
         });
         fromDate = new DateTimeEditor(fromDateField, fromTimeField);
@@ -268,15 +343,23 @@ public class ReportsDialog implements Editor<Report> {
         report.setFormat(format);
         report.setPreview(isPreview);
         
-        int minHistory = 180;
+        if(report.getType() == ReportType.TRACK) {
+            if(report.getRoute() == null) {
+                new AlertMessageBox(i18n.error(), i18n.errNoReportRouteSelected()).show();
+                return;
+            }
+            report.setDevices(Collections.singleton(report.getRoute().getDevice()));
+        }
+        
+        int maxHistory = 2;
         for(Device d: report.getDevices()) {
             if(d.getValidTo() == null || d.getValidTo().before(new Date()))
-                minHistory = 2;
-            else if(d.getHistoryLength() < minHistory)
-                minHistory = d.getHistoryLength();
+                continue;
+            if(d.getHistoryLength() > maxHistory)
+                maxHistory = d.getHistoryLength();
         }
         Date historyStart = new Date();
-        CalendarUtil.addDaysToDate(historyStart, -minHistory);
+        CalendarUtil.addDaysToDate(historyStart, -maxHistory);
         CalendarUtil.resetTime(historyStart);
         
         if(CalendarUtil.getDaysBetween(report.getFromDate(), report.getToDate()) > 31) {
@@ -294,16 +377,6 @@ public class ReportsDialog implements Editor<Report> {
         if (!driver.hasErrors()) {
             reportHandler.onGenerate(report);
         }
-    }
-    
-    private boolean allWithSubscription(Collection<Device> devices) {
-        if(devices.isEmpty())
-            devices = deviceStore.getAll();
-        for(Device d: devices) {
-            if(d.getValidTo() == null || d.getValidTo().before(new Date()))
-                return false;
-        }
-        return true;
     }
 
     private void reportTypeChanged(ReportType type) {
@@ -325,6 +398,12 @@ public class ReportsDialog implements Editor<Report> {
             devices.setValue(sel);
         }
         devicesList.refresh();
+        
+        boolean isTrack = type == ReportType.TRACK;
+        geoFencesPanel.setVisible(!isTrack);
+        routesPanel.setVisible(isTrack);
+        
+        window.forceLayout();
     }
 
     public void selectDevice(Device device) {

@@ -40,6 +40,7 @@ public class ApiReport {
     public String reportType;
     public List<Long> deviceIds;
     public List<Long> geofenceIds;
+    public Long routeId;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ",
                 timezone="GMT")
     public Date fromDate;
@@ -73,6 +74,8 @@ public class ApiReport {
             for(GeoFence gf : report.getGeoFences())
                 if(gf != null)
                     this.geofenceIds.add(gf.getId());
+        if(report.getRoute() != null)
+            this.routeId = report.getRoute().getId();
         
         if(report.getFormat() != null)
             this.format = report.getFormat().name();

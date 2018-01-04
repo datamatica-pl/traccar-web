@@ -26,7 +26,7 @@ public class FormatterUtil {
 
         @Override
         public String format(double number) {
-            return super.format((Double.isNaN(number) ? 0d : number) * speedUnit.getFactor()) + " " + speedUnit.getUnit();
+            return super.format((Double.isNaN(number) ? 0d : number) * speedUnit.getFactorFromKmh()) + " " + speedUnit.getUnit();
         }
 
     }

@@ -182,6 +182,8 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
     @Override
     public void onEdit(Device device) {
         class UpdateHandler implements DeviceDialog.DeviceHandler {
+            Window deviceWindow = null;
+            
             @Override
             public void onSave(final Device device) {
                 Application.getDevicesService().updateDevice(device.getId(),
@@ -189,12 +191,16 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
                             @Override
                             public void onSuccess(String response) {
                                 onDevicesUpdated(Collections.singletonList(device));
+                                if (deviceWindow != null) {
+                                    deviceWindow.hide();
+                                }
                             }
                         });
             }
 
             @Override
             public void setWindow(Window window) {
+                this.deviceWindow = window;
             }
         }
         
