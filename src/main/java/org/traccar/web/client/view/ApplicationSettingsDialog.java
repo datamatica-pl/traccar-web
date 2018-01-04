@@ -164,6 +164,12 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
     public void hide() {
         window.hide();
     }
+    
+    @UiHandler("updateRules")
+    public void onUpdateRulesClicked(SelectEvent event) {
+        AddRulesVersionDialog dialog = new AddRulesVersionDialog();
+        dialog.show();
+    }
 
     @UiHandler("saveButton")
     public void onLoginClicked(SelectEvent event) {
