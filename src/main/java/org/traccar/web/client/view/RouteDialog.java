@@ -182,7 +182,14 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 rpws.remove(0);
             if(!rpws.get(rpws.size()-1).getForced())
                 rpws.remove(rpws.size()-1);
-            Date deadline = rpws.get(0).getDeadline();
+            Date deadline = null;
+            if(!rpws.isEmpty()) {
+                deadline = rpws.get(0).getDeadline();
+                if(deadline == null) {
+                    deadline = new Date();
+                    rpws.get(0).setDeadline(deadline);
+                }
+            }
             if(deadline != null && distances != null) {
                 for(int i=1;i < rpws.size();++i) {
                     if(distances.length > i-1)

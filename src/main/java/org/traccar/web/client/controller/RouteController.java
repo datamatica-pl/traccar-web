@@ -111,6 +111,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     public void onDuplicate(final Route selectedItem) {
         DateTimeFormat sdf = DateTimeFormat.getFormat("yyyyMMdd");
         Route r = new Route(selectedItem);
+        r.clearId();
         r.setName(r.getName()+"_"+sdf.format(new Date()));
         if(!selectedItem.getRoutePoints().isEmpty()) {
             int dayDiff = CalendarUtil.getDaysBetween(selectedItem.getRoutePoints()
@@ -125,7 +126,23 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                 r.getRoutePoints().add(pt);
             }
         }
-        onEdit(r);
+        r.setStatus(Route.Status.NEW);
+        
+        new RouteDialog(r, new RouteDialog.RouteHandler() {
+            @Override
+            public void onSave(final Route route, final boolean connect) {
+                Application.getDataService().addRoute(route, connect,
+                        new BaseAsyncCallback<Route>(i18n) {
+                            @Override
+                            public void onSuccess(final Route addedRoute) {
+                                updateGeofences(addedRoute);
+                                if(connect)
+                                    routeStore.add(addedRoute);
+                            }
+                        });
+            }
+            
+        }, deviceStore, geoFenceStore).show();
     }
     
     private void updateGeofences(final Route addedRoute) {
