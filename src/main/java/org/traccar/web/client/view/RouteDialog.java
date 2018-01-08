@@ -486,7 +486,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 long diff = pt.getDeadline().getTime() - previousDeadline.getTime();
                 for(int i=event.getEditCell().getRow()+1; i < store.size();++i) {
                     RoutePointWrapper rpw = store.get(i);
-                    rpw.getDeadline().setTime(rpw.getDeadline().getTime() + diff);
+                    if(rpw.getDeadline() != null)
+                        rpw.getDeadline().setTime(rpw.getDeadline().getTime() + diff);
                     ignoreUpdate = true;
                     store.update(rpw);
                     ignoreUpdate = false;
