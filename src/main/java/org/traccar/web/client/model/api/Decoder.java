@@ -294,6 +294,7 @@ public class Decoder {
                 continue;
             rv.id = aLong(obj, "id");
             rv.description = string(obj, "description");
+            rv.startDate = date(obj, "startDate");
             rv.url = string(obj, "url");
             rv.isObligatory = bool(obj, "isObligatory");
             rvs.add(rv);
