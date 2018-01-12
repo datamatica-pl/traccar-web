@@ -33,6 +33,14 @@ Uncomment this for XHTML entities
                     </form:widget>
                 </form:FieldLabel>
             </container:child>
+            
+            <container:child layoutData="{verticalLayoutData}">
+                <form:FieldLabel text="typ">
+                    <form:widget>
+                        <form:ComboBox ui:field="type" />
+                    </form:widget>
+                </form:FieldLabel>
+            </container:child>
         </container:VerticalLayoutContainer>
         
         <gxt:button>

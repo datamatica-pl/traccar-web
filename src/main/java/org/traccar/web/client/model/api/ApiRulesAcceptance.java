@@ -15,23 +15,14 @@
  */
 package org.traccar.web.client.model.api;
 
+import java.util.ArrayList;
 import java.util.List;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import org.fusesource.restygwt.client.JsonCallback;
-import org.fusesource.restygwt.client.RestService;
 
 /**
  *
  * @author ŁŁ
  */
-@Path("../api/v1/rules")
-public interface RulesService extends RestService{    
-    @POST
-    public void addNewVersion(ApiRulesVersion version, JsonCallback callback);
-    
-    @PUT
-    @Path("accept")
-    public void accept(ApiRulesAcceptance ids, JsonCallback callback);
+public class ApiRulesAcceptance {
+    public List<Long> accepted = new ArrayList<>();
+    public List<Long> rejected = new ArrayList<>();
 }

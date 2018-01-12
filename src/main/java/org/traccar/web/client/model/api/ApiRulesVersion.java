@@ -17,21 +17,27 @@ package org.traccar.web.client.model.api;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
+import pl.datamatica.traccar.model.RulesVersion;
 
 /**
  *
  * @author ŁŁ
  */
 public class ApiRulesVersion {
+    public long id;
+    public String description;
     public String url;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ",
                 timezone="GMT")
     public Date startDate;
+    public RulesVersion.Type type;
+    public boolean isObligatory;
     
     public ApiRulesVersion() {}
     
-    public ApiRulesVersion(String url, Date startDate) {
+    public ApiRulesVersion(String url, Date startDate, RulesVersion.Type type) {
         this.url = url;
         this.startDate = startDate;
+        this.type = type;
     }
 }

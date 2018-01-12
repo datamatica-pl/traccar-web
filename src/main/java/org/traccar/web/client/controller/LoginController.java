@@ -20,6 +20,7 @@ import com.google.gwt.http.client.Response;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.RootPanel;
+import com.sencha.gxt.widget.core.client.Window;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
@@ -28,17 +29,20 @@ import org.traccar.web.client.view.LoginDialog;
 import pl.datamatica.traccar.model.User;
 
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import java.util.List;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.model.api.ApiJsonCallback;
+import org.traccar.web.client.model.api.ApiRulesVersion;
 import org.traccar.web.client.model.api.BasicAuthFilter;
 import org.traccar.web.client.model.api.SessionService;
 import org.traccar.web.client.widget.InfoMessageBox;
 import org.traccar.web.shared.model.UserBlockedException;
 import org.traccar.web.shared.model.UserExpiredException;
 import org.traccar.web.client.model.api.IUsersService;
+import org.traccar.web.client.view.RulesDialog;
 
-public class LoginController implements LoginDialog.LoginHandler {
+public class LoginController implements LoginDialog.LoginHandler, RulesDialog.RulesHandler {
 
     private LoginDialog dialog;
 
@@ -65,6 +69,15 @@ public class LoginController implements LoginDialog.LoginHandler {
             @Override
             public void onSuccess(Method method, JSONValue response) {
                 User u = Application.getDecoder().decodeUser(response.isObject());
+                List<ApiRulesVersion> active = Application.getDecoder()
+                                .decodeRules(response.isObject().get("unacceptedActiveRules").isArray());
+                List<ApiRulesVersion> future = Application.getDecoder()
+                        .decodeRules(response.isObject().get("unacceptedFutureRules").isArray());
+                if(!active.isEmpty() || !future.isEmpty()) {
+                    onFailure(null, null);
+                    return;
+                }
+                
                 ApplicationContext.getInstance().setUser(u);
                 Application.getDataService().authenticated(new BaseAsyncCallback<User>(i18n) {
                     @Override
@@ -78,7 +91,6 @@ public class LoginController implements LoginDialog.LoginHandler {
                             loginHandler.onLogin();
                         }
                     }
-                    
                 });
             }
 
@@ -124,15 +136,24 @@ public class LoginController implements LoginDialog.LoginHandler {
                         @Override
                         public void onSuccess(Method method, JSONValue response) {
                             User u = Application.getDecoder().decodeUser(response.isObject());
+                            List<ApiRulesVersion> active = Application.getDecoder()
+                                .decodeRules(response.isObject().get("unacceptedActiveRules").isArray());
+                            List<ApiRulesVersion> future = Application.getDecoder()
+                                    .decodeRules(response.isObject().get("unacceptedFutureRules").isArray());
                             ApplicationContext.getInstance().setUser(u);
-                            if (loginHandler != null) {
-                                dialog.hide();
-                                loginHandler.onLogin();
+
+                            if(!active.isEmpty()) {
+                                RulesDialog rd = new RulesDialog(active, true, LoginController.this);
+                                rd.show();
+                            } else if(!future.isEmpty()) {
+                                RulesDialog rd = new RulesDialog(future, false, LoginController.this);
+                                rd.show();
+                            } else {
+                                onRulesAccepted();
                             }
-                            dialog.clearTrackmanBodyStyle();
                         }
                     });
-                }
+                }                
                 @Override
                 public void onFailure(Throwable caught) {
                     if (caught instanceof UserBlockedException) {
@@ -145,6 +166,14 @@ public class LoginController implements LoginDialog.LoginHandler {
                 }
             });
         }
+    }
+    
+    public void onRulesAccepted() {
+        if (loginHandler != null) {
+            dialog.hide();
+            loginHandler.onLogin();
+        }
+        dialog.clearTrackmanBodyStyle();
     }
 
     @Override

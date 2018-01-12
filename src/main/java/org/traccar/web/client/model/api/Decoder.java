@@ -283,6 +283,24 @@ public class Decoder {
         return m;
     }
     
+    public List<ApiRulesVersion> decodeRules(JSONArray arr) {
+        List<ApiRulesVersion> rvs = new ArrayList<>();
+        if(arr == null)
+            return rvs;
+        for(int i=0;i<arr.size();++i) {
+            ApiRulesVersion rv = new ApiRulesVersion();
+            JSONObject obj = arr.get(i).isObject();
+            if(obj == null)
+                continue;
+            rv.id = aLong(obj, "id");
+            rv.description = string(obj, "description");
+            rv.url = string(obj, "url");
+            rv.isObligatory = bool(obj, "isObligatory");
+            rvs.add(rv);
+        }
+        return rvs;
+    }
+    
     private Date date(JSONObject v, String name) {
         String date = string(v, name);
         if(date == null)
