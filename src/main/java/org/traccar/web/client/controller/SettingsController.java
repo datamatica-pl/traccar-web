@@ -53,6 +53,7 @@ import org.traccar.web.client.model.api.IUsersService.AddUserDto;
 import org.traccar.web.client.model.api.IUsersService.EditUserDto;
 import org.traccar.web.client.model.api.UserGroupsService;
 import org.traccar.web.client.model.api.UsersService;
+import org.traccar.web.client.widget.InfoMessageBox;
 import pl.datamatica.traccar.model.UserPermission;
 
 public class SettingsController implements NavView.SettingsHandler {
@@ -112,6 +113,7 @@ public class SettingsController implements NavView.SettingsHandler {
                                         User u = Application.getDecoder().decodeUser(response.isObject());
                                         ApplicationContext.getInstance().addUser(u);
                                         userStore.add(u);
+                                        new InfoMessageBox(i18n.userAddedTitle(), i18n.userAddedMessage()).show();
                                     }
                                     
                                 });

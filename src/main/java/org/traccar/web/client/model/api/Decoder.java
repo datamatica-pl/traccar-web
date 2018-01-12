@@ -68,6 +68,7 @@ public class Decoder {
 
         d.setBatteryLevel(anInt(v, "batteryLevel"));
         d.setBatteryTime(date(v, "batteryTime"));
+        
         //API adds 1 day to validTo field!
         Date validTo = date(v, "validTo");
         if(validTo != null)
@@ -79,6 +80,9 @@ public class Decoder {
         d.setIdleSpeedThreshold(aDouble(v, "idleSpeedThreshold"));
         d.setStatus(string(v, "status"));
         d.setOwner(ApplicationContext.getInstance().getUser());
+        
+        d.setIgnition(bool(v, "ignition"));
+        d.setIgnitionTime(date(v, "ignitionTime"));
         
         Set<User> users = new HashSet<>();
         long[] userIds = longArr(v, "userIds");
