@@ -21,8 +21,11 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
+import com.google.gwt.user.client.ui.InlineHTML;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.widget.core.client.Window;
+import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
@@ -61,13 +64,15 @@ public class RulesDialog {
         
         uiBinder.createAndBindUi(this);
         for(ApiRulesVersion rv : rvs) {
+            HorizontalLayoutContainer hlc = new HorizontalLayoutContainer();            
             CheckBox cb = new CheckBox();
-            cb.setBoxLabel(rv.description + (rv.isObligatory ? "(*)" : ""));
+            cb.setBoxLabel(rv.description + (rv.isObligatory ? " * " : ""));
             cb.setData("id", rv.id);
             rulesCheckboxes.add(cb);
             container.add(cb);
-            HTMLPanel p = new HTMLPanel("<a href=\""+rv.url+"\">"+rv.url+"</a>");
+            InlineHTML p = new InlineHTML("<a href=\""+rv.url+"\">"+"treść tutaj"+"</a>");
             container.add(p);
+            container.add(hlc, VerticalLayoutContainer.VerticalLayoutData(1, -1, new Margins(0, 8, 0, 8)));
         }
     }
     

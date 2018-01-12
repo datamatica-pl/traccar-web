@@ -15,7 +15,7 @@ Uncomment this for XHTML entities
         <container:VerticalLayoutContainer ui:field="container">
             <container:child>
                 <g:HTML HTML="{i18n.rulesDialogExplanation}" />
-            </container:child>                
+            </container:child>
         </container:VerticalLayoutContainer>
         
         <gxt:button>
