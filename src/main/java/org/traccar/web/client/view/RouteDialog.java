@@ -434,25 +434,6 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         }
         StringComboBox cbName = new StringComboBox(gfNames);
         cbName.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
-        cbName.addValueChangeHandler(new ValueChangeHandler<String>(){
-            @Override
-            public void onValueChange(ValueChangeEvent<String> event) {
-                store.commitChanges();
-                RoutePointWrapper p = grid.getSelectionModel().getSelectedItem();
-                gfRenderer.removeGeoFence(p.getRoutePoint().getGeofence());
-                if(gfMap.containsKey(event.getValue())) {
-                    p.setGeofence(gfMap.get(event.getValue()));
-                    gfRenderer.drawGeoFence(p.getRoutePoint().getGeofence(), true);
-                    gfRenderer.selectGeoFence(p.getRoutePoint().getGeofence());
-                } else {
-                    if(p.getRoutePoint().getGeofence().getId() != 0)
-                        p.setGeofence(RoutePointWrapper.createGF(event.getValue(), 300));
-                    else
-                        p.setName(event.getValue());
-                }
-                store.update(p);
-            }
-        });
         cbName.setForceSelection(false);
         edit.addEditor(cName, cbName);        
         
@@ -479,6 +460,20 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         edit.addCompleteEditHandler(new CompleteEditHandler<RoutePointWrapper>() {
             @Override
             public void onCompleteEdit(CompleteEditEvent<RoutePointWrapper> event) {
+                if(event.getEditCell().getCol() == 0) {
+                    store.commitChanges();
+                    RoutePointWrapper p = store.get(event.getEditCell().getRow());
+                    if(gfMap.containsKey(p.getName())) {
+                        p.setGeofence(gfMap.get(p.getName()));
+                        gfRenderer.drawGeoFence(p.getRoutePoint().getGeofence(), true);
+                        gfRenderer.selectGeoFence(p.getRoutePoint().getGeofence());
+                    } else {
+                        if(p.getRoutePoint().getGeofence().getId() != 0) {
+                            p.setGeofence(RoutePointWrapper.createGF(p.getName(), 300));
+                        }
+                    }
+                    store.update(p);
+                }
                 if(event.getEditCell().getCol() != 5 || previousDeadline == null)
                     return;
                 store.commitChanges();
