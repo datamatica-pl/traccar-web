@@ -206,8 +206,21 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     @Override
     public List<Route> getRoutes() {
         EntityManager em = getSessionEntityManager();
-        TypedQuery<DbRoute> tq = em.createQuery("from DbRoute r where owner = :user", 
-                DbRoute.class).setParameter("user", getSessionUser());
+        TypedQuery<DbRoute> tq = em.createQuery("from DbRoute r where owner = :user and archive = :false", 
+                DbRoute.class).setParameter("user", getSessionUser())
+                .setParameter("false", false);
+        List<Route> copy = new ArrayList<>();
+        for(DbRoute r : tq.getResultList())
+            copy.add(r.toRoute());
+        return copy;
+    }
+    
+    @Override
+    public List<Route> getArchivedRoutes() {
+        EntityManager em = getSessionEntityManager();
+        TypedQuery<DbRoute> tq = em.createQuery("from DbRoute r where owner = :user and archive = :true", 
+                DbRoute.class).setParameter("user", getSessionUser())
+                .setParameter("true", true);
         List<Route> copy = new ArrayList<>();
         for(DbRoute r : tq.getResultList())
             copy.add(r.toRoute());

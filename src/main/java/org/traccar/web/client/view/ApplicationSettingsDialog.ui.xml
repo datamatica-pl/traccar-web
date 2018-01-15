@@ -93,6 +93,10 @@
                 </form:widget>
             </form:FieldLabel>
         </container:child>
+        
+        <container:child layoutData="{verticalLayoutData}">
+            <button:TextButton ui:field="updateRules" text="update rules" />
+        </container:child>
 
     </container:VerticalLayoutContainer>
       

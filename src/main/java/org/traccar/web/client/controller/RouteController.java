@@ -26,6 +26,7 @@ import java.util.List;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
+import org.traccar.web.client.view.ArchivedRoutesDialog;
 import org.traccar.web.client.view.DeviceView;
 import org.traccar.web.client.view.RouteDialog;
 import pl.datamatica.traccar.model.Device;
@@ -33,7 +34,8 @@ import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.Route;
 import pl.datamatica.traccar.model.RoutePoint;
 
-public class RouteController implements DeviceView.RouteHandler, ContentController{
+public class RouteController implements DeviceView.RouteHandler, ContentController,
+        ArchivedRoutesDialog.RouteHandler {
     private ListStore<Device> deviceStore;
     private ListStore<GeoFence> geoFenceStore;
     private MapController mapController;
@@ -149,6 +151,47 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
             @Override
             public void onSuccess(List<Route> result) {
                 routeStore.addAll(result);
+            }
+        });
+    }
+
+    @Override
+    public void onAbort(Route selectedItem) {
+        //todo 2017-12-04
+    }
+    
+    @Override
+    public void onArchivedChanged(Route selectedItem, boolean archive) {
+        selectedItem.setArchived(archive);
+        Application.getDataService().updateRoute(selectedItem, 
+                new BaseAsyncCallback<Route> (i18n) {
+            @Override
+            public void onSuccess(Route result) {
+                if(result.isArchived()) {
+                    Route r = routeStore.findModel(result);
+                    routeStore.remove(r);
+                } else
+                    routeStore.add(result);
+            }         
+        });
+    }
+    
+    @Override
+    public void onShowArchived() {
+        Application.getDataService().getArchivedRoutes(new BaseAsyncCallback<List<Route>>(i18n) {
+            @Override
+            public void onSuccess(List<Route> result) {
+                ListStore<Route> routes = new ListStore<>(new ModelKeyProvider<Route>() {
+                    @Override
+                    public String getKey(Route item) {
+                        return Long.toString(item.getId());
+                    }
+                });
+                routes.addAll(result);
+                
+                ArchivedRoutesDialog dialog = new ArchivedRoutesDialog(routes, 
+                        RouteController.this);
+                dialog.show();
             }
         });
     }

@@ -58,7 +58,7 @@ public class RoutePolylineFinder {
                         lonLat[i] = new LonLat(Double.parseDouble(latLon[1]), 
                                 Double.parseDouble(latLon[0]));
                     }
-                    callback.onResult(lonLat);
+                    callback.onResult(lonLat, r.legDistances());
                 }
                 
                 @Override
@@ -73,7 +73,7 @@ public class RoutePolylineFinder {
     }
     
     public interface Callback {
-        void onResult(LonLat[] points);
+        void onResult(LonLat[] points, double[] distances);
     }
     
     static class Result extends JavaScriptObject {
@@ -83,6 +83,16 @@ public class RoutePolylineFinder {
             if(this.routes && this.routes.length > i && this.routes[i].geometry) 
                 return $wnd.polyline.decode(this.routes[i].geometry);
             return null;
+        }-*/;
+        
+        public final native double[] legDistances() /*-{
+            var dists = null;
+            if(this.routes && this.routes.length > 0 && this.routes[0].legs) {
+                dists = [];
+                for(var i=0;i < this.routes[0].legs.length;++i)
+                    dists.push(this.routes[0].legs[i].distance);
+            }
+            return dists;
         }-*/;
     }
 }

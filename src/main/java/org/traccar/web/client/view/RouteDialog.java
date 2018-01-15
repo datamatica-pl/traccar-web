@@ -15,7 +15,9 @@
  */
 package org.traccar.web.client.view;
 
+import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.Cell;
+import com.google.gwt.cell.client.DateCell;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
@@ -23,10 +25,13 @@ import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.i18n.client.DateTimeFormat;
+import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 import com.google.gwt.regexp.shared.MatchResult;
 import com.google.gwt.regexp.shared.RegExp;
 import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.resources.client.ImageResource;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -37,6 +42,7 @@ import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
+import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreClearEvent;
 import com.sencha.gxt.data.shared.event.StoreDataChangeEvent;
@@ -47,6 +53,8 @@ import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
 import com.sencha.gxt.data.shared.event.StoreSortEvent;
 import com.sencha.gxt.data.shared.event.StoreUpdateEvent;
 import com.sencha.gxt.dnd.core.client.DND;
+import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
+import com.sencha.gxt.dnd.core.client.DndDragStartEvent.DndDragStartHandler;
 import com.sencha.gxt.dnd.core.client.GridDragSource;
 import com.sencha.gxt.dnd.core.client.GridDropTarget;
 import com.sencha.gxt.widget.core.client.Window;
@@ -55,14 +63,18 @@ import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent.BeforeStartEditHandler;
+import com.sencha.gxt.widget.core.client.event.CompleteEditEvent;
+import com.sencha.gxt.widget.core.client.event.CompleteEditEvent.CompleteEditHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
+import com.sencha.gxt.widget.core.client.form.DateField;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.NumberField;
 import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor;
 import com.sencha.gxt.widget.core.client.form.StringComboBox;
 import com.sencha.gxt.widget.core.client.form.TextField;
+import com.sencha.gxt.widget.core.client.form.TimeField;
 import com.sencha.gxt.widget.core.client.form.validator.MaxNumberValidator;
 import com.sencha.gxt.widget.core.client.form.validator.MinNumberValidator;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
@@ -72,6 +84,7 @@ import com.sencha.gxt.widget.core.client.grid.editing.GridEditing;
 import com.sencha.gxt.widget.core.client.grid.editing.GridInlineEditing;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -112,8 +125,6 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     @UiField
     SimpleContainer theMap;
     @UiField
-    CheckBox connect;
-    @UiField
     TextField name;
     @UiField(provided = true)
     Grid<RoutePointWrapper> grid;
@@ -128,10 +139,23 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     TextButton addButton;
     
     @UiField
+    NumberField tolerance;
+    @UiField
+    NumberField archiveAfter;
+    
+    @UiField
     CheckBox createCorridor;
-    @UiField(provided = true)
+    @UiField
     NumberField<Integer> corridorWidth;
     
+    @UiField
+    CheckBox forceFirst;
+    @UiField
+    CheckBox forceLast;
+    
+    
+    @UiField(provided = true)
+    NumberPropertyEditor<Integer> integerPropertyEditor = new NumberPropertyEditor.IntegerPropertyEditor();
     Messages i18n = GWT.create(Messages.class);
     
     private final Route route;
@@ -142,11 +166,13 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     VectorFeature polyline;
     GeoFenceRenderer gfRenderer;
     boolean recomputingPath = false;
+    boolean ignoreUpdate = false;
     boolean pathInvalid = false;
+    Date previousDeadline;
     LonLat[] lineString;
     RoutePolylineFinder.Callback routeDrawer = new RoutePolylineFinder.Callback() {
         @Override
-        public void onResult(LonLat[] points) {
+        public void onResult(LonLat[] points, double[] distances) {
             lineString = points;
             Style st = new Style();
             st.setStrokeWidth(4);
@@ -158,6 +184,19 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
 
             polyline = new VectorFeature(ls, st);
             gfLayer.addFeature(polyline);
+            
+            List<RoutePointWrapper> rpws = store.getAll();
+            Date deadline = rpws.get(0).getDeadline();
+            if(deadline != null) {
+                for(int i=1;i < rpws.size();++i) {
+                    if(distances.length > i-1)
+                        deadline = new Date(deadline.getTime() + (long)(distances[i-1]/1000)*60*1000);
+                    rpws.get(i).setDeadline(deadline);
+                    ignoreUpdate = true;
+                    store.update(rpws.get(i));
+                    ignoreUpdate = false;
+                }
+            }
             endComputingPath();
         }
     };
@@ -178,32 +217,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             }
         });
         selectDevice.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
-        corridorWidth = new NumberField<>(new NumberPropertyEditor.IntegerPropertyEditor());
-        corridorWidth.addValidator(new MaxNumberValidator<>(20));
-        corridorWidth.addValidator(new MinNumberValidator<>(1));
         uiBinder.createAndBindUi(this);
         
-        connect.setValue(true);
         //editing!
-        if(route.getId() != 0)
-            connect.setEnabled(false);
-        else
-            route.setStatus("NOWA");
-        connect.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
-            @Override
-            public void onValueChange(ValueChangeEvent<Boolean> event) {
-                if(event.getValue() == null) 
-                    return;
-                trackNameLabel.setEnabled(event.getValue());
-                selectDeviceLabel.setEnabled(event.getValue());
-                drawPolyline();
-                createCorridor.setEnabled(event.getValue());
-                createCorridor.setValue(false);
-                if(!event.getValue())
-                    corridorWidth.setEnabled(false);
-            }
-            
-        });
         createCorridor.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
             @Override
             public void onValueChange(ValueChangeEvent<Boolean> event) {
@@ -218,31 +234,55 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         store.addAll(pts);
         if(route.getDevice() != null)
             selectDevice.setValue(route.getDevice());
+        
+        corridorWidth.addValidator(new MinNumberValidator<>(1));
+        corridorWidth.addValidator(new MaxNumberValidator<>(20));
         if(route.getCorridor() != null) {
             createCorridor.setValue(true);
             corridorWidth.setValue((int)(route.getCorridor().getRadius()/1000));
             corridorWidth.setEnabled(true);
         }
         
+        tolerance.setValue(route.getTolerance());
+        tolerance.addValidator(new MinNumberValidator<>(0));
+        tolerance.addValidator(new MaxNumberValidator<>(7200));
+        
+        archiveAfter.setValue(route.getArchiveAfter());
+        archiveAfter.addValidator(new MinNumberValidator<>(0));
+        archiveAfter.addValidator(new MaxNumberValidator<>(30));
+        
         prepareMap();
         bindStoreWithMap(route);
         
         prepareDND();
     }
-
+    
     private void prepareGrid(ListStore<GeoFence> gfs) {
         List<ColumnConfig<RoutePointWrapper, ?>> ccList = new ArrayList<>();
         ColumnConfig<RoutePointWrapper, String> cName = new ColumnConfig<>(
                 pointsAccessor.name(), 109, i18n.name());
+        cName.setCell(new GridCell<String>(store));
         ccList.add(cName);
+        
         ColumnConfig<RoutePointWrapper, String> cAddress = new ColumnConfig<>(
                 pointsAccessor.address(), 172, i18n.address());
+        cAddress.setCell(new GridCell<String>(store));
         ccList.add(cAddress);
+        
         ColumnConfig<RoutePointWrapper, Integer> cRadius = new ColumnConfig<>(
                 pointsAccessor.radius(), 35, i18n.radius());
+        cRadius.setCell(new GridCell<Integer>(store));
         ccList.add(cRadius);
+        
         ColumnConfig<RoutePointWrapper, ImageResource> cDelete = new ColumnConfig<>(
-                new ConstValueProvider<RoutePointWrapper, ImageResource>(R.remove()), 24, "");
+                new ConstValueProvider<RoutePointWrapper, ImageResource>(R.remove()) {
+                    @Override
+                    public ImageResource getValue(RoutePointWrapper object) {
+                        if(object.isDone())
+                            return null;
+                        return super.getValue(object);
+                    }
+                }, 24, "");
         cDelete.setCell(new ImageResourceCell() {
             @Override
             public Set<String> getConsumedEvents() {
@@ -253,11 +293,13 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             public void onBrowserEvent(Cell.Context context, Element parent, ImageResource value,
                     NativeEvent event, ValueUpdater<ImageResource> valueUpdater) {
                 super.onBrowserEvent(context, parent, value, event, valueUpdater);
-                store.remove(context.getIndex());
+                if(!store.get(context.getIndex()).isDone())
+                    store.remove(context.getIndex());
             }
             
         });
         ccList.add(cDelete);
+        
         ColumnConfig<RoutePointWrapper, String> cStatus = new ColumnConfig<>(
                 new ValueProvider<RoutePointWrapper, String>() {
                     @Override
@@ -275,8 +317,31 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                     } 
                 }, 24, "");
         ccList.add(cStatus);
+        
+        ColumnConfig<RoutePointWrapper, Date> cDeadline = new ColumnConfig<>(
+                new ValueProvider<RoutePointWrapper, Date>() {
+            @Override
+            public Date getValue(RoutePointWrapper object) {
+                return object.getDeadline();
+            }
+
+            @Override
+            public void setValue(RoutePointWrapper object, Date value) {
+                object.setDeadline(value);
+            }
+
+            @Override
+            public String getPath() {
+                return "time";
+            }
+                    
+                }, 175, i18n.deadline());
+        cDeadline.setCell(new DateCell(DateTimeFormat.getFormat(PredefinedFormat.DATE_TIME_SHORT)));
+        ccList.add(cDeadline);
+        
         ColumnModel<RoutePointWrapper> cm = new ColumnModel<>(ccList);
         grid = new Grid<>(store, cm);
+        edit = new GridInlineEditing<>(grid);
         
         final TextField addr = new TextField();
         final RegExp latLonPatt = RegExp.compile(
@@ -311,11 +376,12 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 }
             }
         });
+        edit.addEditor(cAddress, addr);
+        
         final NumberField rad = new NumberField(new NumberPropertyEditor.IntegerPropertyEditor());
         rad.addValidator(new MaxNumberValidator<>(1500));
         rad.addValidator(new MinNumberValidator<>(300));
-        
-        edit = new GridInlineEditing<>(grid);
+        edit.addEditor(cRadius, rad);
         
         List<String> gfNames = new ArrayList<>();
         final Map<String, GeoFence> gfMap= new HashMap<>();
@@ -340,22 +406,50 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             }
         });
         cbName.setForceSelection(false);
-
         edit.addEditor(cName, cbName);
-        edit.addEditor(cAddress, addr);
-        edit.addEditor(cRadius, rad);
+        
+        final DateTimeField deadline = new DateTimeField();
+        edit.addEditor(cDeadline, deadline);
+        deadline.addValueChangeHandler(new ValueChangeHandler<Date>() {
+            @Override
+            public void onValueChange(ValueChangeEvent<Date> event) {
+                event.getValue();
+            }
+            
+        });
         
         edit.addBeforeStartEditHandler(new BeforeStartEditHandler<RoutePointWrapper>() {
             @Override
             public void onBeforeStartEdit(BeforeStartEditEvent<RoutePointWrapper> event) {
                 RoutePointWrapper pt = store.get(event.getEditCell().getRow());
-                if(pt.isLoading())
+                if(pt.isLoading() || pt.isDone())
                     event.setCancelled(true);
-                if(event.getEditCell().getCol() != 0 && !pt.isEditable())
+                if(event.getEditCell().getCol() != 0 
+                        && event.getEditCell().getCol() != 5 && !pt.isEditable())
                     event.setCancelled(true);
                 if(recomputingPath)
                     event.setCancelled(true);
                 gfRenderer.selectGeoFence(pt.getRoutePoint().getGeofence());
+                if(event.getEditCell().getCol() == 5)
+                    previousDeadline = pt.getDeadline();
+            }
+        });
+        
+        edit.addCompleteEditHandler(new CompleteEditHandler<RoutePointWrapper>() {
+            @Override
+            public void onCompleteEdit(CompleteEditEvent<RoutePointWrapper> event) {
+                if(event.getEditCell().getCol() != 5)
+                    return;
+                store.commitChanges();
+                RoutePointWrapper pt = store.get(event.getEditCell().getRow());
+                long diff = pt.getDeadline().getTime() - previousDeadline.getTime();
+                for(int i=event.getEditCell().getRow()+1; i < store.size();++i) {
+                    RoutePointWrapper rpw = store.get(i);
+                    rpw.getDeadline().setTime(rpw.getDeadline().getTime() + diff);
+                    ignoreUpdate = true;
+                    store.update(rpw);
+                    ignoreUpdate = false;
+                }
             }
         });
     }
@@ -416,6 +510,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
 
             @Override
             public void onUpdate(StoreUpdateEvent<RoutePointWrapper> event) {
+                if(ignoreUpdate)
+                    return;
                 if(!event.getItems().isEmpty())
                     drawPolyline();
             }
@@ -445,7 +541,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         }
         if(route.getCorridor() != null)
             gfRenderer.drawGeoFence(route.getCorridor(), false);
-        routeDrawer.onResult(lineString);
+        routeDrawer.onResult(lineString, new double[0]);
     }
     
     private void prepareDND() {
@@ -453,6 +549,17 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         GridDropTarget<RoutePointWrapper> dropTarget = new GridDropTarget<>(grid);
         dropTarget.setAllowSelfAsSource(true);
         dropTarget.setFeedback(DND.Feedback.BOTH);
+        dragSource.addDragStartHandler(new DndDragStartHandler() {
+            @Override
+            public void onDragStart(DndDragStartEvent event) {
+                List<RoutePointWrapper> rpwl = (List<RoutePointWrapper>)event.getData();
+                if(rpwl == null)
+                    return;
+                for(RoutePointWrapper rpw : rpwl)
+                    if(rpw.isDone())
+                        event.setCancelled(true);
+            }
+        });
     }
     
     private void drawPolyline() {
@@ -474,7 +581,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 continue;
             pts.add(center);
         }
-        if(pts.size() < 2 || !connect.getValue()) {
+        if(pts.size() < 2) {
             endComputingPath();
             return;
         }
@@ -539,63 +646,57 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         route.getRoutePoints().clear();
         for(RoutePointWrapper rp : store.getAll())
             route.getRoutePoints().add(rp.getRoutePoint());
-        if(connect.getValue()) {
-            if(createCorridor.getValue() && !corridorWidth.validate())
-                return;
-            
-            route.setName(name.getValue());
-            route.setDevice(selectDevice.getCurrentValue());
-            pl.datamatica.traccar.model.GeoFence.LonLat[] gll = 
-                    new pl.datamatica.traccar.model.GeoFence.LonLat[lineString.length];
-            for(int i=0;i<lineString.length;++i)
-                gll[i] = new pl.datamatica.traccar.model.GeoFence.LonLat(lineString[i].lon(),
-                    lineString[i].lat());
-            route.setLinePoints(gll);
-            
-            if(createCorridor.getValue()) {
-                GeoFence corridor;
-                if(route.getCorridor() != null) {
-                    corridor = route.getCorridor();
-                } else {
-                    corridor = new GeoFence();
-                }
-                corridor.setName(name.getValue()+"_c");
-                corridor.setDescription(i18n.corridorOfRoute(name.getValue()));
-                corridor.setType(GeoFenceType.LINE);
-                corridor.points(gll);
-                corridor.setRadius(corridorWidth.getValue().floatValue()*1000);
-                corridor.setTransferDevices(new HashSet<Device>());
-                corridor.setDevices(new HashSet<Device>());
-                if(route.getDevice() != null) {
-                    corridor.getTransferDevices().add(route.getDevice());
-                    corridor.getDevices().add(route.getDevice());
-                }
-                route.setCorridor(corridor);
+
+        if(createCorridor.getValue() && !corridorWidth.validate())
+            return;
+
+        route.setName(name.getValue());
+        route.setDevice(selectDevice.getCurrentValue());
+        pl.datamatica.traccar.model.GeoFence.LonLat[] gll = 
+                new pl.datamatica.traccar.model.GeoFence.LonLat[lineString.length];
+        for(int i=0;i<lineString.length;++i)
+            gll[i] = new pl.datamatica.traccar.model.GeoFence.LonLat(lineString[i].lon(),
+                lineString[i].lat());
+        route.setLinePoints(gll);
+        route.setForceFirst(forceFirst.getValue());
+        route.setForceLast(forceLast.getValue());
+
+        if(createCorridor.getValue()) {
+            GeoFence corridor;
+            if(route.getCorridor() != null) {
+                corridor = route.getCorridor();
             } else {
-                route.setCorridor(null);
+                corridor = new GeoFence();
             }
+            corridor.setName(name.getValue()+"_c");
+            corridor.setDescription(i18n.corridorOfRoute(name.getValue()));
+            corridor.setType(GeoFenceType.LINE);
+            corridor.points(gll);
+            corridor.setRadius(corridorWidth.getValue().floatValue()*1000);
+            corridor.setTransferDevices(new HashSet<Device>());
+            corridor.setDevices(new HashSet<Device>());
+            if(route.getDevice() != null) {
+                corridor.getTransferDevices().add(route.getDevice());
+                corridor.getDevices().add(route.getDevice());
+            }
+            route.setCorridor(corridor);
         }
         
-        routeHandler.onSave(route, connect.getValue());
+        routeHandler.onSave(route, true);
         window.hide();
     }
     
     private boolean validate() {
-        if(connect.getValue()) {
-            if(name.getValue() == null || name.getValue().isEmpty()) {
-                new AlertMessageBox(i18n.error(), i18n.errNoRouteName()).show();
-                return false;
-            }
-            if(store.size() < 2) {
-                new AlertMessageBox(i18n.error(), i18n.errNotEnoughRoutePoints()).show();
-                return false;
-            }
-            if(createCorridor.getValue() && corridorWidth.getValue() == null) {
-                new AlertMessageBox(i18n.error(), i18n.errNoCorridorRadius()).show();
-            }
-        } else if(store.size() < 1) {
-            new AlertMessageBox(i18n.error(), i18n.errNoGeoFences()).show();
+        if(name.getValue() == null || name.getValue().isEmpty()) {
+            new AlertMessageBox(i18n.error(), i18n.errNoRouteName()).show();
             return false;
+        }
+        if(store.size() < 2) {
+            new AlertMessageBox(i18n.error(), i18n.errNotEnoughRoutePoints()).show();
+            return false;
+        }
+        if(createCorridor.getValue() && corridorWidth.getValue() == null) {
+            new AlertMessageBox(i18n.error(), i18n.errNoCorridorRadius()).show();
         }
         return true;
     }
@@ -658,6 +759,17 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             pt.getGeofence().setRadius(radius);
         }
         
+        public Date getDeadline() {
+            if(pt.getDeadline() == null) {
+                pt.setDeadline(new Date());
+            }
+            return pt.getDeadline();
+        }
+        
+        public void setDeadline(Date deadline) {
+            pt.setDeadline(deadline);
+        }
+        
         public RoutePoint getRoutePoint() {
             return pt;
         }
@@ -688,7 +800,11 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         }
         
         public boolean isEditable() {
-            return pt.getGeofence().getId() == 0;
+            return pt.getGeofence().getId() == 0 && !isDone();
+        }
+        
+        public boolean isDone() {
+            return pt.getExitTime() != null;
         }
         
         public boolean isLoading() {
@@ -737,5 +853,25 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         ImageResource arrowUp();
         @ClientBundle.Source("org/traccar/web/client/theme/icon/arrow_down.png")
         ImageResource arrowDown();
+    }
+    
+    public static class GridCell<T> extends AbstractCell<T> {
+        private ListStore<RoutePointWrapper> store;
+        
+        public GridCell(ListStore<RoutePointWrapper> store) {
+            this.store = store;
+        }
+        
+        @Override
+        public void render(Cell.Context context, T value, SafeHtmlBuilder sb) {
+            sb.appendHtmlConstant("<label");
+            RoutePointWrapper rpw = store.get(context.getIndex());
+            if(store.get(context.getIndex()).isDone())
+                sb.appendHtmlConstant(" style=\"color: #ccc\"");
+            sb.appendHtmlConstant(">");
+            if(value != null)
+                sb.appendEscaped(value.toString());
+            sb.appendHtmlConstant("</label>");
+        }
     }
 }

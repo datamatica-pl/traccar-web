@@ -15,6 +15,7 @@
  */
 package org.traccar.web.client.i18n;
 
+import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import pl.datamatica.traccar.model.Period;
 import pl.datamatica.traccar.model.UserSettings;
 import pl.datamatica.traccar.model.ReportType;
@@ -699,4 +700,17 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
 
     public String errNoReportDevicesSelected();
     String errNoReportRouteSelected();
+
+    String addToArchive();
+    String abortRoute();
+    String duplicateRoute();
+    String showArchivedRoutes();
+    String restoreRoute();
+    String deadline();
+    String archiveAfter();
+    String tolerance();
+    
+    String accept();
+    String rulesDialogHeader();
+    String rulesDialogExplanation();
 }
