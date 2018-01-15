@@ -11,15 +11,22 @@ Uncomment this for XHTML entities
     
     <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
     
-    <gxt:Window ui:field="window" pixelSize="400,-1" modal="true" headingText="{i18n.rulesDialogHeader}">
+    <ui:with field="margins" type="com.sencha.gxt.core.client.util.Margins">
+        <ui:attributes top="4" right="0" bottom="12" left="0" />
+    </ui:with>
+    <ui:with field="layoutData" type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData">
+        <ui:attributes width="1" height="-1" margins="{margins}" />
+    </ui:with>
+    
+    <gxt:Window ui:field="window" modal="true" headingText="{i18n.rulesDialogHeader}">
         <container:VerticalLayoutContainer ui:field="container">
-            <container:child>
+            <container:child layoutData="{layoutData}">
                 <g:HTML HTML="{i18n.rulesDialogExplanation}" />
             </container:child>
         </container:VerticalLayoutContainer>
         
         <gxt:button>
-            <button:TextButton ui:field="acceptButton" text="{i18n.accept}"/>
+            <button:TextButton ui:field="acceptButton" text="{i18n.accept}" enabled="false"/>
         </gxt:button>
         <gxt:button>
             <button:TextButton ui:field="cancelButton" text="{i18n.cancel}" />
