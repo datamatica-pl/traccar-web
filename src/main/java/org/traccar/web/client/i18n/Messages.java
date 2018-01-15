@@ -713,4 +713,8 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String errInvalidRoutePoint();
     String confirmRouteRemoval();
     String addToRoute();
+    
+    String accept();
+    String rulesDialogHeader();
+    String rulesDialogExplanation();
 }

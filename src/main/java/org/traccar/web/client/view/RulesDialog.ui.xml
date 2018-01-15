@@ -1,0 +1,35 @@
+<!--
+Uncomment this for XHTML entities
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+-->
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+             xmlns:g="urn:import:com.google.gwt.user.client.ui"
+             xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
+             xmlns:container="urn:import:com.sencha.gxt.widget.core.client.container"
+             xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
+             xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button">
+    
+    <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
+    
+    <ui:with field="margins" type="com.sencha.gxt.core.client.util.Margins">
+        <ui:attributes top="4" right="0" bottom="12" left="0" />
+    </ui:with>
+    <ui:with field="layoutData" type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData">
+        <ui:attributes width="1" height="-1" margins="{margins}" />
+    </ui:with>
+    
+    <gxt:Window ui:field="window" modal="true" headingText="{i18n.rulesDialogHeader}">
+        <container:VerticalLayoutContainer ui:field="container">
+            <container:child layoutData="{layoutData}">
+                <g:HTML HTML="{i18n.rulesDialogExplanation}" />
+            </container:child>
+        </container:VerticalLayoutContainer>
+        
+        <gxt:button>
+            <button:TextButton ui:field="acceptButton" text="{i18n.accept}" enabled="false"/>
+        </gxt:button>
+        <gxt:button>
+            <button:TextButton ui:field="cancelButton" text="{i18n.cancel}" />
+        </gxt:button>
+    </gxt:Window>
+</ui:UiBinder>
