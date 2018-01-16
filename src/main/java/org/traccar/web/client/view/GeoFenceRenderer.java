@@ -227,6 +227,12 @@ public class GeoFenceRenderer {
         mapView.getMap().zoomToExtent(ls.getBounds());
     }
     
+    public void clear() {
+        getVectorLayer().removeAllFeatures();
+        id0.clear();
+        drawings.clear();
+    }
+    
     public interface IMapView {
         org.gwtopenmaps.openlayers.client.Map getMap();
         Point createPoint(double longitude, double latitude);

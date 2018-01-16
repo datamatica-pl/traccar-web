@@ -77,7 +77,7 @@
   </ui:with>
   
   <ui:with type="com.sencha.gxt.core.client.util.Margins" field="ml6px">
-      <ui:attributes left="6" top="0" right="0" bottom="0"/>
+      <ui:attributes left="20" top="0" right="0" bottom="0"/>
   </ui:with>
   <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
            field="hlWrapContent">
@@ -175,7 +175,7 @@
                 </container:child>
                 
                 <container:child layoutData="{hlWrapContent}">
-                    <button:TextButton ui:field="addButton" ui:text="{i18n.addToRoute}" />
+                    <button:TextButton ui:field="addButton" ui:text="{i18n.newPoint}" />
                 </container:child>
             </container:HorizontalLayoutContainer>
         </container:child>
