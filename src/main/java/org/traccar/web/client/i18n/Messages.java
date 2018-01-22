@@ -710,7 +710,7 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String deadline();
     String archiveAfter();
     String tolerance();
-    String errInvalidRoutePoint();
+    String errInvalidRoutePoint(int i);
     String confirmRouteRemoval();
     String newPoint();
     

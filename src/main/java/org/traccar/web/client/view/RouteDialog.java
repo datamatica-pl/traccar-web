@@ -758,7 +758,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         for(int i=0;i < r.getRoutePoints().size();++i) {
             GeoFence gf = r.getRoutePoints().get(i).getGeofence();
             if(gf.points().isEmpty() || gf.getName() == null || gf.getName().isEmpty()) {
-                new AlertMessageBox(i18n.error(), i18n.errInvalidRoutePoint()+":"+i).show();
+                new AlertMessageBox(i18n.error(), i18n.errInvalidRoutePoint(i)).show();
                 return false;
             }
         }
