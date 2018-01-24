@@ -19,6 +19,7 @@ public class ApiDeviceIcon {
     public long id;
     public String iconUrl;
     public boolean isDeleted;
+    public boolean isWithoutFrame;
     
     public long getId() {
         return id;
