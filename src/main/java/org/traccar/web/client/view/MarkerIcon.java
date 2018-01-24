@@ -97,12 +97,12 @@ public abstract class MarkerIcon {
         
         @Override
         int getDefaultWidth() {
-            return canRotate() ? 31 : super.getDefaultWidth();
+            return Resources.getInstance().icon(id).getWidth();
         }
         
         @Override
         int getDefaultHeight() {
-            return canRotate() ? 96 : super.getDefaultHeight();
+            return Resources.getInstance().icon(id).getHeight();
         }
     }
     

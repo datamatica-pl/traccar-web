@@ -61,15 +61,21 @@ public class Resources {
     public static class IconInfo {
         private final String url;
         private final boolean canRotate;
+        private final int width;
+        private final int height;
         
         public IconInfo(String url, boolean rotates) {
             this.url = url;
             this.canRotate = rotates;
+            this.width = 36;
+            this.height = 48;
         }
         
         public IconInfo(ApiDeviceIcon icon) {
             this.url = icon.getUrl().replace("/images/", "/markers/");
             this.canRotate = icon.isWithoutFrame;
+            this.width = icon.markerWidth;
+            this.height = icon.markerHeight;
         }
         
         public String getUrl() {
@@ -78,6 +84,14 @@ public class Resources {
         
         public boolean canRotate() {
             return canRotate;
+        }
+        
+        public int getWidth() {
+            return width;
+        }
+        
+        public int getHeight() {
+            return height;
         }
     }
 }
