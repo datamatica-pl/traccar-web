@@ -22,10 +22,8 @@ import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
-import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.InlineHTML;
 import com.google.gwt.user.client.ui.Widget;
-import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
@@ -34,12 +32,17 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import java.util.ArrayList;
 import java.util.List;
+import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
+import org.traccar.web.client.Application;
 import org.traccar.web.client.i18n.Messages;
+import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.model.api.ApiJsonCallback;
 import org.traccar.web.client.model.api.ApiRulesAcceptance;
 import org.traccar.web.client.model.api.ApiRulesVersion;
+import org.traccar.web.client.model.api.BasicAuthFilter;
 import org.traccar.web.client.model.api.RulesService;
+import org.traccar.web.client.model.api.SessionService;
 
 /**
  *
@@ -95,6 +98,9 @@ public class RulesDialog {
             container.add(hlc, new VerticalLayoutContainer.VerticalLayoutData(1, 20));
         }
         window.setPixelSize(400, 110+20*rvs.size());
+        window.setModal(true);
+        window.setClosable(false);
+        window.setOnEsc(false);
     }
     
     public void show() {
@@ -129,10 +135,29 @@ public class RulesDialog {
     
     @UiHandler("cancelButton")
     public void onCancelClicked(SelectEvent event) {
-        if(force)
+        if(force) {
+            Messages i18n = GWT.create(Messages.class);
+            Application.getDataService().logout(new BaseAsyncCallback<Boolean>(i18n) {
+                @Override
+                public void onSuccess(Boolean result) {
+                }
+            });
+            SessionService session = GWT.create(SessionService.class);
+            BasicAuthFilter.getInstance().pushCredentials(":", ":");
+            session.logout(new JsonCallback(){
+                @Override
+                public void onFailure(Method method, Throwable exception) {
+                }
+
+                @Override
+                public void onSuccess(Method method, JSONValue response) {
+                    window.hide();
+                }
+            });
+        } else {
             window.hide();
-        else
             handler.onRulesAccepted();
+        }
     }
     
     public interface RulesHandler {
