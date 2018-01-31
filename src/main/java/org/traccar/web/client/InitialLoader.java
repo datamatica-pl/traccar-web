@@ -43,6 +43,7 @@ import pl.datamatica.traccar.model.User;
 import org.traccar.web.client.model.api.IUsersService;
 import org.traccar.web.client.model.api.GroupService;
 import org.traccar.web.client.model.api.Resources;
+import org.traccar.web.client.model.api.Resources.IconInfo;
 import org.traccar.web.client.model.api.StringsService;
 import pl.datamatica.traccar.model.UserPermission;
 
@@ -120,7 +121,7 @@ public class InitialLoader {
                 for(ApiDeviceIcon ico : response)
                     if(!ico.isDeleted())
                         Resources.getInstance().icon(ico.getId(), 
-                                ico.getUrl().replace("/images/", "/markers/"));
+                                new IconInfo(ico));
                 onRequestAnswered();
             }
         });

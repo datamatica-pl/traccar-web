@@ -19,6 +19,9 @@ public class ApiDeviceIcon {
     public long id;
     public String iconUrl;
     public boolean isDeleted;
+    public boolean isWithoutFrame;
+    public int markerWidth;
+    public int markerHeight;
     
     public long getId() {
         return id;

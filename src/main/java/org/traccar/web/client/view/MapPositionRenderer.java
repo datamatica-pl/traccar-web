@@ -931,19 +931,13 @@ public class MapPositionRenderer {
             if (position.getIcon().isArrow()) {
                 yOffset = -10 - (int) Math.floor(position.getDevice().getIconArrowRadius());
             } else {
-                yOffset = -12;
-                if (position.getCourse() != null
-                    && position.getDevice().isIconRotation()) {
-                    double sin = Math.sin(position.getCourse() * Math.PI / 180);
+                yOffset = -10;
+                if (position.getCourse() != null && position.getIcon().canRotate()) {
+                    double z = getIconScale();
                     double cos = Math.cos(position.getCourse() * Math.PI / 180);
-                    double yIconTop = cos * (selected ? position.getIcon().getSelectedHeight() : position.getIcon().getHeight());
-                    double yHalfWidth = sin * (selected ? position.getIcon().getSelectedWidth() : position.getIcon().getWidth()) / 2;
+                    double yIconTop = z*(selected ? position.getIcon().getSelectedHeight() : position.getIcon().getHeight())/(2*cos);
 
-                    if (yIconTop >= 0) {
-                        yOffset -= Math.abs(yHalfWidth);
-                    } else {
-                        yOffset += yIconTop - Math.abs(yHalfWidth);
-                    }
+                    yOffset -= Math.abs(yIconTop);
                 }
             }
             style.setLabelYOffset(yOffset);
@@ -968,18 +962,28 @@ public class MapPositionRenderer {
         Style style = new Style();
         int width = selected ? icon.getSelectedWidth() : icon.getWidth();
         int height = selected ? icon.getSelectedHeight() : icon.getHeight();
+        if(position.getIcon().canRotate()) {
+            double z = getIconScale();
+            width = (int)(z*width);
+            height = (int)(z*height);
+        }
 
         style.setExternalGraphic(selected ? icon.getSelectedURL() : icon.getURL());
         style.setGraphicSize(width, height);
-        style.setGraphicOffset(-width / 2, -height);
+        if(!position.getIcon().canRotate())
+            style.setGraphicOffset(-width / 2, -height);
         style.setGraphicOpacity(1.0);
         style.setGraphicZIndex(10);
 
-        if (position.getDevice().isIconRotation() && position.getCourse() != null) {
+        if (position.getIcon().canRotate() && position.getCourse() != null) {
             style.setRotation(position.getCourse().toString());
         }
 
         return style;
+    }
+    
+    private double getIconScale() {
+        return (Math.max(mapView.getMap().getZoom()-7, 0)+8)/18.;
     }
 
     private String getBgColor(Position position) {
