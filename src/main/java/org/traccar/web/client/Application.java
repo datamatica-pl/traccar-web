@@ -131,6 +131,7 @@ public class Application {
         updatesController = new UpdatesController();
         updatesController.addLatestPositionsListener(mapController);
         updatesController.addDevicesListener(deviceController);
+        updatesController.addRoutesListener(routeController);
 
         initialLoader = new InitialLoader(deviceStore, groupStore);
         view = new ApplicationView(

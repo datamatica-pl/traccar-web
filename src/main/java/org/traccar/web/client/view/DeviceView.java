@@ -23,6 +23,7 @@ import pl.datamatica.traccar.model.GroupedDevice;
 import pl.datamatica.traccar.model.Device;
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.Cell;
+import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BrowserEvents;
@@ -131,6 +132,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     public interface RouteHandler {
         void onAdd();
         void onEdit(Route selectedItem);
+        void onDuplicate(Route selectedItem);
         void onRemove(Route selectedItem);
         void onSelected(Route route);
         public void onAbort(Route selectedItem);
@@ -1011,7 +1013,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     }
     
     private void prepareRouteGrid(ListStore<Route> routeStore, 
-            ReportsMenu.ReportHandler rHandler) {        
+            ReportsMenu.ReportHandler rHandler) {
+        final Resources R = GWT.create(Resources.class);
+        
         List<ColumnConfig<Route, ?>> ccList = new ArrayList<>();
         ColumnConfig<Route, String> cName = new ColumnConfig<>(new ValueProvider<Route, String>() {
             @Override
@@ -1047,14 +1051,29 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         }, 50, "progress");
         ccList.add(cProgress);
         
-        ColumnConfig<Route, String> cStatus = new ColumnConfig<>(new ValueProvider<Route, String>() {
+        ColumnConfig<Route, ImageResource> cStatus = new ColumnConfig<>(new ValueProvider<Route, ImageResource>() {
             @Override
-            public String getValue(Route object) {
-                return object.getStatus().name();
+            public ImageResource getValue(Route object) {
+                switch(object.getStatus()) {
+                    case NEW:
+                        return R.routeStatusNew();
+                    case IN_PROGRESS_OK:
+                        return R.routeStatusInProgressOk();
+                    case IN_PROGRESS_LATE:
+                        return R.routeStatusInProgressLate();
+                    case FINISHED_OK:
+                        return R.routeStatusFinishedOk();
+                    case FINISHED_LATE:
+                        return R.routeStatusFinishedLate();
+                    case CANCELLED:
+                        return R.routeStatusCancelled();
+                    default:
+                        return null;
+                }
             }
 
             @Override
-            public void setValue(Route object, String value) {
+            public void setValue(Route object, ImageResource value) {
             }
 
             @Override
@@ -1062,6 +1081,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                 return "status";
             }
         }, 50, "status");
+        cStatus.setCell(new ImageResourceCell());
         ccList.add(cStatus);
         
         ColumnModel<Route> cm = new ColumnModel<>(ccList);
@@ -1226,6 +1246,24 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         @Source("org/traccar/web/client/theme/icon/speed_alarm_active.png")
         ImageResource speedAlarmActive();
+        
+        @Source("org/traccar/web/client/theme/icon/route_report_end_del.png")
+        ImageResource routeStatusFinishedLate();
+        
+        @Source("org/traccar/web/client/theme/icon/route_report_end_ok.png")
+        ImageResource routeStatusFinishedOk();
+        
+        @Source("org/traccar/web/client/theme/icon/route_report_mooving_del.png")
+        ImageResource routeStatusInProgressLate();
+        
+        @Source("org/traccar/web/client/theme/icon/route_report_mooving_ok.png")
+        ImageResource routeStatusInProgressOk();
+        
+        @Source("org/traccar/web/client/theme/icon/route_report_new_ok.png")
+        ImageResource routeStatusNew();
+        
+        @Source("org/traccar/web/client/theme/icon/route_report_new_del.png")
+        ImageResource routeStatusCancelled();
     }
 
     private Menu createDeviceGridContextMenu(final ReportsMenu.ReportHandler reportHandler) {
@@ -1370,10 +1408,10 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             duplicate.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override
                 public void onSelection(SelectionEvent<Item> event) {
-                    Route r = new Route(routeGrid.getSelectionModel().getSelectedItem());
-                    routeHandler.onEdit(r);
+                    routeHandler.onDuplicate(routeGrid.getSelectionModel().getSelectedItem());
                 }
             });
+            menu.add(duplicate);
         }
         
         final MenuItem report = new MenuItem(i18n.report());

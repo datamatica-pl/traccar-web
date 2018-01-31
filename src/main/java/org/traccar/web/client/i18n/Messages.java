@@ -705,10 +705,14 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String abortRoute();
     String duplicateRoute();
     String showArchivedRoutes();
+    String archivedRoutes();
     String restoreRoute();
     String deadline();
     String archiveAfter();
     String tolerance();
+    String errInvalidRoutePoint(int i);
+    String confirmRouteRemoval();
+    String newPoint();
     
     String accept();
     String rulesDialogHeader();

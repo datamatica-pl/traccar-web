@@ -22,6 +22,7 @@ import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.state.UIStateProvider;
 
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.event.shared.UmbrellaException;
 import org.fusesource.restygwt.client.Defaults;
 import org.traccar.web.client.model.api.Dispatcher;
 
@@ -46,10 +47,14 @@ public class Traccar implements EntryPoint, LoginController.LoginHandler {
 //                    if (th instanceof UmbrellaException) {
 //                        ensureNotUmbrellaError(th);
 //                    } else {
-//                        GWT.log("EXCEPTION!",th);
+//                        log(th);
 //                    }
 //                }
 //            }
+//            
+//            private native void log(Throwable msg) /*-{
+//                console.log(msg);
+//            }-*/;
 //        });
     }
 
