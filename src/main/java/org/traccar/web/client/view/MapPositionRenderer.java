@@ -931,10 +931,11 @@ public class MapPositionRenderer {
             if (position.getIcon().isArrow()) {
                 yOffset = -10 - (int) Math.floor(position.getDevice().getIconArrowRadius());
             } else {
-                yOffset = -12;
+                yOffset = -10;
                 if (position.getCourse() != null && position.getIcon().canRotate()) {
+                    double z = getIconScale();
                     double cos = Math.cos(position.getCourse() * Math.PI / 180);
-                    double yIconTop = (selected ? position.getIcon().getSelectedHeight() : position.getIcon().getHeight())/(2*cos);
+                    double yIconTop = z*(selected ? position.getIcon().getSelectedHeight() : position.getIcon().getHeight())/(2*cos);
 
                     yOffset -= Math.abs(yIconTop);
                 }
@@ -961,6 +962,11 @@ public class MapPositionRenderer {
         Style style = new Style();
         int width = selected ? icon.getSelectedWidth() : icon.getWidth();
         int height = selected ? icon.getSelectedHeight() : icon.getHeight();
+        if(position.getIcon().canRotate()) {
+            double z = getIconScale();
+            width = (int)(z*width);
+            height = (int)(z*height);
+        }
 
         style.setExternalGraphic(selected ? icon.getSelectedURL() : icon.getURL());
         style.setGraphicSize(width, height);
@@ -974,6 +980,10 @@ public class MapPositionRenderer {
         }
 
         return style;
+    }
+    
+    private double getIconScale() {
+        return (Math.max(mapView.getMap().getZoom()-7, 0)+8)/18.;
     }
 
     private String getBgColor(Position position) {
