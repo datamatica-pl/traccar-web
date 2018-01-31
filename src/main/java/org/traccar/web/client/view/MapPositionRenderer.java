@@ -934,8 +934,11 @@ public class MapPositionRenderer {
                 yOffset = -10;
                 if (position.getCourse() != null && position.getIcon().canRotate()) {
                     double z = getIconScale();
-                    double cos = Math.cos(position.getCourse() * Math.PI / 180);
-                    double yIconTop = z*(selected ? position.getIcon().getSelectedHeight() : position.getIcon().getHeight())/(2*cos);
+                    double cos = Math.abs(Math.cos(position.getCourse() * Math.PI / 180));
+                    double sin = Math.abs(Math.sin(position.getCourse() * Math.PI / 180));
+                    int h = selected ? position.getIcon().getSelectedHeight() : position.getIcon().getHeight();
+                    int w = selected ? position.getIcon().getSelectedWidth() : position.getIcon().getWidth();
+                    double yIconTop = z*(h*cos+w*sin)/2;
 
                     yOffset -= Math.abs(yIconTop);
                 }
