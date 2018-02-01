@@ -35,6 +35,7 @@ import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell;
@@ -100,6 +101,11 @@ import org.gwtopenmaps.openlayers.client.geometry.Point;
 import org.gwtopenmaps.openlayers.client.layer.OSM;
 import org.gwtopenmaps.openlayers.client.layer.Vector;
 import org.gwtopenmaps.openlayers.client.Style;
+import org.gwtopenmaps.openlayers.client.control.ModifyFeature;
+import org.gwtopenmaps.openlayers.client.control.ModifyFeatureOptions;
+import org.gwtopenmaps.openlayers.client.event.EventHandler;
+import org.gwtopenmaps.openlayers.client.event.EventObject;
+import org.traccar.web.client.GeoFenceDrawing;
 import org.traccar.web.client.controller.RouteController;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.utils.Geocoder;
@@ -117,6 +123,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     private static _UiBinder uiBinder = GWT.create(_UiBinder.class);
     private static Resources R = GWT.create(Resources.class);
     private static RoutePointAccessor pointsAccessor = GWT.create(RoutePointAccessor.class);
+    public static final String GF_PROJECTION = "EPSG:4326";
     
     @UiField
     Window window;
@@ -132,6 +139,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     ComboBox<Device> selectDevice;
     @UiField
     FieldLabel trackNameLabel;
+    @UiField
+    Label routeLength;
     
     @UiField
     TextButton addButton;
@@ -160,7 +169,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     boolean recomputingPath = false;
     boolean ignoreUpdate = false;
     boolean pathInvalid = false;
-    Date previousDeadline;
+    private Date previousDeadline;
+    private String previousName;
+    StringComboBox cbName;
     LonLat[] lineString;
     RoutePolylineFinder.Callback routeDrawer = new RoutePolylineFinder.Callback() {
         @Override
@@ -168,11 +179,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             lineString = points;
             Style st = new Style();
             st.setStrokeWidth(4);
-            ArrayList<Point> linePoints = new ArrayList<>();
-            for(LonLat pt : points) {
-                linePoints.add(createPoint(pt.lon(), pt.lat()));
-            }
-            LineString ls = new LineString(linePoints.toArray(new Point[0]));
+            LineString ls = toLineString(points);
 
             polyline = new VectorFeature(ls, st);
             gfLayer.addFeature(polyline);
@@ -191,24 +198,35 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 }
             }
             if(deadline != null && distances != null) {
+                double totalDistance = 0;
                 for(int i=1;i < rpws.size();++i) {
-                    if(distances.length > i-1)
+                    if(distances.length > i-1) {
                         deadline = new Date(deadline.getTime() + (long)(distances[i-1]/1000)*60*1000);
+                        totalDistance += distances[i-1]/1000;
+                    }
                     if(rpws.get(i).getDeadline() == null)
                         rpws.get(i).setDeadline(deadline);
                     ignoreUpdate = true;
                     store.update(rpws.get(i));
                     ignoreUpdate = false;
                 }
+                routeLength.setText(i18n.routeLength(totalDistance));
             }
             endComputingPath();
         }
     };
     
     private org.gwtopenmaps.openlayers.client.Map map;
+    private ModifyFeature modifyFeature;
+    private final Map<String, GeoFence> gfMap= new HashMap<>();
+    
+    public RouteDialog(Route route, final RouteHandler routeHandler,
+            ListStore<Device> devs, ListStore<GeoFence> gfs) {
+        this(route, routeHandler, devs, gfs, null);
+    }
     
     public RouteDialog(Route route, final RouteHandler routeHandler, 
-            ListStore<Device> devs, ListStore<GeoFence> gfs) {
+            ListStore<Device> devs, ListStore<GeoFence> gfs, LonLat center) {
         this.route = route;
         this.routeHandler = routeHandler;
         store = new ListStore<>(pointsAccessor.id());
@@ -272,7 +290,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         archiveAfter.addValidator(new MinNumberValidator<>(0));
         archiveAfter.addValidator(new MaxNumberValidator<>(30));
         
-        prepareMap();
+        prepareMap(center);
         bindStoreWithMap(route);
         
         prepareDND();
@@ -382,38 +400,6 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         cDelete.setCell(new DeleteCell(store, edit));
         
         final TextField addr = new TextField();
-        final RegExp latLonPatt = RegExp.compile(
-                "(\\d+(\\.\\d+)?)([NS])\\s*(\\d+(\\.\\d+)?)([WE])");
-        addr.addValueChangeHandler(new ValueChangeHandler<String>(){
-            @Override
-            public void onValueChange(final ValueChangeEvent<String> event) {
-                store.commitChanges();
-                final RoutePointWrapper p = grid.getSelectionModel().getSelectedItem();
-                
-                MatchResult m = latLonPatt.exec(event.getValue());
-                if(m == null) {
-                    Geocoder.search(event.getValue(), new SearchCallback() {
-                        @Override
-                        public void onResult(float lon, float lat, String name) {
-                            GeoFence gf = p.getRoutePoint().getGeofence();
-                            p.setLoading(false);
-                            gf.setPoints(lon+" "+lat);
-                            gf.setAddress(event.getValue());
-                            if(gf.getName() == null || gf.getName().isEmpty())
-                                gf.setName(name);
-                            store.update(p);
-                        }
-                    });
-                } else {
-                    double lat = Double.parseDouble(m.getGroup(1)) * 
-                            (m.getGroup(3).equals("S") ? -1 : 1);
-                    double lon = Double.parseDouble(m.getGroup(4)) *
-                            (m.getGroup(6).equals("W") ? -1 : 1);
-                    p.setLonLat(lon, lat);
-                    store.update(p);
-                }
-            }
-        });
         edit.addEditor(cAddress, addr);
         
         final NumberField rad = new NumberField(new NumberPropertyEditor.IntegerPropertyEditor());
@@ -430,14 +416,13 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         });
         
         List<String> gfNames = new ArrayList<>();
-        final Map<String, GeoFence> gfMap= new HashMap<>();
         for(GeoFence gf : gfs.getAll()) {
-            if(!gf.isDeleted() && !gfMap.containsKey(gf.getName())) {
+            if(!gf.isDeleted() && gf.getType() != GeoFenceType.LINE && !gfMap.containsKey(gf.getName())) {
                gfNames.add(gf.getName());
                gfMap.put(gf.getName(), gf);
             }
         }
-        StringComboBox cbName = new StringComboBox(gfNames);
+        cbName = new StringComboBox(gfNames);
         cbName.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
         cbName.setForceSelection(false);
         edit.addEditor(cName, cbName);        
@@ -456,31 +441,29 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                     event.setCancelled(true);
                 if(recomputingPath)
                     event.setCancelled(true);
-                if(event.getEditCell().getCol() == 5)
+                if(event.getEditCell().getCol() == 0)
+                    previousName = pt.getName();
+                else if(event.getEditCell().getCol() == 5)
                     previousDeadline = pt.getDeadline();
             }
         });
         
+        
+        final RegExp latLonPatt = RegExp.compile(
+                "(\\d+(\\.\\d+)?)([NS])\\s*(\\d+(\\.\\d+)?)([WE])");
         edit.addCompleteEditHandler(new CompleteEditHandler<RoutePointWrapper>() {
             @Override
             public void onCompleteEdit(CompleteEditEvent<RoutePointWrapper> event) {
+                store.commitChanges();
+                final RoutePointWrapper p = store.get(event.getEditCell().getRow());
                 if(event.getEditCell().getCol() == 0) {
-                    store.commitChanges();
-                    RoutePointWrapper p = store.get(event.getEditCell().getRow());
-                    if(gfMap.containsKey(p.getName())) {
-                        p.setGeofence(gfMap.get(p.getName()));
-                    } else {
-                        if(p.getRoutePoint().getGeofence().getId() != 0) {
-                            p.setGeofence(RoutePointWrapper.createGF(p.getName(), 300));
-                        }
-                    }
-                    store.update(p);
+                    onNameEdited(p);
+                } else if(event.getEditCell().getCol() == 1) {
+                    onAddressEdited(p);
                 }
                 if(event.getEditCell().getCol() != 5 || previousDeadline == null)
                     return;
-                store.commitChanges();
-                RoutePointWrapper pt = store.get(event.getEditCell().getRow());
-                long diff = pt.getDeadline().getTime() - previousDeadline.getTime();
+                long diff = p.getDeadline().getTime() - previousDeadline.getTime();
                 for(int i=event.getEditCell().getRow()+1; i < store.size();++i) {
                     RoutePointWrapper rpw = store.get(i);
                     if(rpw.getDeadline() != null)
@@ -490,10 +473,65 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                     ignoreUpdate = false;
                 }
             }
+            
+            public void onNameEdited(RoutePointWrapper p) {
+                store.commitChanges();
+                if(gfMap.containsKey(previousName)) {
+                    gfMap.remove(previousName);
+                    cbName.remove(previousName);
+                }
+                if(gfMap.containsKey(p.getName())) {
+                    p.setGeofence(gfMap.get(p.getName()));
+                } else {
+                    if(p.getRoutePoint().getGeofence().getId() != 0) {
+                        p.setGeofence(RoutePointWrapper.createGF(p.getName(), 300));
+                    }
+                }
+                store.update(p);
+                for(RoutePointWrapper pt : store.getAll()) {
+                    if(!gfMap.containsKey(pt.getName())) {
+                        gfMap.put(pt.getName(), pt.getRoutePoint().getGeofence());
+                        cbName.add(pt.getName());
+                    }
+                }
+            }
+            
+            public void onAddressEdited(final RoutePointWrapper p) {
+                MatchResult m = latLonPatt.exec(p.getAddress());
+                if(m == null) {
+                    Geocoder.search(p.getAddress(), new SearchCallback() {
+                        @Override
+                        public void onResult(float lon, float lat, String name) {
+                            GeoFence gf = p.getRoutePoint().getGeofence();
+                            p.setLoading(false);
+                            gf.setPoints(lon+" "+lat);
+                            gf.setAddress(p.getAddress());
+                            if(gf.getName() == null || gf.getName().isEmpty())
+                                gf.setName(name);
+                            store.update(p);
+                            if(!gfMap.containsKey(gf.getName())) {
+                                gfMap.put(gf.getName(), gf);
+                                cbName.add(gf.getName());
+                            }
+                        }
+                    });
+                } else {
+                    double lat = Double.parseDouble(m.getGroup(1)) * 
+                            (m.getGroup(3).equals("S") ? -1 : 1);
+                    double lon = Double.parseDouble(m.getGroup(4)) *
+                            (m.getGroup(6).equals("W") ? -1 : 1);
+                    p.setLonLat(lon, lat);
+                    store.update(p);
+                    if(!gfMap.containsKey(p.getName())) {
+                        gfMap.put(p.getName(), p.getRoutePoint().getGeofence());
+                        cbName.add(p.getName());
+                    }
+                }
+            }
         });
     }
     
-    private void prepareMap() {
+    private void prepareMap(LonLat center) {
         MapOptions mapOptions = new MapOptions();
         mapOptions.setMaxExtent(new Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34));
         MapWidget mapWidget = new MapWidget("100%", "100%", mapOptions);
@@ -502,36 +540,77 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         map.addLayer(OSM.Mapnik("OpenStreetMap"));
         gfLayer = new Vector(i18n.overlayType(UserSettings.OverlayType.GEO_FENCES));
         map.addLayer(gfLayer);
-        
-        LonLat center = new LonLat(19, 52);
-        center.transform("EPSG:4326", map.getProjection());
-        map.setCenter(center, 7);
+
+        // add editing feature
+        ModifyFeatureOptions options = new ModifyFeatureOptions();
+        options.setClickout(false);
+        options.setStandalone(true);
+        options.setToggle(false);
+        modifyFeature = new ModifyFeature(gfLayer, options);
+        map.addControl(modifyFeature);
+        modifyFeature.setMode(ModifyFeature.DRAG);
+        modifyFeature.activate();
+
+        if(center != null)
+            map.setCenter(center, 12);
         map.addMapClickListener(new MapClickListener() {
             @Override
             public void onClick(MapClickListener.MapClickEvent ev) {
                 if(recomputingPath)
                     return;
                 LonLat ll = ev.getLonLat();
-                ll.transform(map.getProjection(), "EPSG:4326");
+                ll.transform(map.getProjection(), GF_PROJECTION);
                 onPointSelected(ll);
             } 
         });
         theMap.add(mapWidget);
     }
     
+    public static native void log(String msg) /*-{
+        console.log(msg);
+    }-*/;
+    
     private void bindStoreWithMap(Route route) {
         gfRenderer = new GeoFenceRenderer(this);
         store.addStoreHandlers(new StoreHandlers<RoutePointWrapper>() {
+            private VectorFeature modifiedFeature;
+            private RoutePointWrapper modifiedPt;
+            
             @Override
             public void onAdd(StoreAddEvent<RoutePointWrapper> event) {
+                if(modifyFeature.isSelectedFeatureModified() && modifiedFeature != null) {
+                    LonLat center = modifiedFeature.getCenterLonLat();
+                    center.transform(map.getProjection(), GF_PROJECTION);
+                    modifiedPt.getRoutePoint().getGeofence().setPoints(center.lon()+" "+center.lat());
+                    ignoreUpdate = true;
+                    store.update(modifiedPt);
+                    ignoreUpdate = false;
+                }
                 drawPolyline();
-                if(!event.getItems().isEmpty())
-                    gfRenderer.selectGeoFence(event.getItems().get(0).getRoutePoint().getGeofence());
+                selectFirst(event.getItems());
+                if(!event.getItems().isEmpty()) {
+                    GeoFence gf = event.getItems().get(0).getRoutePoint().getGeofence();
+                    if(!gfMap.containsKey(gf.getName())) {
+                        gfMap.put(gf.getName(), gf);
+                        cbName.add(gf.getName());
+                    }
+                }
             }
 
             @Override
             public void onRemove(StoreRemoveEvent<RoutePointWrapper> event) {
                 drawPolyline();
+                GeoFence gf = event.getItem().getRoutePoint().getGeofence();
+                if(gfMap.containsKey(gf.getName())) {
+                    gfMap.remove(gf.getName());
+                    cbName.remove(gf.getName());
+                }
+                for(RoutePointWrapper pt : store.getAll()) {
+                    if(!gfMap.containsKey(pt.getName())) {
+                        gfMap.put(pt.getName(), pt.getRoutePoint().getGeofence());
+                        cbName.add(pt.getName());
+                    }
+                }
             }
 
             @Override
@@ -548,8 +627,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                     return;
                 if(!event.getItems().isEmpty()) {
                     drawPolyline();
-                    gfRenderer.selectGeoFence(event.getItems().get(0).getRoutePoint().getGeofence());
                 }
+                selectFirst(event.getItems());
             }
 
             @Override
@@ -562,6 +641,19 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
 
             @Override
             public void onSort(StoreSortEvent<RoutePointWrapper> event) {
+            }
+            
+            private void selectFirst(List<RoutePointWrapper> rpws) {
+                if(rpws.isEmpty())
+                    return;
+                GeoFence gf = rpws.get(0).getRoutePoint().getGeofence();
+                gfRenderer.selectGeoFence(gf);
+                GeoFenceDrawing gfDraw = gfRenderer.getDrawing(gf);
+                if(gfDraw != null && gf.getId() == 0) {
+                    modifiedFeature = gfDraw.getShape();
+                    modifyFeature.selectFeature(modifiedFeature);
+                    modifiedPt = rpws.get(0);
+                }
             }
         });
         pl.datamatica.traccar.model.GeoFence.LonLat[] pts = route.getLinePoints();
@@ -578,6 +670,16 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         if(route.getCorridor() != null)
             gfRenderer.drawGeoFence(route.getCorridor(), false);
         routeDrawer.onResult(lineString, null);
+        LineString ls = toLineString(lineString);
+        map.zoomToExtent(ls.getBounds());
+    }
+    
+    public LineString toLineString(LonLat[] points) {
+        ArrayList<Point> linePoints = new ArrayList<>();
+        for(LonLat pt : points) {
+            linePoints.add(createPoint(pt.lon(), pt.lat()));
+        }
+        return new LineString(linePoints.toArray(new Point[0]));
     }
     
     private void prepareDND() {
@@ -661,7 +763,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     @Override
     public Point createPoint(double longitude, double latitude) {
         Point point = new Point(longitude, latitude);
-        point.transform(new Projection("EPSG:4326"), new Projection(map.getProjection()));
+        point.transform(new Projection(GF_PROJECTION), new Projection(map.getProjection()));
         return point;
     }
 

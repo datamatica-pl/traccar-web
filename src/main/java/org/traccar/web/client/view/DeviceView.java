@@ -1051,10 +1051,31 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         }, 50, "progress");
         ccList.add(cProgress);
         
-        ColumnConfig<Route, ImageResource> cStatus = new ColumnConfig<>(new ValueProvider<Route, ImageResource>() {
+        ColumnConfig<Route, Route.Status> cStatus = new ColumnConfig<>(new ValueProvider<Route, Route.Status>() {
             @Override
-            public ImageResource getValue(Route object) {
-                switch(object.getStatus()) {
+            public Route.Status getValue(Route object) {
+                return object.getStatus();
+            }
+
+            @Override
+            public void setValue(Route object, Route.Status value) {
+            }
+
+            @Override
+            public String getPath() {
+                return "status";
+            }
+        }, 50, "status");
+        cStatus.setCell(new AbstractCell<Route.Status>() {
+            @Override
+            public void render(Cell.Context context, Route.Status value, SafeHtmlBuilder sb) {
+                sb.appendHtmlConstant("<div title=\""+i18n.routeStatus(value)+"\">")
+                        .append(AbstractImagePrototype.create(getImage(value)).getSafeHtml())
+                        .appendHtmlConstant("</div>");
+            }
+            
+            private ImageResource getImage(Route.Status status) {
+                switch(status) {
                     case NEW:
                         return R.routeStatusNew();
                     case IN_PROGRESS_OK:
@@ -1071,17 +1092,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                         return null;
                 }
             }
-
-            @Override
-            public void setValue(Route object, ImageResource value) {
-            }
-
-            @Override
-            public String getPath() {
-                return "status";
-            }
-        }, 50, "status");
-        cStatus.setCell(new ImageResourceCell());
+        });
         ccList.add(cStatus);
         
         ColumnModel<Route> cm = new ColumnModel<>(ccList);
