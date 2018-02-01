@@ -23,6 +23,7 @@ import pl.datamatica.traccar.model.GeoFenceType;
 import pl.datamatica.traccar.model.DeviceEventType;
 import pl.datamatica.traccar.model.DeviceIconMode;
 import org.traccar.web.shared.model.*;
+import pl.datamatica.traccar.model.Route;
 
 public interface Messages extends com.google.gwt.i18n.client.Messages {
     String clearCookies();
@@ -713,6 +714,8 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String errInvalidRoutePoint(int i);
     String confirmRouteRemoval();
     String newPoint();
+    String routeStatus(@Select Route.Status status);
+    String routeLength(double length);
     
     String accept();
     String rulesDialogHeader();

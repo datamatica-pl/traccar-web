@@ -84,7 +84,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                         });
             }
             
-        }, deviceStore, geoFenceStore).show();
+        }, deviceStore, geoFenceStore, mapController.getCenter()).show();
     }
     
     @Override

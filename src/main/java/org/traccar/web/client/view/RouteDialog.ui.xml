@@ -184,7 +184,14 @@
           <container:HorizontalLayoutContainer>
             
             <container:child layoutData="{halfWindow}">
-              <grid:Grid ui:field="grid" />
+              <container:VerticalLayoutContainer>
+                <container:child layoutData="{gridLayoutData}">
+                  <grid:Grid ui:field="grid" />
+                </container:child>
+                <container:child layoutData="{verticalLayoutData}">
+                  <g:Label ui:field="routeLength" />
+                </container:child>
+              </container:VerticalLayoutContainer>
             </container:child>
           
             <container:child layoutData="{halfWindow}">
