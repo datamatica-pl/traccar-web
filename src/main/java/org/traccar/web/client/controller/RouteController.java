@@ -26,6 +26,7 @@ import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +39,9 @@ import org.traccar.web.client.view.DeviceView;
 import org.traccar.web.client.view.RouteDialog;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.Report;
+import pl.datamatica.traccar.model.ReportFormat;
+import pl.datamatica.traccar.model.ReportType;
 import pl.datamatica.traccar.model.Route;
 import pl.datamatica.traccar.model.RoutePoint;
 
@@ -46,6 +50,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     private ListStore<Device> deviceStore;
     private ListStore<GeoFence> geoFenceStore;
     private MapController mapController;
+    private ReportsController reportHandler;
     private final ListStore<Route> routeStore;
     private Messages i18n = GWT.create(Messages.class);
     
@@ -66,6 +71,10 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                 onSelected(null);
             }
         });
+    }
+    
+    public void setReportHandler(ReportsController reportHandler) {
+        this.reportHandler = reportHandler;
     }
     
     @Override
@@ -225,6 +234,8 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     @Override
     public void onArchivedChanged(Route selectedItem, boolean archive) {
         selectedItem.setArchived(archive);
+        if(!archive)
+            selectedItem.setArchiveAfter(0);
         Application.getDataService().updateRoute(selectedItem, 
                 new BaseAsyncCallback<Route> (i18n) {
             @Override
@@ -261,5 +272,21 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     @Override
     public void onRoutesUpdated(List<Route> routes) {
         routeStore.replaceAll(routes);
+    }
+
+    @Override
+    public void onShowReport(Route route) {
+        String name = route.getName();
+        
+        Report report = new Report();
+        report.setType(ReportType.TRACK);
+        report.setName(name);
+        report.setDevices(Collections.singleton(route.getDevice()));
+        report.setRoute(route);
+        report.setFromDate(new Date(0));
+        report.setToDate(new Date());
+        report.setPreview(true);
+        report.setFormat(ReportFormat.HTML);
+        reportHandler.generate(report);
     }
 }
