@@ -23,7 +23,6 @@ import pl.datamatica.traccar.model.GroupedDevice;
 import pl.datamatica.traccar.model.Device;
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.Cell;
-import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BrowserEvents;
@@ -138,6 +137,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         public void onAbort(Route selectedItem);
         public void onArchivedChanged(Route selectedItem, boolean archived);
         public void onShowArchived();
+        void onShowReport(Route route);
     }
 
     public interface CommandHandler {
@@ -1431,10 +1431,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                 @Override
                 public void onSelection(SelectionEvent<Item> event) {
                     Route route = routeGrid.getSelectionModel().getSelectedItem();
-                    ReportsDialog dialog = reportHandler.createDialog();
-                    dialog.selectReportType(ReportType.TRACK);
-                    dialog.selectRoute(route);
-                    dialog.show();
+                    routeHandler.onShowReport(route);
                 }
             });
             menu.add(report);
