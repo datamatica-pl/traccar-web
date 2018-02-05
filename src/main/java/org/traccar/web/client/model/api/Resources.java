@@ -30,7 +30,7 @@ public class Resources {
     
     private Map<Long, IconInfo> icons = new TreeMap<>();
     private Map<Long, ApiDeviceModel> models = new HashMap<>();
-    private IconInfo defIcon = new IconInfo("img/GTS_pointer_car.png", false);
+    private IconInfo defIcon = new IconInfo("img/car_blue.svg", true);
     
     public IconInfo icon(Long id) {
         if(id != null && icons.containsKey(id))

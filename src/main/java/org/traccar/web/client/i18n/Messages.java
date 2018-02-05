@@ -688,6 +688,7 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     public String actionNotReversible();
     String userGroupUsersTitle(String name);
     String defaultGroup();
+    String defaultIconId();
     
     String auditLog();
     String auditLogEvent();

@@ -47,6 +47,7 @@ public interface ApplicationSettingsService extends RestService{
         String bingMapsKey;
         String matchServiceURL;
         Long defaultUserGroupId;
+        Long defaultIconId;
         
         public ApplicationSettings toApplicationSettings() {
             ApplicationSettings as = new ApplicationSettings();
@@ -58,6 +59,7 @@ public interface ApplicationSettingsService extends RestService{
             as.setLanguage(language);
             as.setBingMapsKey(bingMapsKey);
             as.setMatchServiceURL(matchServiceURL);
+            as.setDefaultIconId(defaultIconId);
             if(defaultUserGroupId != null)
                 as.setDefaultGroupId(defaultUserGroupId);
             return as;
@@ -74,6 +76,7 @@ public interface ApplicationSettingsService extends RestService{
             dto.bingMapsKey = as.getBingMapsKey();
             dto.matchServiceURL = as.getMatchServiceURL();
             dto.defaultUserGroupId = as.getDefaultGroupId();
+            dto.defaultIconId = as.getDefaultIconId();
             return dto;
         }
     }
