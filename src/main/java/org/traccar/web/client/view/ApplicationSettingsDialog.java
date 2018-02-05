@@ -101,6 +101,9 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
     
     @UiField(provided = true)
     ComboBox<UserGroup> defaultGroup;
+    
+    @UiField
+    NumberField<Long> defaultIconId;
 
     public ApplicationSettingsDialog(ApplicationSettings applicationSettings, 
             ApplicationSettingsHandler applicationSettingsHandler, 
