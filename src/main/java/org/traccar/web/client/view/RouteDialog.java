@@ -282,6 +282,11 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             corridorWidth.setValue((int)(route.getCorridor().getRadius()/1000));
             corridorWidth.setEnabled(true);
         }
+        if(route.getId() == 0) {
+            createCorridor.setValue(true);
+            corridorWidth.setValue(1);
+            corridorWidth.setEnabled(true);
+        }
         
         tolerance.setValue(route.getTolerance());
         tolerance.addValidator(new MinNumberValidator<>(0));
@@ -771,9 +776,16 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     }
     
     public void onPointSelected(LonLat lonLat) {
-        RoutePointWrapper pt = new RoutePointWrapper();
+        RoutePointWrapper pt = grid.getSelectionModel().getSelectedItem();
+        edit.cancelEditing();
+        boolean isNew = pt == null || !pt.isEditable();
+        if(isNew)
+            pt = new RoutePointWrapper();
         pt.setLonLat(lonLat.lon(), lonLat.lat());
-        store.add(store.size()-1, pt);
+        if(isNew)
+            store.add(store.size()-1, pt);
+        else
+            store.update(pt);
     }
     
     @UiHandler("saveButton")
