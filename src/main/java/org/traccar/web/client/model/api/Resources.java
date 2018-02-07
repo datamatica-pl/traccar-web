@@ -30,7 +30,7 @@ public class Resources {
     
     private Map<Long, IconInfo> icons = new TreeMap<>();
     private Map<Long, ApiDeviceModel> models = new HashMap<>();
-    private IconInfo defIcon = new IconInfo("img/car_blue.svg", true);
+    private IconInfo defIcon = new IconInfo("img/car_blue.svg", true, 31, 59);
     
     public IconInfo icon(Long id) {
         if(id != null && icons.containsKey(id))
@@ -65,10 +65,14 @@ public class Resources {
         private final int height;
         
         public IconInfo(String url, boolean rotates) {
+            this(url, rotates, 36, 48);
+        }
+        
+        public IconInfo(String url, boolean canRotate, int width, int height) {
             this.url = url;
-            this.canRotate = rotates;
-            this.width = 36;
-            this.height = 48;
+            this.canRotate = canRotate;
+            this.width = width;
+            this.height = height;
         }
         
         public IconInfo(ApiDeviceIcon icon) {
