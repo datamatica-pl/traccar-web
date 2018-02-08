@@ -15,7 +15,6 @@
  */
 package org.traccar.web.client.view;
 
-import com.google.gwt.cell.client.Cell;
 import pl.datamatica.traccar.model.GeoFenceType;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.Device;
@@ -24,18 +23,17 @@ import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.safehtml.shared.SafeHtml;
-import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell;
 import com.sencha.gxt.core.client.*;
-import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.Store;
+import com.sencha.gxt.data.shared.event.StoreFilterEvent;
+import com.sencha.gxt.data.shared.event.StoreFilterEvent.StoreFilterHandler;
 import com.sencha.gxt.widget.core.client.ColorPalette;
-import com.sencha.gxt.widget.core.client.Header;
 import com.sencha.gxt.widget.core.client.PlainTabPanel;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
@@ -44,11 +42,11 @@ import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.*;
 import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel;
-import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel.CheckBoxColumnAppearance;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
-import com.sencha.gxt.widget.core.client.grid.ColumnHeader;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
+import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
+import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.SelectionChangedHandler;
 import org.gwtopenmaps.openlayers.client.*;
 import org.gwtopenmaps.openlayers.client.Map;
 import org.gwtopenmaps.openlayers.client.control.DrawFeature;
@@ -66,6 +64,7 @@ import org.traccar.web.client.model.EnumKeyProvider;
 import org.traccar.web.client.model.GeoFenceProperties;
 
 import java.util.*;
+import org.traccar.web.client.model.DeviceProperties;
 
 public class GeoFenceWindow implements Editor<GeoFence> {
 
@@ -129,6 +128,10 @@ public class GeoFenceWindow implements Editor<GeoFence> {
     @UiField(provided = true)
     ListStore<Device> deviceSelectionStore;
 
+    @UiField(provided = true)
+    @Editor.Ignore
+    StoreFilterField<Device> deviceFilter;
+    
     @UiField
     Grid<Device> grid;
     
@@ -138,6 +141,9 @@ public class GeoFenceWindow implements Editor<GeoFence> {
     
     @UiField
     VerticalLayoutContainer devicesTab;
+    
+    private Set<Device> selDevices;
+    private boolean selDevicesLock = false;
 
     public GeoFenceWindow(GeoFence geoFence,
                           GeoFenceDrawing geoFenceDrawing,
@@ -150,6 +156,7 @@ public class GeoFenceWindow implements Editor<GeoFence> {
         this.geoFenceLayer = geoFenceLayer;
         this.geoFence = new GeoFence();
         this.geoFence.copyFrom(geoFence);
+        selDevices = new HashSet<>();
 
         ListStore<GeoFenceType> geoFenceTypeStore = new ListStore<>(
                 new EnumKeyProvider<GeoFenceType>());
@@ -160,10 +167,12 @@ public class GeoFenceWindow implements Editor<GeoFence> {
         type.setForceSelection(true);
         type.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
 
-        deviceSelectionStore = devices;
+        DeviceProperties deviceProperties = GWT.create(DeviceProperties.class);
+        deviceSelectionStore = new ListStore<Device>(deviceProperties.id());
+        deviceSelectionStore.addAll(devices.getAll());
         
-        final CheckBoxSelectionModel<Device> sel = new CheckBoxSelectionModel<>();
         List<ColumnConfig<Device, ?>> columnConfigList = new LinkedList<>();
+        CheckBoxSelectionModel<Device> sel = createDevSelectionModel();
         
         columnConfigList.add(sel.getColumn());
         columnConfigList.add(new ColumnConfig<>(new ToStringValueProvider<Device>() {
@@ -174,10 +183,12 @@ public class GeoFenceWindow implements Editor<GeoFence> {
         }, 25, i18n.name()));        
         
         columnModel = new ColumnModel<>(columnConfigList);
+        prepareDeviceFilter();
         
         uiBinder.createAndBindUi(this);
         
         grid.setSelectionModel(sel);
+        devices.addAll(geoFence.getDevices());
         for(Device d : geoFence.getDevices())
             grid.getSelectionModel().select(d, true);
 
@@ -198,6 +209,50 @@ public class GeoFenceWindow implements Editor<GeoFence> {
             edit();
         }
     }
+    
+    private CheckBoxSelectionModel<Device> createDevSelectionModel() {
+        final CheckBoxSelectionModel<Device> sel = new CheckBoxSelectionModel<>();
+        sel.setShowSelectAll(true);
+        sel.addSelectionChangedHandler(new SelectionChangedHandler<Device>() {
+            @Override
+            public void onSelectionChanged(SelectionChangedEvent<Device> event) {
+                if(selDevicesLock)
+                    return;
+                selDevices.removeAll(deviceSelectionStore.getAll());
+                selDevices.addAll(grid.getSelectionModel().getSelectedItems());
+            }
+        });
+        return sel;
+    }
+    
+    private void prepareDeviceFilter() {
+        deviceFilter = new StoreFilterField<Device>() {
+            @Override
+            protected boolean doSelect(Store<Device> store, Device parent, Device item, String filter) {
+                return filter.trim().isEmpty() || matches(item, filter);
+            }
+
+            boolean matches(Device d, String filter) {
+                return d.getName().toLowerCase().contains(filter.toLowerCase())
+                        || d.getUniqueId().contains(filter);
+            }
+        };
+        deviceFilter.bind(deviceSelectionStore);
+        deviceSelectionStore.addStoreFilterHandler(new StoreFilterHandler<Device>() {
+            String filter = "";
+            @Override
+            public void onFilter(StoreFilterEvent<Device> event) {
+                if(deviceFilter.getText().equals(filter))
+                    return;
+                filter = deviceFilter.getText();
+                selDevicesLock = true;
+                for(Device d : deviceSelectionStore.getAll())
+                    if(selDevices.contains(d) && !grid.getSelectionModel().isSelected(d))
+                        grid.getSelectionModel().select(d, true);
+                selDevicesLock = false;
+            }
+        });
+    }
 
     public void show() {
         window.show();
@@ -211,7 +266,7 @@ public class GeoFenceWindow implements Editor<GeoFence> {
     public void onSelectAllClicked(SelectEvent event) {
         grid.getSelectionModel().selectAll();
     }
-    
+
 
     @UiHandler("saveButton")
     public void onSaveClicked(SelectEvent event) {
@@ -312,9 +367,9 @@ public class GeoFenceWindow implements Editor<GeoFence> {
             updated.points(points);
         }
         // set up devices
-        updated.setDevices(new HashSet<Device>());
-        for(Device d : grid.getSelectionModel().getSelectedItems())
-            updated.getDevices().add(d);
+        selDevicesLock = true;
+        updated.setDevices(new HashSet<>(selDevices));
+        selDevicesLock = false;
 
         return updated;
     }
