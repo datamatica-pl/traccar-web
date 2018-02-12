@@ -90,7 +90,7 @@
           <gxt:child config="{devicesTabConfig}">
               <container:VerticalLayoutContainer ui:field="devicesTab">
                   <container:child layoutData="{verticalLayoutData}">
-                      <button:TextButton ui:field="selectAllButton" text="{i18n.selectAll}" />
+                      <button:TextButton ui:field="selectAllButton" text="{i18n.selectDeselectAll}" />
                   </container:child>
                   <container:child layoutData="{verticalLayoutData}">
                       <form:StoreFilterField ui:field="deviceFilter" emptyText="{i18n.filter}..."/>
