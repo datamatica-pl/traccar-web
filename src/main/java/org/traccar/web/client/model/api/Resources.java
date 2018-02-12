@@ -76,7 +76,10 @@ public class Resources {
         }
         
         public IconInfo(ApiDeviceIcon icon) {
-            this.url = icon.getUrl().replace("/images/", "/markers/");
+            if(icon.isWithoutFrame)
+                url = icon.getUrl();
+            else
+                url = icon.getUrl().replace("/images/", "/markers/");
             this.canRotate = icon.isWithoutFrame;
             this.width = icon.markerWidth;
             this.height = icon.markerHeight;
