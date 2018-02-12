@@ -144,6 +144,7 @@ public class GeoFenceWindow implements Editor<GeoFence> {
     
     private Set<Device> selDevices;
     private boolean selDevicesLock = false;
+    private boolean selectAll = true;
 
     public GeoFenceWindow(GeoFence geoFence,
                           GeoFenceDrawing geoFenceDrawing,
@@ -188,9 +189,11 @@ public class GeoFenceWindow implements Editor<GeoFence> {
         uiBinder.createAndBindUi(this);
         
         grid.setSelectionModel(sel);
-        devices.addAll(geoFence.getDevices());
-        for(Device d : geoFence.getDevices())
+        for(Device d : geoFence.getDevices()) {
+            deviceSelectionStore.remove(d);
+            deviceSelectionStore.add(0, d);
             grid.getSelectionModel().select(d, true);
+        }
 
         driver.initialize(this);
         driver.edit(this.geoFence);
@@ -264,7 +267,12 @@ public class GeoFenceWindow implements Editor<GeoFence> {
     
     @UiHandler("selectAllButton")
     public void onSelectAllClicked(SelectEvent event) {
-        grid.getSelectionModel().selectAll();
+        if(selectAll) {
+            grid.getSelectionModel().selectAll();
+        } else {
+            grid.getSelectionModel().deselectAll();
+        }
+        selectAll = !selectAll;
     }
 
 
