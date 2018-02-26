@@ -89,7 +89,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         /**
          * Start movement detector
          */
-//        movementDetector.start();
+        movementDetector.start();
     }
 
     EntityManager getSessionEntityManager() {
