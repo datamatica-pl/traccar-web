@@ -15,8 +15,6 @@
  */
 package org.traccar.web.client.utils;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,24 +25,16 @@ import java.util.logging.Logger;
 public class ClientLogUtils {
 
     private final static String GENERAL_LOG_NAME = "generalClientLogger";
-
-    // Does not work in GWT
-//    public static void logException(Level logLevel, Throwable e) {
-//        Logger logger = Logger.getLogger(GENERAL_LOG_NAME);
-//        StringWriter sw = new StringWriter();
-//        e.printStackTrace(new PrintWriter(sw));
-//        String exceptionStr = sw.toString();
-//
-//        logger.log(logLevel, exceptionStr);
-//    }
     
     public static void logExceptionGwtCompatible(Level logLevel, Throwable e) {
-        String exceptionString = e.toString() + "\n";
+        String exceptionString = GENERAL_LOG_NAME + ": ";
+        exceptionString += e.toString() + "\n";
         Throwable cause = e.getCause();
         while (cause != null) {
             exceptionString += cause.toString() + "\n";
             cause = cause.getCause();
         }
+        exceptionString += GENERAL_LOG_NAME + ": end of trace";
         
         Logger logger = Logger.getLogger(GENERAL_LOG_NAME);
         logger.log(logLevel, exceptionString);
