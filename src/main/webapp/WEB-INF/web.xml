@@ -32,6 +32,15 @@
     <servlet-name>MapMarkers</servlet-name>
     <url-pattern>/MapMarker</url-pattern>
   </servlet-mapping>
+  
+  <servlet>
+      <servlet-name>remoteLogging</servlet-name>
+      <servlet-class>com.google.gwt.logging.server.RemoteLoggingServiceImpl</servlet-class>
+  </servlet>
+  <servlet-mapping>
+      <servlet-name>remoteLogging</servlet-name>
+      <url-pattern>/traccar/remote_logging</url-pattern>
+  </servlet-mapping>
 
   <listener>
     <listener-class>org.traccar.web.server.model.GuiceServletConfig</listener-class>

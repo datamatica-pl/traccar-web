@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
@@ -45,6 +46,7 @@ import org.traccar.web.client.model.api.GroupService;
 import org.traccar.web.client.model.api.Resources;
 import org.traccar.web.client.model.api.Resources.IconInfo;
 import org.traccar.web.client.model.api.StringsService;
+import org.traccar.web.client.utils.ClientLogUtils;
 import pl.datamatica.traccar.model.UserPermission;
 
 /**
@@ -195,6 +197,7 @@ public class InitialLoader {
                 @Override
                 public void onFailure(Method method, Throwable exception) {
                     new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                    ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception);
                 }
 
                 @Override

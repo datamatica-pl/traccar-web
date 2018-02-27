@@ -42,8 +42,10 @@ import com.google.gwt.user.datepicker.client.CalendarUtil;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import java.util.logging.Level;
 import org.traccar.web.client.model.api.ApiRequestCallback;
 import org.traccar.web.client.model.api.DevicePositionsService;
+import org.traccar.web.client.utils.ClientLogUtils;
 import org.traccar.web.client.widget.InfoMessageBox;
 import pl.datamatica.traccar.model.UserPermission;
 
@@ -369,6 +371,7 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
                 @Override
                 public void onError(Request request, Throwable exception) {
                     new AlertMessageBox(i18n.error(), i18n.errSnapToRoads(-1, exception.getLocalizedMessage())).show();
+                    ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception);
                 }
             });
         } catch (RequestException re) {

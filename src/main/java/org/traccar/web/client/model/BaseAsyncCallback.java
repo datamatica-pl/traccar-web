@@ -17,7 +17,9 @@ package org.traccar.web.client.model;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import java.util.logging.Level;
 import org.traccar.web.client.i18n.Messages;
+import org.traccar.web.client.utils.ClientLogUtils;
 import org.traccar.web.shared.model.AccessDeniedException;
 
 public class BaseAsyncCallback<T> implements AsyncCallback<T> {
@@ -34,6 +36,7 @@ public class BaseAsyncCallback<T> implements AsyncCallback<T> {
             new AlertMessageBox(i18n.error(), i18n.errAccessDenied()).show();
         } else {
             new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+            ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, caught);
         }
     }
 

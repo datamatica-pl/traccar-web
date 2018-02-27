@@ -279,6 +279,8 @@
           <runTarget>traccar.html</runTarget>
 	  <hostedWebapp>${webappDirectory}</hostedWebapp>
           <extraJvmArgs>-Xmx1G -Xss1024k</extraJvmArgs>
+          <draftCompile>true</draftCompile>
+          <localWorkers>4</localWorkers>
         </configuration>
         <executions>
           <execution>

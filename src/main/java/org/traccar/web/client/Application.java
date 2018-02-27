@@ -44,11 +44,13 @@ import com.sencha.gxt.data.shared.event.StoreAddEvent;
 import com.sencha.gxt.data.shared.event.StoreHandlers;
 import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import java.util.logging.Level;
 import org.traccar.web.client.InitialLoader.LoadFinishedListener;
 import org.traccar.web.client.model.api.Decoder;
 import org.traccar.web.client.model.api.DevicesService;
 import org.traccar.web.client.model.api.IUsersService.EditUserSettingsDto;
 import org.traccar.web.client.model.api.UsersService;
+import org.traccar.web.client.utils.ClientLogUtils;
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UserPermission;
 
@@ -295,6 +297,7 @@ public class Application {
                 @Override
                 public void onError(Request request, Throwable exception) {
                     new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                    ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception);
                 }
                         
                     });

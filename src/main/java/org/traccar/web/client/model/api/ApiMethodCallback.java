@@ -19,10 +19,12 @@ import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
+import java.util.logging.Level;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
+import org.traccar.web.client.utils.ClientLogUtils;
 
 public abstract class ApiMethodCallback<T> implements MethodCallback<T> {
 
@@ -37,6 +39,7 @@ public abstract class ApiMethodCallback<T> implements MethodCallback<T> {
         AlertMessageBox alert;
         if(method.getResponse().getStatusCode() >= 500) {
             alert = new AlertMessageBox(i18n.error(), i18n.errRemoteCall());
+            ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception);
         } else if(method.getResponse().getStatusCode() == 401) {
             alert = new AlertMessageBox(i18n.error(), i18n.errUserSessionExpired());
             alert.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {

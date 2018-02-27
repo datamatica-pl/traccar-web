@@ -22,7 +22,9 @@ import com.google.gwt.user.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent.DialogHideHandler;
+import java.util.logging.Level;
 import org.traccar.web.client.i18n.Messages;
+import org.traccar.web.client.utils.ClientLogUtils;
 
 public abstract class ApiRequestCallback implements RequestCallback {
     private Messages i18n;
@@ -67,6 +69,7 @@ public abstract class ApiRequestCallback implements RequestCallback {
     @Override
     public void onError(Request request, Throwable exception) {
         new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+        ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception);
     }
     
 }

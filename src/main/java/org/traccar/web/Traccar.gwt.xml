@@ -17,9 +17,13 @@
     <inherits name="org.traccar.web.i18n.I18N" />
     <inherits name="org.fusesource.restygwt.RestyGWT" />
     <inherits name="pl.datamatica.traccar.Orm" />
-
-    <set-property name="gwt.logging.enabled" value="FALSE"/>
-    <set-property name="gwt.logging.consoleHandler" value="DISABLED"/>
+    <inherits name="com.google.gwt.logging.Logging" />
+    
+    <set-property name="gwt.logging.simpleRemoteHandler" value="ENABLED" />
+    <set-property name="gwt.logging.enabled" value="TRUE" />
+    <set-property name="gwt.logging.logLevel" value="SEVERE" />
+    <set-property name="gwt.logging.consoleHandler" value="ENABLED" />
+    
     <set-configuration-property name="GXT.state.autoBeanFactory"
                                 value="org.traccar.web.client.state.StateAutoBeanFactory" />
 

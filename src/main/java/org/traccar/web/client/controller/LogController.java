@@ -24,6 +24,7 @@ import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.form.TextArea;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
 import org.traccar.web.client.i18n.Messages;
@@ -33,6 +34,7 @@ import org.traccar.web.client.model.LogServiceAsync;
 import org.traccar.web.client.model.api.ApiAuditLogEntry;
 import org.traccar.web.client.model.api.ApiAuditLogEntryProperties;
 import org.traccar.web.client.model.api.AuditLogService;
+import org.traccar.web.client.utils.ClientLogUtils;
 import org.traccar.web.client.view.AuditViewDialog;
 import org.traccar.web.client.view.NavView;
 import org.traccar.web.client.view.TrackerServerLogViewDialog;
@@ -84,6 +86,7 @@ public class LogController implements NavView.LogHandler {
                     @Override
                     public void onFailure(Method method, Throwable exception) {
                         new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+                        ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception);
                     }
 
                     @Override

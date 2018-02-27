@@ -19,10 +19,12 @@ import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
+import java.util.logging.Level;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
+import org.traccar.web.client.utils.ClientLogUtils;
 
 public class ApiJsonCallback implements JsonCallback {
     Messages i18n;
@@ -36,6 +38,7 @@ public class ApiJsonCallback implements JsonCallback {
     public void onFailure(Method method, Throwable exception) {
         if(method.getResponse().getStatusCode() >= 500) {
             new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+            ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception);
         } else if(method.getResponse().getStatusCode() == 401) {
             AlertMessageBox alert = new AlertMessageBox(i18n.error(), i18n.errUserSessionExpired());
             alert.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {

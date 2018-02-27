@@ -27,7 +27,9 @@ import org.traccar.web.client.view.LogViewDialog;
 import pl.datamatica.traccar.model.Device;
 
 import java.util.Map;
+import java.util.logging.Level;
 import org.traccar.web.client.model.api.ApiRequestCallback;
+import org.traccar.web.client.utils.ClientLogUtils;
 
 public class CommandController implements ContentController, DeviceView.CommandHandler, CommandDialog.CommandHandler {
 
@@ -76,6 +78,7 @@ public class CommandController implements ContentController, DeviceView.CommandH
             });
         } catch (RequestException e) {
             new AlertMessageBox(i18n.error(), e.getLocalizedMessage()).show();
+            ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, e);
         }
     }
 }
