@@ -136,6 +136,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
             }
         }
         r.setStatus(Route.Status.NEW);
+        r.setCorridor(null);
         
         new RouteDialog(r, new RouteDialog.RouteHandler() {
             @Override
