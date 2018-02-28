@@ -134,6 +134,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                 pt.setGeofence(rp.getGeofence());
                 r.getRoutePoints().add(pt);
             }
+            r.setLinePoints(selectedItem.getLinePoints());
         }
         r.setStatus(Route.Status.NEW);
         r.setCorridor(null);
