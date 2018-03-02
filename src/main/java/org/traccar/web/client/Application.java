@@ -284,23 +284,24 @@ public class Application {
         
         @Override
         public void onSave(final UserSettings userSettings) {
-            users.updateUserSettings(ApplicationContext.getInstance().getUser().getId(), 
+            users.updateUserSettings(ApplicationContext.getInstance().getUser().getId(),
                     new EditUserSettingsDto(userSettings), new RequestCallback() {
                 @Override
                 public void onResponseReceived(Request request, Response response) {
-                    if(userSettings.getMinDistance() != null)
+                    if (userSettings.getMinDistance() != null) {
                         userSettings.setMinDistance(userSettings.getMinDistance()
-                            /userSettings.getSpeedUnit().getDistanceUnit().getFactor());
+                                / userSettings.getSpeedUnit().getDistanceUnit().getFactor());
+                    }
                     ApplicationContext.getInstance().setUserSettings(userSettings);
                 }
 
                 @Override
                 public void onError(Request request, Throwable exception) {
                     new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                    ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception);
+                    ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception, "Application:UserSettingsHandlerImpl:onSave:onError");
                 }
-                        
-                    });
+
+            });
         }
 
         @Override

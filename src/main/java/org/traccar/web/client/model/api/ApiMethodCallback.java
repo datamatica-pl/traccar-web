@@ -39,7 +39,7 @@ public abstract class ApiMethodCallback<T> implements MethodCallback<T> {
         AlertMessageBox alert;
         if(method.getResponse().getStatusCode() >= 500) {
             alert = new AlertMessageBox(i18n.error(), i18n.errRemoteCall());
-            ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception);
+            ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception, "ApiMethodCallback:onFailure");
         } else if(method.getResponse().getStatusCode() == 401) {
             alert = new AlertMessageBox(i18n.error(), i18n.errUserSessionExpired());
             alert.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {

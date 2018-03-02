@@ -38,7 +38,7 @@ public class ApiJsonCallback implements JsonCallback {
     public void onFailure(Method method, Throwable exception) {
         if(method.getResponse().getStatusCode() >= 500) {
             new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-            ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception);
+            ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception, "ApiJsonCallback:onFailure");
         } else if(method.getResponse().getStatusCode() == 401) {
             AlertMessageBox alert = new AlertMessageBox(i18n.error(), i18n.errUserSessionExpired());
             alert.addDialogHideHandler(new DialogHideEvent.DialogHideHandler() {

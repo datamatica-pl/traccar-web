@@ -36,7 +36,7 @@ public class BaseAsyncCallback<T> implements AsyncCallback<T> {
             new AlertMessageBox(i18n.error(), i18n.errAccessDenied()).show();
         } else {
             new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-            ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, caught);
+            ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, caught, "BaseAsyncCallback:onFailure");
         }
     }
 

@@ -86,7 +86,8 @@ public class LogController implements NavView.LogHandler {
                     @Override
                     public void onFailure(Method method, Throwable exception) {
                         new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                        ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception);
+                        ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception,
+                                "LogController:onShowAuditLog:onLoad:onFailure");
                     }
 
                     @Override

@@ -197,7 +197,8 @@ public class InitialLoader {
                 @Override
                 public void onFailure(Method method, Throwable exception) {
                     new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                    ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception);
+                    ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception,
+                            "InitialLoader:onRequestAnswered:onFailure");
                 }
 
                 @Override

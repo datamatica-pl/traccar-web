@@ -371,7 +371,8 @@ public class ArchiveController implements ContentController, ArchiveView.Archive
                 @Override
                 public void onError(Request request, Throwable exception) {
                     new AlertMessageBox(i18n.error(), i18n.errSnapToRoads(-1, exception.getLocalizedMessage())).show();
-                    ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception);
+                    ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception,
+                            "ArchiveController:loadSnappedPointsAndShowTrack:onError");
                 }
             });
         } catch (RequestException re) {

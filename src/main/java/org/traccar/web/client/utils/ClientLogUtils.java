@@ -26,15 +26,19 @@ public class ClientLogUtils {
 
     private final static String GENERAL_LOG_NAME = "generalClientLogger";
     
-    public static void logExceptionGwtCompatible(Level logLevel, Throwable e) {
-        String exceptionString = GENERAL_LOG_NAME + ": ";
+    public static void logExceptionGwtCompatible(Level logLevel, Throwable e, String extMessage) {
+        String exceptionString = GENERAL_LOG_NAME + ": \n";
+        if (extMessage != null && !extMessage.equals("")) {
+            exceptionString += "Additional info: " + extMessage + "\n";
+        }
+        exceptionString += "Exception trace: \n";
         exceptionString += e.toString() + "\n";
         Throwable cause = e.getCause();
         while (cause != null) {
             exceptionString += cause.toString() + "\n";
             cause = cause.getCause();
         }
-        exceptionString += GENERAL_LOG_NAME + ": end of trace";
+        exceptionString += GENERAL_LOG_NAME + ": end of simple log trace";
         
         Logger logger = Logger.getLogger(GENERAL_LOG_NAME);
         logger.log(logLevel, exceptionString);
@@ -43,6 +47,11 @@ public class ClientLogUtils {
     public static void logSevere(String message) {
         Logger logger = Logger.getLogger(GENERAL_LOG_NAME);
         logger.log(Level.SEVERE, message);
+    }
+    
+    public String instanceTest() {
+        logSevere("AAA");
+        return "instance";
     }
 
 }

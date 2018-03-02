@@ -78,7 +78,7 @@ public class CommandController implements ContentController, DeviceView.CommandH
             });
         } catch (RequestException e) {
             new AlertMessageBox(i18n.error(), e.getLocalizedMessage()).show();
-            ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, e);
+            ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, e, "");
         }
     }
 }

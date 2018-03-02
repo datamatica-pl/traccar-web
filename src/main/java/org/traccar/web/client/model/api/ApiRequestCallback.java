@@ -69,7 +69,7 @@ public abstract class ApiRequestCallback implements RequestCallback {
     @Override
     public void onError(Request request, Throwable exception) {
         new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-        ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception);
+        ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception, "ApiRequestCallback:onError");
     }
     
 }
