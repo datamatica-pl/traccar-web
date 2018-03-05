@@ -16,6 +16,7 @@
 package org.traccar.web.client.model;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.rpc.StatusCodeException;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import java.util.logging.Level;
 import org.traccar.web.client.i18n.Messages;
@@ -34,6 +35,15 @@ public class BaseAsyncCallback<T> implements AsyncCallback<T> {
     public void onFailure(Throwable caught) {
         if (caught instanceof AccessDeniedException) {
             new AlertMessageBox(i18n.error(), i18n.errAccessDenied()).show();
+        } else if (caught instanceof StatusCodeException) {
+            StatusCodeException sce = (StatusCodeException) caught;
+            new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+
+            String moreExInfo = "BaseAsyncCallback:onFailure:StatusCodeException \n";
+            moreExInfo += "Status code: " + sce.getStatusCode() + "\n";
+            moreExInfo += "Status text: " + sce.getStatusText() + "\n";
+            moreExInfo += "Encoded response: " + sce.getEncodedResponse() + "\n";
+            ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, caught, moreExInfo);
         } else {
             new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
             ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, caught, "BaseAsyncCallback:onFailure");
