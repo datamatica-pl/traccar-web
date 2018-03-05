@@ -37,7 +37,7 @@ public class BaseAsyncCallback<T> implements AsyncCallback<T> {
             new AlertMessageBox(i18n.error(), i18n.errAccessDenied()).show();
         } else if (caught instanceof StatusCodeException) {
             StatusCodeException sce = (StatusCodeException) caught;
-            new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
+            new AlertMessageBox(i18n.error(), i18n.errServerResponseRefresh()).show();
 
             String moreExInfo = "BaseAsyncCallback:onFailure:StatusCodeException \n";
             moreExInfo += "Status code: " + sce.getStatusCode() + "\n";

@@ -147,6 +147,8 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String confirmDeviceRemoval();
 
     String errRemoteCall();
+    
+    String errServerResponseRefresh();
 
     String recordTrace();
 
