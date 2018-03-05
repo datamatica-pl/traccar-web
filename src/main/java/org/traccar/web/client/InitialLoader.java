@@ -16,6 +16,7 @@
 package org.traccar.web.client;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.http.client.Response;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
 import com.sencha.gxt.data.shared.ListStore;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import org.fusesource.restygwt.client.FailedResponseException;
 import org.fusesource.restygwt.client.JsonCallback;
 import org.fusesource.restygwt.client.Method;
 import org.fusesource.restygwt.client.MethodCallback;
@@ -197,8 +199,20 @@ public class InitialLoader {
                 @Override
                 public void onFailure(Method method, Throwable exception) {
                     new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
-                    ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception,
-                            "InitialLoader:onRequestAnswered:onFailure");
+                    String extendedErrMsg = "InitialLoader:onRequestAnswered:onFailure: \n";
+                    
+                    if (exception instanceof FailedResponseException) {
+                        FailedResponseException fre = (FailedResponseException) exception;
+                        Response gwtResponse = fre.getResponse();
+                        if (gwtResponse != null) {
+                            extendedErrMsg += "Headers: " + gwtResponse.getHeadersAsString() + "\n";
+                            extendedErrMsg += "StatusCode: " + String.valueOf(gwtResponse.getStatusCode()) + "\n";
+                            extendedErrMsg += "StatusText: " + gwtResponse.getStatusText() + "\n";
+                            extendedErrMsg += "Response text: " + gwtResponse.getText() + "\n";
+                        }
+                    }
+                    
+                    ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, exception, extendedErrMsg);
                 }
 
                 @Override
