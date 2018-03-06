@@ -47,7 +47,7 @@ public interface ApplicationSettingsService extends RestService{
         String bingMapsKey;
         String matchServiceURL;
         Long defaultUserGroupId;
-        Long defaultIconId;
+        Integer defaultIconId;
         
         public ApplicationSettings toApplicationSettings() {
             ApplicationSettings as = new ApplicationSettings();
