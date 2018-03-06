@@ -41,8 +41,6 @@ public class BaseAsyncCallback<T> implements AsyncCallback<T> {
 
             String moreExInfo = "BaseAsyncCallback:onFailure:StatusCodeException \n";
             moreExInfo += "Status code: " + sce.getStatusCode() + "\n";
-            moreExInfo += "Status text: " + sce.getStatusText() + "\n";
-            moreExInfo += "Encoded response: " + sce.getEncodedResponse() + "\n";
             ClientLogUtils.logExceptionGwtCompatible(Level.SEVERE, caught, moreExInfo);
         } else {
             new AlertMessageBox(i18n.error(), i18n.errRemoteCall()).show();
