@@ -90,10 +90,14 @@
           <gxt:child config="{devicesTabConfig}">
               <container:VerticalLayoutContainer ui:field="devicesTab">
                   <container:child layoutData="{verticalLayoutData}">
-                      <button:TextButton ui:field="selectAllButton" text="{i18n.selectAll}" />
+                      <button:TextButton ui:field="selectAllButton" text="{i18n.selectDeselectAll}" />
+                  </container:child>
+                  <container:child layoutData="{verticalLayoutData}">
+                      <form:StoreFilterField ui:field="deviceFilter" emptyText="{i18n.filter}..."/>
                   </container:child>
                   <container:child layoutData="{match_parent}">
-                      <grid:Grid ui:field="grid" store="{deviceSelectionStore}" cm="{columnModel}" view="{view}" />
+                      <grid:Grid ui:field="grid" store="{deviceSelectionStore}" cm="{columnModel}" view="{view}"
+                                 stateful="true" stateId="deviceGrid" />
                   </container:child>
               </container:VerticalLayoutContainer>
           </gxt:child>

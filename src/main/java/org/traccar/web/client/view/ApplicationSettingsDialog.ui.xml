@@ -97,6 +97,19 @@
         <container:child layoutData="{verticalLayoutData}">
             <button:TextButton ui:field="updateRules" text="update rules" />
         </container:child>
+        
+        <container:child layoutData="{verticalLayoutData}">
+            <form:FieldLabel text="{i18n.defaultIconId}" labelWidth="230">
+                <form:widget>
+                    <form:NumberField editor="{integerPropertyEditor}"
+                                    ui:field="defaultIconId"
+                                    allowNegative="false"
+                                    allowDecimals="false"
+                                    allowBlank="false"
+                                    width="4" />
+                </form:widget>
+            </form:FieldLabel>
+        </container:child>
 
     </container:VerticalLayoutContainer>
       

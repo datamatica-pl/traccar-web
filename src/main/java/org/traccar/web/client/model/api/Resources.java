@@ -28,18 +28,18 @@ public class Resources {
         return instance;
     }
     
-    private Map<Long, String> icons = new TreeMap<>();
+    private Map<Long, IconInfo> icons = new TreeMap<>();
     private Map<Long, ApiDeviceModel> models = new HashMap<>();
-    private String defIcon = "img/GTS_pointer_car.png";
+    private IconInfo defIcon = new IconInfo("img/car_blue.svg", true, 31, 59);
     
-    public String icon(Long id) {
+    public IconInfo icon(Long id) {
         if(id != null && icons.containsKey(id))
             return icons.get(id);
         return defIcon;
     }
     
-    public void icon(long id, String url) {
-        icons.put(id, url);
+    public void icon(long id, IconInfo info) {
+        icons.put(id, info);
     }
 
     public Iterable<Long> icons() {
@@ -56,5 +56,49 @@ public class Resources {
     
     public Iterable<Long> models() {
         return models.keySet();
+    }
+    
+    public static class IconInfo {
+        private final String url;
+        private final boolean canRotate;
+        private final int width;
+        private final int height;
+        
+        public IconInfo(String url, boolean rotates) {
+            this(url, rotates, 36, 48);
+        }
+        
+        public IconInfo(String url, boolean canRotate, int width, int height) {
+            this.url = url;
+            this.canRotate = canRotate;
+            this.width = width;
+            this.height = height;
+        }
+        
+        public IconInfo(ApiDeviceIcon icon) {
+            if(icon.isWithoutFrame)
+                url = icon.getUrl();
+            else
+                url = icon.getUrl().replace("/images/", "/markers/");
+            this.canRotate = icon.isWithoutFrame;
+            this.width = icon.markerWidth;
+            this.height = icon.markerHeight;
+        }
+        
+        public String getUrl() {
+            return url;
+        }
+        
+        public boolean canRotate() {
+            return canRotate;
+        }
+        
+        public int getWidth() {
+            return width;
+        }
+        
+        public int getHeight() {
+            return height;
+        }
     }
 }

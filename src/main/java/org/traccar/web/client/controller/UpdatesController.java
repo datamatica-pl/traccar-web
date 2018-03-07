@@ -24,10 +24,13 @@ import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
+import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.model.api.ApiJsonCallback;
 import org.traccar.web.client.model.api.Decoder;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.Position;
+import pl.datamatica.traccar.model.Route;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class UpdatesController {
     public interface LatestPositionsListener {
@@ -35,6 +38,9 @@ public class UpdatesController {
     }
     public interface DevicesListener {
         void onDevicesUpdated(List<Device> devices);
+    }
+    public interface RoutesListener {
+        void onRoutesUpdated(List<Route> routes);
     }
     
     private static final int MAX_UPDATE_FAILURE_COUNT = 3;
@@ -45,10 +51,12 @@ public class UpdatesController {
     
     private List<LatestPositionsListener> latestPositionsListeners;
     private List<DevicesListener> devicesListeners;
+    private List<RoutesListener> routesListeners;
     
     public UpdatesController() {
         latestPositionsListeners = new ArrayList<>();
         devicesListeners = new ArrayList<>();
+        routesListeners = new ArrayList<>();
     }
     
     public void update() {
@@ -72,6 +80,15 @@ public class UpdatesController {
                 devicesLoaded(dev);
             }
         });
+        
+        if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.TRACK_READ))
+            Application.getDataService().getRoutes(new BaseAsyncCallback<List<Route>>(i18n){
+                @Override
+                public void onSuccess(List<Route> result) {
+                    for(RoutesListener l : routesListeners)
+                        l.onRoutesUpdated(result);
+                }            
+            });
     }
     
     public void devicesLoaded(List<Device> dev) {
@@ -106,5 +123,9 @@ public class UpdatesController {
     
     public void addDevicesListener(DevicesListener listener) {
         devicesListeners.add(listener);
+    }
+    
+    public void addRoutesListener(RoutesListener listener) {
+        routesListeners.add(listener);
     }
 }

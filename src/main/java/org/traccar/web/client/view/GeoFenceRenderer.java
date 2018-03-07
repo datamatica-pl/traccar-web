@@ -63,8 +63,11 @@ public class GeoFenceRenderer {
         GeoFenceDrawing drawing = getDrawing(geoFence);
         if (drawing != null) {
             getVectorLayer().removeFeature(drawing.getShape());
+            drawing.getShape().destroy();
             getVectorLayer().removeFeature(drawing.getTitle());
+            drawing.getTitle().destroy();
             drawings.remove(geoFence.getId());
+            id0.remove(geoFence);
         }
     }
 
@@ -222,6 +225,12 @@ public class GeoFenceRenderer {
         polyline = new VectorFeature(ls, st);
         getVectorLayer().addFeature(polyline);
         mapView.getMap().zoomToExtent(ls.getBounds());
+    }
+    
+    public void clear() {
+        getVectorLayer().removeAllFeatures();
+        id0.clear();
+        drawings.clear();
     }
     
     public interface IMapView {

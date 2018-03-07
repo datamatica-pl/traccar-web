@@ -131,11 +131,13 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     public interface RouteHandler {
         void onAdd();
         void onEdit(Route selectedItem);
+        void onDuplicate(Route selectedItem);
         void onRemove(Route selectedItem);
         void onSelected(Route route);
         public void onAbort(Route selectedItem);
         public void onArchivedChanged(Route selectedItem, boolean archived);
         public void onShowArchived();
+        void onShowReport(Route route);
     }
 
     public interface CommandHandler {
@@ -711,7 +713,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             objectsTabs.remove(geoFenceList);
         }
         if(!user.hasPermission(UserPermission.TRACK_READ)) {
-            objectsTabs.remove(routeGrid);
+            objectsTabs.remove(routeList);
         }
         
         grid.getSelectionModel().addSelectionChangedHandler(deviceSelectionHandler);
@@ -1011,7 +1013,9 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
     }
     
     private void prepareRouteGrid(ListStore<Route> routeStore, 
-            ReportsMenu.ReportHandler rHandler) {        
+            ReportsMenu.ReportHandler rHandler) {
+        final Resources R = GWT.create(Resources.class);
+        
         List<ColumnConfig<Route, ?>> ccList = new ArrayList<>();
         ColumnConfig<Route, String> cName = new ColumnConfig<>(new ValueProvider<Route, String>() {
             @Override
@@ -1047,14 +1051,14 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         }, 50, "progress");
         ccList.add(cProgress);
         
-        ColumnConfig<Route, String> cStatus = new ColumnConfig<>(new ValueProvider<Route, String>() {
+        ColumnConfig<Route, Route.Status> cStatus = new ColumnConfig<>(new ValueProvider<Route, Route.Status>() {
             @Override
-            public String getValue(Route object) {
-                return object.getStatus().name();
+            public Route.Status getValue(Route object) {
+                return object.getStatus();
             }
 
             @Override
-            public void setValue(Route object, String value) {
+            public void setValue(Route object, Route.Status value) {
             }
 
             @Override
@@ -1062,6 +1066,33 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                 return "status";
             }
         }, 50, "status");
+        cStatus.setCell(new AbstractCell<Route.Status>() {
+            @Override
+            public void render(Cell.Context context, Route.Status value, SafeHtmlBuilder sb) {
+                sb.appendHtmlConstant("<div title=\""+i18n.routeStatus(value)+"\">")
+                        .append(AbstractImagePrototype.create(getImage(value)).getSafeHtml())
+                        .appendHtmlConstant("</div>");
+            }
+            
+            private ImageResource getImage(Route.Status status) {
+                switch(status) {
+                    case NEW:
+                        return R.routeStatusNew();
+                    case IN_PROGRESS_OK:
+                        return R.routeStatusInProgressOk();
+                    case IN_PROGRESS_LATE:
+                        return R.routeStatusInProgressLate();
+                    case FINISHED_OK:
+                        return R.routeStatusFinishedOk();
+                    case FINISHED_LATE:
+                        return R.routeStatusFinishedLate();
+                    case CANCELLED:
+                        return R.routeStatusCancelled();
+                    default:
+                        return null;
+                }
+            }
+        });
         ccList.add(cStatus);
         
         ColumnModel<Route> cm = new ColumnModel<>(ccList);
@@ -1226,6 +1257,24 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         @Source("org/traccar/web/client/theme/icon/speed_alarm_active.png")
         ImageResource speedAlarmActive();
+        
+        @Source("org/traccar/web/client/theme/icon/route_report_end_del.png")
+        ImageResource routeStatusFinishedLate();
+        
+        @Source("org/traccar/web/client/theme/icon/route_report_end_ok.png")
+        ImageResource routeStatusFinishedOk();
+        
+        @Source("org/traccar/web/client/theme/icon/route_report_mooving_del.png")
+        ImageResource routeStatusInProgressLate();
+        
+        @Source("org/traccar/web/client/theme/icon/route_report_mooving_ok.png")
+        ImageResource routeStatusInProgressOk();
+        
+        @Source("org/traccar/web/client/theme/icon/route_report_new_ok.png")
+        ImageResource routeStatusNew();
+        
+        @Source("org/traccar/web/client/theme/icon/route_report_new_del.png")
+        ImageResource routeStatusCancelled();
     }
 
     private Menu createDeviceGridContextMenu(final ReportsMenu.ReportHandler reportHandler) {
@@ -1370,10 +1419,10 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             duplicate.addSelectionHandler(new SelectionHandler<Item>() {
                 @Override
                 public void onSelection(SelectionEvent<Item> event) {
-                    Route r = new Route(routeGrid.getSelectionModel().getSelectedItem());
-                    routeHandler.onEdit(r);
+                    routeHandler.onDuplicate(routeGrid.getSelectionModel().getSelectedItem());
                 }
             });
+            menu.add(duplicate);
         }
         
         final MenuItem report = new MenuItem(i18n.report());
@@ -1382,10 +1431,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
                 @Override
                 public void onSelection(SelectionEvent<Item> event) {
                     Route route = routeGrid.getSelectionModel().getSelectedItem();
-                    ReportsDialog dialog = reportHandler.createDialog();
-                    dialog.selectReportType(ReportType.TRACK);
-                    dialog.selectRoute(route);
-                    dialog.show();
+                    routeHandler.onShowReport(route);
                 }
             });
             menu.add(report);

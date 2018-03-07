@@ -108,6 +108,7 @@ public class Application {
                 mapController);
         reportsController = new ReportsController(reportStore, deviceStore, 
                 geoFenceController.getGeoFenceStore(), routeController.getStore());
+        routeController.setReportHandler(reportsController);
         deviceController = new DeviceController(mapController,
                 geoFenceController,
                 commandController,
@@ -131,6 +132,7 @@ public class Application {
         updatesController = new UpdatesController();
         updatesController.addLatestPositionsListener(mapController);
         updatesController.addDevicesListener(deviceController);
+        updatesController.addRoutesListener(routeController);
 
         initialLoader = new InitialLoader(deviceStore, groupStore);
         view = new ApplicationView(

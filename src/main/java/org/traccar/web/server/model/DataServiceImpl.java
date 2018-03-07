@@ -236,6 +236,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         route.setCreated(new Date());
         route.setOwner(getSessionUser());
         DbRoute dbr = new DbRoute(route);
+        if(route.getCorridor() != null)
+            em.persist(route.getCorridor());
         if(connect)
             em.persist(dbr);
         return dbr.toRoute();
@@ -259,6 +261,8 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             GeoFence gf = pt.getGeofence();
             if(gf.getId() == 0)
                 addGeoFence(gf);
+            else
+                pt.setGeofence(getSessionEntityManager().find(GeoFence.class, gf.getId()));
         }
     }
     

@@ -94,10 +94,10 @@ public class DeviceIconEditor {
         @XTemplates.XTemplate("<div class='{styles.clear}'></div>'")
         SafeHtml renderEndListItem(CommonStyles.Styles styles);
 
-        @XTemplates.XTemplate("<div class='{style.thumb}' style='background: url(\"{marker.offlineURL}\") no-repeat center center;'></div>")
+        @XTemplates.XTemplate("<div class='{style.thumb}' style='background: url(\"{marker.offlineURL}\") no-repeat center center /contain;'></div>")
         SafeHtml listCell(Style style, MarkerIcon marker);
 
-        @XTemplates.XTemplate("<div class='{style.thumbWrap}' style='background: #ffffff;'><span class=\"x-editable\">{text}</span><div class='{style.thumb}' style='background: url(\"{pictureURL}\") no-repeat center center;'></div></div>")
+        @XTemplates.XTemplate("<div class='{style.thumbWrap}' style='background: #ffffff;'><span class=\"x-editable\">{text}</span><div class='{style.thumb}' style='background: url(\"{pictureURL}\") no-repeat center center /contain;'></div></div>")
         SafeHtml pictureView(Style style, String text, String pictureURL);
     }
 

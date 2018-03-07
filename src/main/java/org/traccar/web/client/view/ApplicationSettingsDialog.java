@@ -41,6 +41,7 @@ import pl.datamatica.traccar.model.PasswordHashMethod;
 import java.util.Arrays;
 import java.util.List;
 import org.traccar.web.client.ApplicationContext;
+import org.traccar.web.client.controller.SettingsController;
 import org.traccar.web.client.model.api.ApiUserGroup;
 import pl.datamatica.traccar.model.UserGroup;
 import pl.datamatica.traccar.model.UserPermission;
@@ -101,6 +102,9 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
     
     @UiField(provided = true)
     ComboBox<UserGroup> defaultGroup;
+    
+    @UiField
+    NumberField<Integer> defaultIconId;
 
     public ApplicationSettingsDialog(ApplicationSettings applicationSettings, 
             ApplicationSettingsHandler applicationSettingsHandler, 
@@ -172,7 +176,7 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
     }
 
     @UiHandler("saveButton")
-    public void onLoginClicked(SelectEvent event) {
+    public void onSaveClicked(SelectEvent event) {
         ApplicationSettings as = driver.flush();
         if(!driver.hasErrors()) {
             window.hide();

@@ -62,6 +62,10 @@ public abstract class MarkerIcon {
     DeviceIcon getDatabaseIcon() {
         return null;
     }
+    
+    boolean canRotate() {
+        return false;
+    }
 
     static class BuiltIn extends MarkerIcon {
         final Long id;
@@ -83,7 +87,22 @@ public abstract class MarkerIcon {
         
         @Override
         String getDefaultURL() {
-            return Resources.getInstance().icon(id);
+            return Resources.getInstance().icon(id).getUrl();
+        }
+        
+        @Override
+        boolean canRotate() {
+            return Resources.getInstance().icon(id).canRotate();
+        }
+        
+        @Override
+        int getDefaultWidth() {
+            return Resources.getInstance().icon(id).getWidth();
+        }
+        
+        @Override
+        int getDefaultHeight() {
+            return Resources.getInstance().icon(id).getHeight();
         }
     }
     
@@ -125,6 +144,6 @@ public abstract class MarkerIcon {
         int width = position.getStatus() == Position.Status.OFFLINE ? deviceIcon.getOfflineWidth() : deviceIcon.getDefaultWidth();
         int height = position.getStatus() == Position.Status.OFFLINE ? deviceIcon.getOfflineHeight() : deviceIcon.getDefaultHeight();
         return new PositionIcon(position.getDevice().getIconMode() == DeviceIconMode.ARROW, url, width, height,
-                deviceIcon.getSelectedURL(), deviceIcon.getSelectedWidth(), deviceIcon.getSelectedHeight());
+                deviceIcon.getSelectedURL(), deviceIcon.getSelectedWidth(), deviceIcon.getSelectedHeight(), deviceIcon.canRotate());
     }
 }
