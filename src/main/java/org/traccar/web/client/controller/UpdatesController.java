@@ -30,6 +30,7 @@ import org.traccar.web.client.model.api.Decoder;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.Route;
+import pl.datamatica.traccar.model.UserPermission;
 
 public class UpdatesController {
     public interface LatestPositionsListener {
@@ -80,13 +81,14 @@ public class UpdatesController {
             }
         });
         
-        Application.getDataService().getRoutes(new BaseAsyncCallback<List<Route>>(i18n){
-            @Override
-            public void onSuccess(List<Route> result) {
-                for(RoutesListener l : routesListeners)
-                    l.onRoutesUpdated(result);
-            }            
-        });
+        if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.TRACK_READ))
+            Application.getDataService().getRoutes(new BaseAsyncCallback<List<Route>>(i18n){
+                @Override
+                public void onSuccess(List<Route> result) {
+                    for(RoutesListener l : routesListeners)
+                        l.onRoutesUpdated(result);
+                }            
+            });
     }
     
     public void devicesLoaded(List<Device> dev) {

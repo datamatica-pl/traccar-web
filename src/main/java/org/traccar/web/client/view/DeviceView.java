@@ -713,7 +713,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
             objectsTabs.remove(geoFenceList);
         }
         if(!user.hasPermission(UserPermission.TRACK_READ)) {
-            objectsTabs.remove(routeGrid);
+            objectsTabs.remove(routeList);
         }
         
         grid.getSelectionModel().addSelectionChangedHandler(deviceSelectionHandler);
