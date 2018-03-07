@@ -39,6 +39,7 @@ public class ApiGeofence {
     public Set<Long> deviceIds;
     public String lastUpdate;
     public String address;
+    public boolean isRouteOnly;
     
     public ApiGeofence(){}
     
@@ -63,6 +64,7 @@ public class ApiGeofence {
     
     public GeoFence toGeofence(List<Device> devices) {
         GeoFence gf = new GeoFence(id, geofenceName);
+        gf.setRouteOnly(isRouteOnly);
         gf.setDescription(description);
         gf.setColor(color);
         

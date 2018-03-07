@@ -275,6 +275,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         geoFence.setUsers(new HashSet<User>());
         geoFence.getUsers().add(user);
         geoFence.setDevices(geoFence.getTransferDevices());
+        geoFence.setRouteOnly(true);
         getSessionEntityManager().persist(geoFence);
         logger.info("{} created geofence {} ({})", 
                 user.getLogin(), geoFence.getName(), geoFence.getId());
