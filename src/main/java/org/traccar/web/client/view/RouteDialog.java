@@ -420,6 +420,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         });
         
         List<String> gfNames = new ArrayList<>();
+        gfs.setEnableFilters(false);
         for(GeoFence gf : gfs.getAll()) {
             if(!gf.isDeleted() && gf.getType() != GeoFenceType.LINE && !gfMap.containsKey(gf.getName())
                     && gf.getName() != null && !"".equals(gf.getName())) {
@@ -427,6 +428,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                gfMap.put(gf.getName(), gf);
             }
         }
+        gfs.setEnableFilters(true);
         cbName = new StringComboBox(gfNames);
         cbName.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
         cbName.setForceSelection(false);

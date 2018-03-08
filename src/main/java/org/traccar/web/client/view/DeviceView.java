@@ -688,13 +688,11 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         geoFenceListView.getSelectionModel().addSelectionChangedHandler(geoFenceSelectionHandler);
         geoFenceListView.setContextMenu(createGfContextMenu());
         
-        for(GeoFence gf: geoFenceStore.getAll())
-            log(gf.getName() + ":" + gf.isRouteOnly());
         gfFilter = new StoreFilterField<GeoFence>() {
             @Override
             protected boolean doSelect(Store<GeoFence> store, GeoFence parent, GeoFence item, String filter) {
-                return !item.isRouteOnly() && (filter.trim().isEmpty() 
-                        || item.getName().toLowerCase().contains(filter.toLowerCase()));
+                return filter.trim().isEmpty() 
+                        || item.getName().toLowerCase().contains(filter.toLowerCase());
             }
             
         };
@@ -728,10 +726,6 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         toggleManagementButtons(null);
     }
     
-    private native void log(String msg) /*-{
-            console.log(msg);
-    }-*/;
-
     private void prepareDeviceGrid(final ListStore<Device> globalDeviceStore,
             final GroupStore groupStore,
             final DeviceVisibilityHandler deviceVisibilityHandler,
