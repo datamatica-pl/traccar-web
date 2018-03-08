@@ -18,6 +18,7 @@ package org.traccar.web.client.model.api;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import org.traccar.web.client.ApplicationContext;
 
 public class Resources {
     private static Resources instance;
@@ -30,12 +31,12 @@ public class Resources {
     
     private Map<Long, IconInfo> icons = new TreeMap<>();
     private Map<Long, ApiDeviceModel> models = new HashMap<>();
-    private IconInfo defIcon = new IconInfo("img/car_blue.svg", true, 31, 59);
     
     public IconInfo icon(Long id) {
         if(id != null && icons.containsKey(id))
             return icons.get(id);
-        return defIcon;
+        long defIconId = ApplicationContext.getInstance().getApplicationSettings().getDefaultIconId();
+        return icons.get(defIconId);
     }
     
     public void icon(long id, IconInfo info) {
