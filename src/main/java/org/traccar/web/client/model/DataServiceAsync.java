@@ -37,8 +37,9 @@ public interface DataServiceAsync {
     void getPositions(Device device, Date from, Date to, boolean filter, AsyncCallback<List<Position>> callback);
     void getGeoFences(AsyncCallback<List<GeoFence>> async);
     
-    void addRoute(Route route, boolean connect, AsyncCallback<Route> async);
     public void getRoutes(AsyncCallback<List<Route>> asyncCallback);
+    void getArchivedRoutes(AsyncCallback<List<Route>> async);
+    void addRoute(Route route, boolean connect, AsyncCallback<Route> async);
     public void updateRoute(Route updated, AsyncCallback<Route> asyncCallback);
     public void removeRoute(Route route, AsyncCallback<Route> asyncCallback);
     

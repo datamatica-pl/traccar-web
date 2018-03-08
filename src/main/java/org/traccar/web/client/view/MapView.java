@@ -138,7 +138,7 @@ public class MapView implements GeoFenceRenderer.IMapView {
     }-*/;
 
     public MapView(MapHandler mapHandler,
-                   ListStore<Device> deviceStore,
+                   final ListStore<Device> deviceStore,
                    DeviceVisibilityHandler deviceVisibilityHandler) {
         this.mapHandler = mapHandler;
         this.popup = new PositionInfoPopup(deviceStore);
@@ -224,6 +224,8 @@ public class MapView implements GeoFenceRenderer.IMapView {
         map.addMapZoomListener(new MapZoomListener() {
             @Override
             public void onMapZoom(MapZoomEvent eventObject) {
+                for(Device d : deviceStore.getAll())
+                    latestPositionRenderer.updateIcon(d);
                 hidePopup();
             }
         });

@@ -42,6 +42,7 @@ public interface DataService extends RemoteService {
     List<GeoFence> getGeoFences();
     
     List<Route> getRoutes();
+    List<Route> getArchivedRoutes();
     Route addRoute(Route route, boolean connect) throws TraccarException;
     Route updateRoute(Route updated) throws TraccarException;
     Route removeRoute(Route route);

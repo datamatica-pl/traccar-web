@@ -36,6 +36,7 @@ import org.traccar.web.client.view.MapView;
 import org.traccar.web.client.view.MarkerIcon;
 
 import java.util.*;
+import org.gwtopenmaps.openlayers.client.LonLat;
 import pl.datamatica.traccar.model.Route;
 
 public class MapController implements ContentController, MapView.MapHandler, 
@@ -238,6 +239,10 @@ public class MapController implements ContentController, MapView.MapHandler,
     @Override
     public void onArchivePositionSelected(Position position) {
         mapHandler.onArchivePositionSelected(position);
+    }
+    
+    public LonLat getCenter() {
+        return mapView.getMap().getCenter();
     }
 
     public void loadMapSettings() {

@@ -1,3 +1,4 @@
+<!--
 /*
  * Copyright 2017 Datamatica (dev@datamatica.pl)
  *
@@ -13,25 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.traccar.web.client.model.api;
-
-public class ApiDeviceIcon {
-    public long id;
-    public String iconUrl;
-    public boolean isDeleted;
-    public boolean isWithoutFrame;
-    public int markerWidth;
-    public int markerHeight;
+-->
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+             xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
+             xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button">
     
-    public long getId() {
-        return id;
-    }
+    <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
     
-    public String getUrl() {
-        return iconUrl;
-    }
+    <gxt:Window ui:field="window" pixelSize="400, -1" modal="true" headingText="{i18n.archivedRoutes}">
+        <gxt:ListView ui:field="routesListView" />
+        <gxt:button>
+          <button:TextButton ui:field="closeButton" text="{i18n.close}"/>
+        </gxt:button>
+    </gxt:Window>
     
-    public boolean isDeleted() {
-        return isDeleted;
-    }
-}
+</ui:UiBinder>

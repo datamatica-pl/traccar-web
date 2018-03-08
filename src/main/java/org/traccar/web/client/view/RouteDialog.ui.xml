@@ -44,8 +44,8 @@
       <ui:attributes left="4" top="4" right="0" bottom="0" />
   </ui:with>
   
-  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="rtMargin">
-      <ui:attributes left="0" top="4" right="4" bottom="0" />
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="lrtMargin">
+      <ui:attributes left="6" top="4" right="4" bottom="0" />
   </ui:with>
   
   <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
@@ -59,14 +59,41 @@
   </ui:with>
   
   <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
-           field="htrWrapContent">
-      <ui:attributes width="-1" height="1" margins="{rtMargin}" />
+           field="hltrWrapContent">
+      <ui:attributes width="-1" height="1" margins="{lrtMargin}" />
   </ui:with>
   
   <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" 
            field="v24px">
       <ui:attributes width="1" height="24" />
   </ui:with>
+  
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="m1">
+      <ui:attributes left="20" top="0" right="0" bottom="0" />
+  </ui:with>
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="h105px">
+      <ui:attributes width="125" height="1" margins="{m1}" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="ml6px">
+      <ui:attributes left="20" top="0" right="0" bottom="0"/>
+  </ui:with>
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="hlWrapContent">
+      <ui:attributes width="-1" height="1" margins="{ml6px}"/>
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="h144px">
+      <ui:attributes width="150" height="1" margins="{ml6px}" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="h510px">
+      <ui:attributes width="510" height="1" />
+  </ui:with>
+      
 
   <ui:style>
     .tabBody {
@@ -75,37 +102,96 @@
   </ui:style>
 
   <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
+  <ui:with type="com.sencha.gxt.widget.core.client.form.NumberPropertyEditor" field="integerPropertyEditor" />
 
-  <gxt:Window ui:field="window" pixelSize="800, 540" modal="true" 
+  <gxt:Window ui:field="window" pixelSize="1150, 640" modal="true" 
               headingText="{i18n.trackCreation}" focusWidget="{saveButton}">
-      <container:VerticalLayoutContainer addStyleNames="{style.tabBody}">
+      <gxt:tool>
+        <g:HTMLPanel>
+          <a target="_blank" href="http://trackman.pl/#supports">
+            <g:Image url="img/help_icon.png" />
+          </a>
+        </g:HTMLPanel>
+      </gxt:tool>
+      
+    <container:VerticalLayoutContainer addStyleNames="{style.tabBody}">
         
-        <container:child layoutData="{verticalLayoutData}">
-            <form:FieldLabel text="{i18n.connectPoints}" labelWidth="180">
-                <form:widget>
-                    <form:CheckBox ui:field="connect" />
-                </form:widget>
-            </form:FieldLabel>
+        <container:child layoutData="{v24px}">
+            <container:HorizontalLayoutContainer>
+                <container:child layoutData="{h510px}">
+                    <form:FieldLabel text="{i18n.trackName}" 
+                                     ui:field="trackNameLabel">
+                        <form:widget>
+                            <form:TextField ui:field="name" allowBlank="false" />
+                        </form:widget>
+                    </form:FieldLabel>
+                </container:child>
+                             
+                <container:child layoutData="{h105px}">
+                    <form:FieldLabel ui:text="{i18n.tolerance}" labelWidth="70">
+                      <form:widget>
+                        <form:NumberField ui:field="tolerance"
+                                          editor="{integerPropertyEditor}"/>
+                      </form:widget>
+                    </form:FieldLabel>
+                </container:child>
+                <container:child layoutData="{hltWrapContent}">
+                    <g:Label text="{i18n.minute}" />
+                </container:child>
+                
+                <container:child layoutData="{h144px}">
+                    <form:FieldLabel ui:text="{i18n.archiveAfter}" labelWidth="90">
+                      <form:widget>
+                        <form:NumberField ui:field="archiveAfter" 
+                                          editor="{integerPropertyEditor}"/>
+                      </form:widget>
+                    </form:FieldLabel>
+                </container:child>
+                <container:child layoutData="{hltWrapContent}">
+                    <g:Label text="{i18n.days}" />
+                </container:child>
+                
+                <container:child layoutData="{hltrWrapContent}">
+                    <form:CheckBox ui:field="createCorridor" boxLabel="{i18n.createCorridor}" />
+                </container:child>
+                <container:child layoutData="{hWrapContent}">
+                    <form:NumberField ui:field="corridorWidth" enabled="false"
+                                      editor="{integerPropertyEditor}"/>
+                </container:child>
+                <container:child layoutData="{hltWrapContent}">
+                    <g:Label text="{i18n.km}" />
+                </container:child>
+            </container:HorizontalLayoutContainer>
         </container:child>
         
-        <container:child layoutData="{verticalLayoutData}">
-            <form:FieldLabel text="{i18n.trackName}" labelWidth="180" 
-                ui:field="trackNameLabel">
-                <form:widget>
-                    <form:TextField ui:field="name" allowBlank="false" />
-                </form:widget>
-            </form:FieldLabel>
-        </container:child>
-        
-        <container:child layoutData="{verticalLayoutDataWithButtons}">
-            <button:TextButton ui:field="addButton" ui:text="{i18n.add}" />
+        <container:child layoutData="{v24px}">
+            <container:HorizontalLayoutContainer>
+                <container:child layoutData="{h510px}">
+                    <form:FieldLabel ui:field="selectDeviceLabel" ui:text="{i18n.selectDevice}">
+                        <form:widget>
+                            <form:ComboBox ui:field="selectDevice" />
+                        </form:widget>
+                    </form:FieldLabel>
+                </container:child>
+                
+                <container:child layoutData="{hlWrapContent}">
+                    <button:TextButton ui:field="addButton" ui:text="{i18n.newPoint}" />
+                </container:child>
+            </container:HorizontalLayoutContainer>
         </container:child>
         
         <container:child layoutData="{gridLayoutData}">
           <container:HorizontalLayoutContainer>
             
             <container:child layoutData="{halfWindow}">
-              <grid:Grid ui:field="grid" />
+              <container:VerticalLayoutContainer>
+                <container:child layoutData="{gridLayoutData}">
+                  <grid:Grid ui:field="grid" />
+                </container:child>
+                <container:child layoutData="{verticalLayoutData}">
+                  <g:Label ui:field="routeLength" />
+                </container:child>
+              </container:VerticalLayoutContainer>
             </container:child>
           
             <container:child layoutData="{halfWindow}">
@@ -115,31 +201,7 @@
           </container:HorizontalLayoutContainer>
         </container:child>
         
-        <container:child layoutData="{verticalLayoutData}">
-            <form:FieldLabel ui:field="selectDeviceLabel" ui:text="{i18n.selectDevice}">
-                <form:widget>
-                    <form:ComboBox ui:field="selectDevice" />
-                </form:widget>
-            </form:FieldLabel>
-        </container:child>
-        
-        <container:child layoutData="{v24px}">
-            <container:HorizontalLayoutContainer>
-                <container:child layoutData="{htrWrapContent}">
-                    <form:CheckBox ui:field="createCorridor" boxLabel="{i18n.createCorridor}" />
-                </container:child>
-                
-                <container:child layoutData="{hWrapContent}">
-                    <form:NumberField ui:field="corridorWidth" enabled="false"/>
-                </container:child>
-                
-                <container:child layoutData="{hltWrapContent}">
-                    <g:Label text="km" />
-                </container:child>
-            </container:HorizontalLayoutContainer>
-        </container:child>
-        
-      </container:VerticalLayoutContainer>
+    </container:VerticalLayoutContainer>
       
     <gxt:button>
       <button:TextButton ui:field="saveButton" text="{i18n.save}" />

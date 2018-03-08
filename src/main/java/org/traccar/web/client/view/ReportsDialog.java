@@ -16,9 +16,7 @@
 package org.traccar.web.client.view;
 
 import com.google.gwt.cell.client.AbstractCell;
-import com.google.gwt.cell.client.AbstractSafeHtmlCell;
 import com.google.gwt.cell.client.Cell;
-import com.google.gwt.cell.client.TextCell;
 import pl.datamatica.traccar.model.Period;
 import pl.datamatica.traccar.model.UserSettings;
 import pl.datamatica.traccar.model.ReportFormat;
@@ -27,7 +25,6 @@ import pl.datamatica.traccar.model.Report;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.Device;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.SelectElement;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.LeafValueEditor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;
@@ -35,7 +32,6 @@ import com.google.gwt.event.logical.shared.BeforeSelectionEvent;
 import com.google.gwt.event.logical.shared.BeforeSelectionHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
-import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -46,20 +42,10 @@ import com.sencha.gxt.cell.core.client.form.ComboBoxCell;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.Style;
 import com.sencha.gxt.core.client.ValueProvider;
-import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.Store.StoreFilter;
-import com.sencha.gxt.data.shared.event.StoreAddEvent;
-import com.sencha.gxt.data.shared.event.StoreClearEvent;
-import com.sencha.gxt.data.shared.event.StoreDataChangeEvent;
-import com.sencha.gxt.data.shared.event.StoreFilterEvent;
-import com.sencha.gxt.data.shared.event.StoreHandlers;
-import com.sencha.gxt.data.shared.event.StoreRecordChangeEvent;
-import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
-import com.sencha.gxt.data.shared.event.StoreSortEvent;
-import com.sencha.gxt.data.shared.event.StoreUpdateEvent;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.Window;
@@ -408,6 +394,11 @@ public class ReportsDialog implements Editor<Report> {
 
     public void selectDevice(Device device) {
         devices.setValue(Collections.singleton(device));
+    }
+    
+    public void selectRoute(Route route) {
+        selectDevice(route.getDevice());
+        this.route.setValue(route);
     }
 
     public void selectReportType(ReportType type) {

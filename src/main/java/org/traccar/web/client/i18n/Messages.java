@@ -15,6 +15,7 @@
  */
 package org.traccar.web.client.i18n;
 
+import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import pl.datamatica.traccar.model.Period;
 import pl.datamatica.traccar.model.UserSettings;
 import pl.datamatica.traccar.model.ReportType;
@@ -22,6 +23,7 @@ import pl.datamatica.traccar.model.GeoFenceType;
 import pl.datamatica.traccar.model.DeviceEventType;
 import pl.datamatica.traccar.model.DeviceIconMode;
 import org.traccar.web.shared.model.*;
+import pl.datamatica.traccar.model.Route;
 
 public interface Messages extends com.google.gwt.i18n.client.Messages {
     String clearCookies();
@@ -639,10 +641,12 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String errInvalidImei();
     
     String ok();
-    
+
     String selectAll();
-	
+
     String userGuideUrl();
+
+    String selectDeselectAll();
 
     public String batteryLevel();
 	
@@ -690,6 +694,7 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     public String actionNotReversible();
     String userGroupUsersTitle(String name);
     String defaultGroup();
+    String defaultIconId();
     
     String auditLog();
     String auditLogEvent();
@@ -703,4 +708,23 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
 
     public String errNoReportDevicesSelected();
     String errNoReportRouteSelected();
+
+    String addToArchive();
+    String abortRoute();
+    String duplicateRoute();
+    String showArchivedRoutes();
+    String archivedRoutes();
+    String restoreRoute();
+    String deadline();
+    String archiveAfter();
+    String tolerance();
+    String errInvalidRoutePoint(int i);
+    String confirmRouteRemoval();
+    String newPoint();
+    String routeStatus(@Select Route.Status status);
+    String routeLength(double length);
+    
+    String accept();
+    String rulesDialogHeader();
+    String rulesDialogExplanation();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Datamatica (dev@datamatica.pl)
+ * Copyright 2018 Datamatica (dev@datamatica.pl)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,14 @@
  */
 package org.traccar.web.client.model.api;
 
-public class ApiDeviceIcon {
-    public long id;
-    public String iconUrl;
-    public boolean isDeleted;
-    public boolean isWithoutFrame;
-    public int markerWidth;
-    public int markerHeight;
-    
-    public long getId() {
-        return id;
-    }
-    
-    public String getUrl() {
-        return iconUrl;
-    }
-    
-    public boolean isDeleted() {
-        return isDeleted;
-    }
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author ŁŁ
+ */
+public class ApiRulesAcceptance {
+    public List<Long> accepted = new ArrayList<>();
+    public List<Long> rejected = new ArrayList<>();
 }

@@ -68,6 +68,7 @@ public class Decoder {
 
         d.setBatteryLevel(anInt(v, "batteryLevel"));
         d.setBatteryTime(date(v, "batteryTime"));
+        
         //API adds 1 day to validTo field!
         Date validTo = date(v, "validTo");
         if(validTo != null)
@@ -79,6 +80,9 @@ public class Decoder {
         d.setIdleSpeedThreshold(aDouble(v, "idleSpeedThreshold"));
         d.setStatus(string(v, "status"));
         d.setOwner(ApplicationContext.getInstance().getUser());
+        
+        d.setIgnition(bool(v, "ignition"));
+        d.setIgnitionTime(date(v, "ignitionTime"));
         
         Set<User> users = new HashSet<>();
         long[] userIds = longArr(v, "userIds");
@@ -281,6 +285,25 @@ public class Decoder {
         m.setName(string(v, "name"));
         m.setIndexNo(i);
         return m;
+    }
+    
+    public List<ApiRulesVersion> decodeRules(JSONArray arr) {
+        List<ApiRulesVersion> rvs = new ArrayList<>();
+        if(arr == null)
+            return rvs;
+        for(int i=0;i<arr.size();++i) {
+            ApiRulesVersion rv = new ApiRulesVersion();
+            JSONObject obj = arr.get(i).isObject();
+            if(obj == null)
+                continue;
+            rv.id = aLong(obj, "id");
+            rv.description = string(obj, "description");
+            rv.startDate = date(obj, "startDate");
+            rv.url = string(obj, "url");
+            rv.isObligatory = bool(obj, "isObligatory");
+            rvs.add(rv);
+        }
+        return rvs;
     }
     
     private Date date(JSONObject v, String name) {
