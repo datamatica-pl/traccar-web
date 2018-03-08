@@ -52,7 +52,7 @@
       </container:child>
       <container:child layoutData="{verticalLayoutData}">
           <g:HTMLPanel>
-            <a href="http://www.petio.eu/?page_id=2554">
+            <a href="https://petio.eu/regulamin-korzystania-z-systemu-petio">
                 <g:Label text="{i18n.termsLabel}" />
             </a>
           </g:HTMLPanel>
