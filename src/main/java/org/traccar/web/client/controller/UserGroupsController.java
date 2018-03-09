@@ -122,7 +122,7 @@ public class UserGroupsController implements NavView.GroupsHandler,
                             }
                         });
                     }
-                }, !isDefault).show();
+                }, !isDefault, i18n.belongsToGroup()).show();
             }
         });
     }

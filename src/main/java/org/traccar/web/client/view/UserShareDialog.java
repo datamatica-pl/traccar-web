@@ -109,12 +109,14 @@ public class UserShareDialog {
     StoreFilterField<UserShared> userFilter;
 
     public UserShareDialog(Set<Long> shares, UserShareHandler shareHandler) {
-        this(shares, shareHandler, true);
+        this(shares, shareHandler, true, null);
     }
 
     public UserShareDialog(Set<Long> shares, UserShareHandler shareHandler, 
-            final boolean editable) {
+            final boolean editable, String shareTitle) {
         this.shareHandler = shareHandler;
+        if(shareTitle == null)
+            shareTitle = i18n.share();
 
         List<User> users = new ArrayList<>(ApplicationContext.getInstance().getUsers());
         Collections.sort(users, new Comparator<User>() {
@@ -142,7 +144,7 @@ public class UserShareDialog {
         List<ColumnConfig<UserShared, ?>> columnConfigList = new LinkedList<>();
         columnConfigList.add(new ColumnConfig<>(userSharedProperties.name(), 25, i18n.name()));
 
-        ColumnConfig<UserShared, Boolean> colManager = new ColumnConfig<>(userSharedProperties.shared(), 25, i18n.share());
+        ColumnConfig<UserShared, Boolean> colManager = new ColumnConfig<>(userSharedProperties.shared(), 25, shareTitle);
         colManager.setCell(new CheckBoxCell() {
             @Override
             public void render(Cell.Context context, Boolean value, SafeHtmlBuilder sb) {
