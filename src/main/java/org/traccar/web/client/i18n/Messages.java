@@ -727,4 +727,8 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String accept();
     String rulesDialogHeader();
     String rulesDialogExplanation();
+    String rulesUrl();
+    String rulesStartDate();
+    String rulesType();
+    String belongsToGroup();
 }

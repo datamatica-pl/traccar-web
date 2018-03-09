@@ -19,7 +19,7 @@ Uncomment this for XHTML entities
     <gxt:Window ui:field="window" pixelSize="300,-1" modal="true">
         <container:VerticalLayoutContainer>
             <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="URL">
+                <form:FieldLabel text="{i18n.rulesUrl}">
                     <form:widget>
                         <form:TextField ui:field="url"/>
                     </form:widget>
@@ -27,7 +27,7 @@ Uncomment this for XHTML entities
             </container:child>
             
             <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="data">
+                <form:FieldLabel text="{i18n.rulesStartDate}">
                     <form:widget>
                         <form:DateField ui:field="startDate" />
                     </form:widget>
@@ -35,7 +35,7 @@ Uncomment this for XHTML entities
             </container:child>
             
             <container:child layoutData="{verticalLayoutData}">
-                <form:FieldLabel text="typ">
+                <form:FieldLabel text="{i18n.rulesType}">
                     <form:widget>
                         <form:ComboBox ui:field="type" />
                     </form:widget>
