@@ -47,18 +47,8 @@ public class RoutePolylineFinder {
                         GWT.log("null!");
                     if(r.geometry(1) != null)
                         GWT.log("has second geometry");
-                    Object[] pts = r.geometry(0);
-                    LonLat[] lonLat = new LonLat[pts.length];
-                    for(int i=0;i<pts.length;++i) {
-                        String[] latLon=pts[i].toString().split(",");
-                        if(latLon.length != 2 || latLon[0] == null  || latLon[0].isEmpty()
-                                || latLon[0].equals("undefined") || latLon[1] == null
-                                || latLon[1].equals("undefined") || latLon[1].isEmpty())
-                            continue;
-                        lonLat[i] = new LonLat(Double.parseDouble(latLon[1]), 
-                                Double.parseDouble(latLon[0]));
-                    }
-                    callback.onResult(lonLat, r.legDistances());
+                    r.geometry(0);
+                    callback.onResult(r.geometry(0), r.legDistances());
                 }
                 
                 @Override
@@ -73,15 +63,15 @@ public class RoutePolylineFinder {
     }
     
     public interface Callback {
-        void onResult(LonLat[] points, double[] distances);
+        void onResult(String points, double[] distances);
     }
     
     static class Result extends JavaScriptObject {
         protected Result() {}
         
-        public final native Object[] geometry(int i) /*-{
+        public final native String geometry(int i) /*-{
             if(this.routes && this.routes.length > i && this.routes[i].geometry) 
-                return $wnd.polyline.decode(this.routes[i].geometry);
+                return this.routes[i].geometry;
             return null;
         }-*/;
         

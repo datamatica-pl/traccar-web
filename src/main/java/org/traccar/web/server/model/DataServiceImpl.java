@@ -41,6 +41,7 @@ import org.hibernate.Session;
 import org.hibernate.proxy.HibernateProxy;
 import org.slf4j.LoggerFactory;
 import org.traccar.web.client.model.DataService;
+import org.traccar.web.server.utils.EncodedPolyline;
 import org.traccar.web.server.utils.JsonXmlParser;
 import org.traccar.web.server.utils.StopsDetector;
 import org.traccar.web.shared.model.*;
@@ -211,8 +212,15 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 .setParameter("false", false);
         List<Route> copy = new ArrayList<>();
         for(DbRoute r : tq.getResultList())
-            copy.add(r.toRoute());
+            copy.add(prepare(r));
         return copy;
+    }
+    
+    private Route prepare(DbRoute r) {
+        Route res = new Route(r);
+        if(r.getLineString() != null)
+            res.setLinePoints(EncodedPolyline.encode(r.getLineString().getCoordinates()));
+        return res;
     }
     
     @Override
@@ -223,7 +231,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
                 .setParameter("true", true);
         List<Route> copy = new ArrayList<>();
         for(DbRoute r : tq.getResultList())
-            copy.add(r.toRoute());
+            copy.add(prepare(r));
         return copy;
     }
     
@@ -240,7 +248,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
             em.persist(route.getCorridor());
         if(connect)
             em.persist(dbr);
-        return dbr.toRoute();
+        return prepare(dbr);
     }
     
     @Transactional
@@ -249,11 +257,11 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     public Route updateRoute(Route updated) throws TraccarException {
         EntityManager em = getSessionEntityManager();
         DbRoute existing = em.find(DbRoute.class, updated.getId());
-        existing.update(updated);
+        existing.update(updated, EncodedPolyline.decode(updated.getLinePoints()));
         addRouteGeofences(existing);
         //attach routepoints
         em.merge(existing);
-        return existing.toRoute();
+        return prepare(existing);
     }
     
     private void addRouteGeofences(Route route) throws TraccarException {
@@ -290,7 +298,7 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         EntityManager em = getSessionEntityManager();
         DbRoute dbRoute = em.find(DbRoute.class, route.getId());
         em.remove(dbRoute);
-        return dbRoute.toRoute();
+        return prepare(dbRoute);
     }
     
     

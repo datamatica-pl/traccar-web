@@ -15,8 +15,10 @@
  */
 package org.traccar.web.client.controller;
 
+import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.i18n.client.DateTimeFormat;
+import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.datepicker.client.CalendarUtil;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
@@ -26,19 +28,29 @@ import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import org.fusesource.restygwt.client.Method;
+import org.gwtopenmaps.openlayers.client.geometry.LineString;
+import org.gwtopenmaps.openlayers.client.geometry.Point;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.controller.UpdatesController.RoutesListener;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
+import org.traccar.web.client.model.api.ApiJsonCallback;
+import org.traccar.web.client.model.api.ApiMethodCallback;
+import org.traccar.web.client.model.api.ApiRoute;
+import org.traccar.web.client.model.api.RoutesService;
+import org.traccar.web.client.utils.PolylineDecoder;
 import org.traccar.web.client.view.ArchivedRoutesDialog;
 import org.traccar.web.client.view.DeviceView;
 import org.traccar.web.client.view.RouteDialog;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.GeoFence;
+import pl.datamatica.traccar.model.GeoFence.LonLat;
 import pl.datamatica.traccar.model.Report;
 import pl.datamatica.traccar.model.ReportFormat;
 import pl.datamatica.traccar.model.ReportType;
@@ -53,6 +65,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     private ReportsController reportHandler;
     private final ListStore<Route> routeStore;
     private Messages i18n = GWT.create(Messages.class);
+    private RoutesService service = GWT.create(RoutesService.class);
     
     public RouteController(ListStore<Device> devStore, ListStore<GeoFence> gfStore,
             MapController mapController) {
@@ -98,6 +111,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     
     @Override
     public void onEdit(final Route selectedItem) {
+        log("onEdit!");
         new RouteDialog(selectedItem, new RouteDialog.RouteHandler() {
             @Override
             public void onSave(final Route route, boolean connect) {
@@ -115,6 +129,10 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
             
         }, deviceStore, geoFenceStore).show();
     }
+    
+    public static native void log(String msg) /*-{
+        console.log(msg);
+    }-*/;
     
     @Override
     public void onDuplicate(final Route selectedItem) {
@@ -134,6 +152,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                 pt.setGeofence(rp.getGeofence());
                 r.getRoutePoints().add(pt);
             }
+            LonLat[] lls = PolylineDecoder.decodeToLonLat(selectedItem.getLinePoints());
             r.setLinePoints(selectedItem.getLinePoints());
         }
         r.setStatus(Route.Status.NEW);
@@ -211,13 +230,22 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
         throw new UnsupportedOperationException();
     }
     
+    public static interface RouteMapper extends ObjectMapper<List<ApiRoute>> {}
     @Override
     public void run() {
-        Application.getDataService().getRoutes(new BaseAsyncCallback<List<Route>>(i18n) {
+        final RouteMapper mapper = GWT.create(RouteMapper.class);
+        service.getRoutes(new ApiJsonCallback(i18n) {
             @Override
-            public void onSuccess(List<Route> result) {
-                routeStore.addAll(result);
+            public void onSuccess(Method method, JSONValue response) {
+                List<ApiRoute> routes = mapper.read(response.toString());
+                geoFenceStore.setEnableFilters(false);
+                for(ApiRoute ar : routes)
+                    routeStore.add(ar.toRoute(geoFenceStore.getAll(), 
+                            deviceStore.getAll()));
+                geoFenceStore.setEnableFilters(true);
             }
+            
+            
         });
     }
 
@@ -272,7 +300,12 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     }
 
     @Override
-    public void onRoutesUpdated(List<Route> routes) {
+    public void onRoutesUpdated(List<ApiRoute> apiRoutes) {
+        List<Route> routes = new ArrayList<>();
+        geoFenceStore.setEnableFilters(false);
+        for(ApiRoute ar : apiRoutes)
+            routes.add(ar.toRoute(geoFenceStore.getAll(), deviceStore.getAll()));
+        geoFenceStore.setEnableFilters(true);
         routeStore.replaceAll(routes);
     }
 

@@ -90,23 +90,4 @@ public class ApiGeofence {
         }
         return gf;
     }
-    
-    public static class ApiPoint {
-        public double latitude;
-        public double longitude;
-        
-        public ApiPoint() {}
-        
-        public static ApiPoint parsePoint(String pt) {
-            String[] lonLat = pt.split(" ");
-            if(lonLat.length != 2)
-                throw new RuntimeException("Invalid string");
-            double longitude = Double.parseDouble(lonLat[0]);
-            double latitude = Double.parseDouble(lonLat[1]);
-            ApiPoint point = new ApiPoint();
-            point.latitude = latitude;
-            point.longitude = longitude;
-            return point;
-        }
-    }
 }

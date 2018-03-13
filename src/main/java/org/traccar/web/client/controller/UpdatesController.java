@@ -15,6 +15,7 @@
  */
 package org.traccar.web.client.controller;
 
+import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.Timer;
@@ -26,7 +27,10 @@ import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.model.api.ApiJsonCallback;
+import org.traccar.web.client.model.api.ApiMethodCallback;
+import org.traccar.web.client.model.api.ApiRoute;
 import org.traccar.web.client.model.api.Decoder;
+import org.traccar.web.client.model.api.RoutesService;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.Position;
 import pl.datamatica.traccar.model.Route;
@@ -40,7 +44,7 @@ public class UpdatesController {
         void onDevicesUpdated(List<Device> devices);
     }
     public interface RoutesListener {
-        void onRoutesUpdated(List<Route> routes);
+        void onRoutesUpdated(List<ApiRoute> routes);
     }
     
     private static final int MAX_UPDATE_FAILURE_COUNT = 3;
@@ -58,6 +62,8 @@ public class UpdatesController {
         devicesListeners = new ArrayList<>();
         routesListeners = new ArrayList<>();
     }
+    
+    public static interface RouteMapper extends ObjectMapper<List<ApiRoute>> {}
     
     public void update() {
         updateTimer.cancel();
@@ -81,13 +87,16 @@ public class UpdatesController {
             }
         });
         
+        RoutesService service = GWT.create(RoutesService.class);
+        final RouteMapper mapper = GWT.create(RouteMapper.class);
         if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.TRACK_READ))
-            Application.getDataService().getRoutes(new BaseAsyncCallback<List<Route>>(i18n){
+            service.getRoutes(new ApiJsonCallback(i18n) {
                 @Override
-                public void onSuccess(List<Route> result) {
+                public void onSuccess(Method method, JSONValue response) {
+                    List<ApiRoute> routes = mapper.read(response.toString());
                     for(RoutesListener l : routesListeners)
-                        l.onRoutesUpdated(result);
-                }            
+                        l.onRoutesUpdated(routes);
+                }                
             });
     }
     

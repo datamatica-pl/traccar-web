@@ -27,6 +27,7 @@ import pl.datamatica.traccar.model.GeoFence;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.traccar.web.client.utils.PolylineDecoder;
 import pl.datamatica.traccar.model.Route;
 import pl.datamatica.traccar.model.RoutePoint;
 
@@ -213,15 +214,12 @@ public class GeoFenceRenderer {
             return;
         for(RoutePoint rp : r.getRoutePoints())
             drawGeoFence(rp.getGeofence(), true);
-        ArrayList<Point> linePoints = new ArrayList<>();
-        for(GeoFence.LonLat pt : r.getLinePoints())
-            linePoints.add(mapView.createPoint(pt.lon, pt.lat));
-        if(linePoints.size() < 2)
+        LineString ls = PolylineDecoder.decode(mapView, r.getLinePoints());
+        if(ls.getVertices(true).length < 2)
             return;
         
         Style st = new Style();
         st.setStrokeWidth(4);
-        LineString ls = new LineString(linePoints.toArray(new Point[0]));
         polyline = new VectorFeature(ls, st);
         getVectorLayer().addFeature(polyline);
         mapView.getMap().zoomToExtent(ls.getBounds());
