@@ -70,46 +70,46 @@ public class ApiRoute {
         r.setLinePoints(polyline);
         return r;
     }
-}
+    
+    public static class ApiRoutePoint {
+        public long id;
+        public long geofenceId;
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ",
+                timezone="GMT")
+        public Date deadline;
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ",
+                timezone="GMT")
+        public Date enterTime;
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ",
+                timezone="GMT")
+        public Date exitTime;
 
-class ApiRoutePoint {
-    public long id;
-    public long geofenceId;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ",
-            timezone="GMT")
-    public Date deadline;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ",
-            timezone="GMT")
-    public Date enterTime;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ",
-            timezone="GMT")
-    public Date exitTime;
+        public long getId() {
+            return id;
+        }
 
-    public long getId() {
-        return id;
-    }
-    
-    public long getGeofenceId() {
-        return geofenceId;
-    }
-    
-    public Date getDeadline() {
-        return deadline;
-    }
-    
-    public Date getEnterTime() {
-        return enterTime;
-    }
-    
-    public Date getExitTime() {
-        return exitTime;
-    }
-    
-    public RoutePoint toRoutePoint(Map<Long, GeoFence> gfMap) {
-        RoutePoint rp = new RoutePoint(id, gfMap.get(geofenceId));
-        rp.setDeadline(deadline);
-        rp.setEnterTime(enterTime);
-        rp.setExitTime(exitTime);
-        return rp;
+        public long getGeofenceId() {
+            return geofenceId;
+        }
+
+        public Date getDeadline() {
+            return deadline;
+        }
+
+        public Date getEnterTime() {
+            return enterTime;
+        }
+
+        public Date getExitTime() {
+            return exitTime;
+        }
+
+        public RoutePoint toRoutePoint(Map<Long, GeoFence> gfMap) {
+            RoutePoint rp = new RoutePoint(id, gfMap.get(geofenceId));
+            rp.setDeadline(deadline);
+            rp.setEnterTime(enterTime);
+            rp.setExitTime(exitTime);
+            return rp;
+        }
     }
 }

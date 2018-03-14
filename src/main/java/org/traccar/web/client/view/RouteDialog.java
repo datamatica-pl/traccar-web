@@ -656,6 +656,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             return;
         for(RoutePointWrapper pt : store.getAll()) {
             GeoFence gf = pt.getRoutePoint().getGeofence();
+            if(gf == null)
+                continue;
             if(!gf.points().isEmpty())
                 gfRenderer.drawGeoFence(gf, true);
         }
@@ -830,7 +832,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 corridor.getDevices().add(route.getDevice());
             }
             route.setCorridor(corridor);
-        }
+        } else
+            route.setCorridor(null);
         
         routeHandler.onSave(route, true);
         window.hide();

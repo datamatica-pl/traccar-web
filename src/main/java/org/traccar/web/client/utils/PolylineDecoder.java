@@ -21,6 +21,7 @@ import org.gwtopenmaps.openlayers.client.geometry.LineString;
 import org.gwtopenmaps.openlayers.client.geometry.Point;
 import org.gwtopenmaps.openlayers.client.layer.Vector;
 import org.traccar.web.client.view.GeoFenceRenderer.IMapView;
+import org.traccar.web.client.view.RouteDialog;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.GeoFence.LonLat;
 
@@ -54,6 +55,6 @@ public class PolylineDecoder {
     }
     
     private static native Object[] decode(String polyStr) /*-{
-        $wnd.polyline.decode(polyStr);
+        return $wnd.polyline.decode(polyStr);
     }-*/;
 }

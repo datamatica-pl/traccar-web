@@ -34,14 +34,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import org.fusesource.restygwt.client.Method;
-import org.gwtopenmaps.openlayers.client.geometry.LineString;
-import org.gwtopenmaps.openlayers.client.geometry.Point;
 import org.traccar.web.client.Application;
 import org.traccar.web.client.controller.UpdatesController.RoutesListener;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.model.api.ApiJsonCallback;
-import org.traccar.web.client.model.api.ApiMethodCallback;
 import org.traccar.web.client.model.api.ApiRoute;
 import org.traccar.web.client.model.api.RoutesService;
 import org.traccar.web.client.utils.PolylineDecoder;
@@ -111,7 +108,6 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     
     @Override
     public void onEdit(final Route selectedItem) {
-        log("onEdit!");
         new RouteDialog(selectedItem, new RouteDialog.RouteHandler() {
             @Override
             public void onSave(final Route route, boolean connect) {
@@ -129,10 +125,6 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
             
         }, deviceStore, geoFenceStore).show();
     }
-    
-    public static native void log(String msg) /*-{
-        console.log(msg);
-    }-*/;
     
     @Override
     public void onDuplicate(final Route selectedItem) {

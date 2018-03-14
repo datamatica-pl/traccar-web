@@ -218,8 +218,6 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     
     private Route prepare(DbRoute r) {
         Route res = new Route(r);
-        if(r.getLineString() != null)
-            res.setLinePoints(EncodedPolyline.encode(r.getLineString().getCoordinates()));
         return res;
     }
     
@@ -244,8 +242,10 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         route.setCreated(new Date());
         route.setOwner(getSessionUser());
         DbRoute dbr = new DbRoute(route);
-        if(route.getCorridor() != null)
+        if(route.getCorridor() != null) {
+            route.getCorridor().setRouteOnly(true);
             em.persist(route.getCorridor());
+        }
         if(connect)
             em.persist(dbr);
         return prepare(dbr);
@@ -257,7 +257,14 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
     public Route updateRoute(Route updated) throws TraccarException {
         EntityManager em = getSessionEntityManager();
         DbRoute existing = em.find(DbRoute.class, updated.getId());
-        existing.update(updated, EncodedPolyline.decode(updated.getLinePoints()));
+        if(existing.getCorridor() != null && updated.getCorridor() == null)
+            //warning! only sets deleted flag!
+            em.remove(existing.getCorridor());
+        if(updated.getCorridor() != null && updated.getCorridor().getId() == 0) {
+            updated.getCorridor().setRouteOnly(true);
+            em.persist(updated.getCorridor());
+        }
+        existing.update(updated);
         addRouteGeofences(existing);
         //attach routepoints
         em.merge(existing);
