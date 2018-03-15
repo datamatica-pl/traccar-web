@@ -38,6 +38,7 @@ import org.traccar.web.client.Application;
 import org.traccar.web.client.controller.UpdatesController.RoutesListener;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.BaseAsyncCallback;
+import org.traccar.web.client.model.api.ApiEditRoute;
 import org.traccar.web.client.model.api.ApiJsonCallback;
 import org.traccar.web.client.model.api.ApiRoute;
 import org.traccar.web.client.model.api.RoutesService;
@@ -111,15 +112,15 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
         new RouteDialog(selectedItem, new RouteDialog.RouteHandler() {
             @Override
             public void onSave(final Route route, boolean connect) {
-                Application.getDataService().updateRoute(route,
-                        new BaseAsyncCallback<Route>(i18n) {
-                            @Override
-                            public void onSuccess(final Route updated) {
-                                if(selectedItem.getCorridor() != null)
-                                    geoFenceStore.remove(selectedItem.getCorridor());
-                                updateGeofences(updated);
-                                routeStore.update(updated);
-                            }
+                service.updateRoute(route.getId(), new ApiEditRoute(route),
+                        new ApiJsonCallback(i18n) {
+                    @Override
+                    public void onSuccess(Method method, JSONValue response) {
+                        if(selectedItem.getCorridor() != null)
+                            geoFenceStore.remove(selectedItem.getCorridor());
+                        updateGeofences(route);
+                        routeStore.update(route);
+                    } 
                         });
             }
             

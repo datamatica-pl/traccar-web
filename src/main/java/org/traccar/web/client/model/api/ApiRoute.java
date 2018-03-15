@@ -84,6 +84,14 @@ public class ApiRoute {
                 timezone="GMT")
         public Date exitTime;
 
+        public ApiRoutePoint() {}
+        
+        public ApiRoutePoint(RoutePoint rp) {
+            this.id = rp.getId();
+            this.geofenceId = rp.getGeofence().getId();
+            this.deadline = rp.getDeadline();
+        }
+        
         public long getId() {
             return id;
         }
