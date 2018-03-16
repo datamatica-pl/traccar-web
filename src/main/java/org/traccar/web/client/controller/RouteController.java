@@ -41,6 +41,7 @@ import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.model.api.ApiEditRoute;
 import org.traccar.web.client.model.api.ApiJsonCallback;
 import org.traccar.web.client.model.api.ApiRoute;
+import org.traccar.web.client.model.api.ApiRoute.ApiRoutePoint;
 import org.traccar.web.client.model.api.RoutesService;
 import org.traccar.web.client.utils.PolylineDecoder;
 import org.traccar.web.client.view.ArchivedRoutesDialog;
@@ -57,6 +58,9 @@ import pl.datamatica.traccar.model.RoutePoint;
 
 public class RouteController implements DeviceView.RouteHandler, ContentController,
         ArchivedRoutesDialog.RouteHandler, RoutesListener {
+    public static interface LRouteMapper extends ObjectMapper<List<ApiRoute>> {}
+    public static interface RouteMapper extends ObjectMapper<ApiRoute> {}
+    
     private ListStore<Device> deviceStore;
     private ListStore<GeoFence> geoFenceStore;
     private MapController mapController;
@@ -64,6 +68,8 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     private final ListStore<Route> routeStore;
     private Messages i18n = GWT.create(Messages.class);
     private RoutesService service = GWT.create(RoutesService.class);
+    private LRouteMapper lMapper = GWT.create(LRouteMapper.class);
+    private RouteMapper mapper = GWT.create(RouteMapper.class);
     
     public RouteController(ListStore<Device> devStore, ListStore<GeoFence> gfStore,
             MapController mapController) {
@@ -93,15 +99,16 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
         new RouteDialog(new Route(), new RouteDialog.RouteHandler() {
             @Override
             public void onSave(final Route route, final boolean connect) {
-                Application.getDataService().addRoute(route, connect,
-                        new BaseAsyncCallback<Route>(i18n) {
-                            @Override
-                            public void onSuccess(final Route addedRoute) {
-                                updateGeofences(addedRoute);
-                                if(connect)
-                                    routeStore.add(addedRoute);
-                            }
-                        });
+                service.createRoute(new ApiEditRoute(route), new ApiJsonCallback(i18n) {
+                    @Override
+                    public void onSuccess(Method method, JSONValue response) {
+                        ApiRoute r = mapper.read(response.toString());
+                        updateRoute(route, r);
+                        updateGeofences(route);
+                        if(connect)
+                            routeStore.add(route);
+                    }
+                });
             }
             
         }, deviceStore, geoFenceStore, mapController.getCenter()).show();
@@ -118,6 +125,8 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                     public void onSuccess(Method method, JSONValue response) {
                         if(selectedItem.getCorridor() != null)
                             geoFenceStore.remove(selectedItem.getCorridor());
+                        ApiRoute r = mapper.read(response.toString());
+                        updateRoute(route, r);
                         updateGeofences(route);
                         routeStore.update(route);
                     } 
@@ -125,6 +134,22 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
             }
             
         }, deviceStore, geoFenceStore).show();
+    }
+    
+    private void updateRoute(Route route, ApiRoute r) {
+        if(route.getId() == 0)
+            route.setId(r.id);
+        List<RoutePoint> rps = route.getRoutePoints();
+        for(int i=0;i<rps.size();++i) {
+            GeoFence gf = rps.get(i).getGeofence();
+            ApiRoutePoint pt = r.points.get(i);
+            if(gf.getId() == 0)
+                gf.setId(pt.geofenceId);
+            if(rps.get(i).getId() == 0)
+                rps.get(i).setId(pt.id);
+        }
+        if(route.getCorridor() != null && route.getCorridor().getId() == 0)
+            route.getCorridor().setId(r.corridorId);
     }
     
     @Override
@@ -223,14 +248,12 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
         throw new UnsupportedOperationException();
     }
     
-    public static interface RouteMapper extends ObjectMapper<List<ApiRoute>> {}
     @Override
     public void run() {
-        final RouteMapper mapper = GWT.create(RouteMapper.class);
         service.getRoutes(new ApiJsonCallback(i18n) {
             @Override
             public void onSuccess(Method method, JSONValue response) {
-                List<ApiRoute> routes = mapper.read(response.toString());
+                List<ApiRoute> routes = lMapper.read(response.toString());
                 geoFenceStore.setEnableFilters(false);
                 for(ApiRoute ar : routes)
                     routeStore.add(ar.toRoute(geoFenceStore.getAll(), 

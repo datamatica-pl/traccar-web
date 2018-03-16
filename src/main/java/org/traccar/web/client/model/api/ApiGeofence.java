@@ -60,6 +60,7 @@ public class ApiGeofence {
         if(gf.getDevices() != null)
             for(Device d : gf.getDevices())
                 this.deviceIds.add(d.getId());
+        this.address = gf.getAddress();
     }
     
     public GeoFence toGeofence(List<Device> devices) {

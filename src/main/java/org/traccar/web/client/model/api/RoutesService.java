@@ -17,10 +17,12 @@ package org.traccar.web.client.model.api;
 
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import org.fusesource.restygwt.client.JsonCallback;
+import org.fusesource.restygwt.client.MethodCallback;
 import org.fusesource.restygwt.client.RestService;
 
 @Path("../api/v1/routes")
@@ -33,4 +35,7 @@ public interface RoutesService extends RestService {
     @PUT
     @Path("/{id}")
     void updateRoute(@PathParam("id") long id, ApiEditRoute route, JsonCallback callback);
+    
+    @POST
+    void createRoute(ApiEditRoute route, JsonCallback callback);
 }
