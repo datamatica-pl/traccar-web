@@ -219,13 +219,12 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
             @Override
             public void onDialogHide(DialogHideEvent event) {
                 if (event.getHideButton() == PredefinedButton.YES) {
-                    Application.getDataService().removeRoute(route,
-                        new BaseAsyncCallback<Route>(i18n) {
-                            @Override
-                            public void onSuccess(final Route removed) {
-                                routeStore.remove(route);
-                            }
-                        });
+                    service.deleteRoute(route.getId(), new ApiJsonCallback(i18n) {
+                        @Override
+                        public void onSuccess(Method method, JSONValue response) {
+                            routeStore.remove(route);
+                        }
+                    });
                 }
             }
         });
