@@ -25,7 +25,7 @@ public interface RoutesService extends RestService {
     public static interface ApiRouteMapper extends ObjectMapper<ApiRoute> {}
     
     @GET
-    void getRoutes(JsonCallback callback);
+    void getRoutes(@QueryParam("archived") boolean archive, JsonCallback callback);
     
     @PUT
     @Path("/{id}")

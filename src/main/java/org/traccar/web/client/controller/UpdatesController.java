@@ -90,7 +90,7 @@ public class UpdatesController {
         RoutesService service = GWT.create(RoutesService.class);
         final RouteMapper mapper = GWT.create(RouteMapper.class);
         if(ApplicationContext.getInstance().getUser().hasPermission(UserPermission.TRACK_READ))
-            service.getRoutes(new ApiJsonCallback(i18n) {
+            service.getRoutes(false, new ApiJsonCallback(i18n) {
                 @Override
                 public void onSuccess(Method method, JSONValue response) {
                     List<ApiRoute> routes = mapper.read(response.toString());

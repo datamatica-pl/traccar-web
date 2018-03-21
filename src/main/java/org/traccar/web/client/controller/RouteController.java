@@ -34,10 +34,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import org.fusesource.restygwt.client.Method;
-import org.traccar.web.client.Application;
 import org.traccar.web.client.controller.UpdatesController.RoutesListener;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.BaseAsyncCallback;
 import org.traccar.web.client.model.api.ApiEditRoute;
 import org.traccar.web.client.model.api.ApiJsonCallback;
 import org.traccar.web.client.model.api.ApiRoute;
@@ -179,15 +177,16 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
         new RouteDialog(r, new RouteDialog.RouteHandler() {
             @Override
             public void onSave(final Route route, final boolean connect) {
-                Application.getDataService().addRoute(route, connect,
-                        new BaseAsyncCallback<Route>(i18n) {
-                            @Override
-                            public void onSuccess(final Route addedRoute) {
-                                updateGeofences(addedRoute);
-                                if(connect)
-                                    routeStore.add(addedRoute);
-                            }
-                        });
+                service.createRoute(new ApiEditRoute(route), new ApiJsonCallback(i18n) {
+                    @Override
+                    public void onSuccess(Method method, JSONValue response) {
+                        ApiRoute r = mapper.read(response.toString());
+                        updateRoute(route, r);
+                        updateGeofences(route);
+                        if(connect)
+                            routeStore.add(route);
+                    }
+                });
             }
             
         }, deviceStore, geoFenceStore).show();
@@ -249,7 +248,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     
     @Override
     public void run() {
-        service.getRoutes(new ApiJsonCallback(i18n) {
+        service.getRoutes(false, new ApiJsonCallback(i18n) {
             @Override
             public void onSuccess(Method method, JSONValue response) {
                 List<ApiRoute> routes = lMapper.read(response.toString());
@@ -259,55 +258,57 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                             deviceStore.getAll()));
                 geoFenceStore.setEnableFilters(true);
             }
-            
-            
         });
     }
 
     @Override
-    public void onAbort(Route selectedItem) {
+    public void onAbort(final Route selectedItem) {
         selectedItem.setStatus(Route.Status.CANCELLED);
         selectedItem.setCancelTimestamp(new Date());
-        Application.getDataService().updateRoute(selectedItem, new BaseAsyncCallback<Route>(i18n) {
+        service.updateRoute(selectedItem.getId(), new ApiEditRoute(selectedItem),
+                new ApiJsonCallback(i18n) {
             @Override
-            public void onSuccess(Route result) {
-                routeStore.update(result);
+            public void onSuccess(Method method, JSONValue response) {
+                routeStore.update(selectedItem);
             }
+            
         });
     }
     
     @Override
-    public void onArchivedChanged(Route selectedItem, boolean archive) {
-        selectedItem.setArchived(archive);
-        if(!archive)
-            selectedItem.setArchiveAfter(0);
-        Application.getDataService().updateRoute(selectedItem, 
-                new BaseAsyncCallback<Route> (i18n) {
+    public void onArchivedChanged(final Route selectedItem, boolean archive) {
+        service.updateRoute(selectedItem.getId(), new ApiEditRoute(selectedItem),
+                new ApiJsonCallback(i18n) {
             @Override
-            public void onSuccess(Route result) {
-                if(result.isArchived()) {
-                    Route r = routeStore.findModel(result);
+            public void onSuccess(Method method, JSONValue response) {
+                if(selectedItem.isArchived()) {
+                    Route r = routeStore.findModel(selectedItem);
                     routeStore.remove(r);
                 } else
-                    routeStore.add(result);
-            }         
-        });
+                    routeStore.add(selectedItem);
+            }
+                    
+                });
     }
     
     @Override
     public void onShowArchived() {
-        Application.getDataService().getArchivedRoutes(new BaseAsyncCallback<List<Route>>(i18n) {
+        service.getRoutes(true, new ApiJsonCallback(i18n) {
             @Override
-            public void onSuccess(List<Route> result) {
-                ListStore<Route> routes = new ListStore<>(new ModelKeyProvider<Route>() {
+            public void onSuccess(Method method, JSONValue response) {
+                ListStore<Route> store = new ListStore<>(new ModelKeyProvider<Route>() {
                     @Override
                     public String getKey(Route item) {
                         return Long.toString(item.getId());
                     }
                 });
-                routes.addAll(result);
-                
-                ArchivedRoutesDialog dialog = new ArchivedRoutesDialog(routes, 
+                List<ApiRoute> routes = lMapper.read(response.toString());
+                geoFenceStore.setEnableFilters(false);
+                for(ApiRoute ar : routes)
+                    store.add(ar.toRoute(geoFenceStore.getAll(), 
+                            deviceStore.getAll()));
+                geoFenceStore.setEnableFilters(true);
+                ArchivedRoutesDialog dialog = new ArchivedRoutesDialog(store, 
                         RouteController.this);
                 dialog.show();
             }
