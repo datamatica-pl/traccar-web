@@ -673,11 +673,11 @@ public class MapPositionRenderer {
         if (!visibilityProvider.isVisible(device)) {
             return;
         }
-        DeviceData oldDeviceData = getDeviceData(selectedDeviceId);
-        Position oldPosition = oldDeviceData == null ? null : oldDeviceData.getLatestPosition();
 
         DeviceData newDeviceData = getDeviceData(device);
         Position newPosition = newDeviceData == null ? null : newDeviceData.getLatestPosition();
+        if(newPosition == null)
+            return;
         
         VectorFeature marker = newDeviceData.markerMap.get(newPosition.getId());
         Point point = Point.narrowToPoint(marker.getJSObject().getProperty("geometry"));
@@ -691,7 +691,7 @@ public class MapPositionRenderer {
         }
 
         DeviceData deviceData = getDeviceData(device);
-        if (deviceData.positions.size() > 0) {
+        if (deviceData.positions != null && deviceData.positions.size() > 0) {
             UserSettings userSettings = ApplicationContext.getInstance().getUserSettings();
             Short zoomLevel = userSettings.getFollowedDeviceZoomLevel();
             if (zoomLevel != null) {
