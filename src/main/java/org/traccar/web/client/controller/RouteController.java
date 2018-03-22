@@ -277,6 +277,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     
     @Override
     public void onArchivedChanged(final Route selectedItem, boolean archive) {
+        selectedItem.setArchived(archive);
         service.updateRoute(selectedItem.getId(), new ApiEditRoute(selectedItem),
                 new ApiJsonCallback(i18n) {
             @Override

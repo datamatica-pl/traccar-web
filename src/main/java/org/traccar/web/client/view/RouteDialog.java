@@ -421,6 +421,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         });
         
         List<String> gfNames = new ArrayList<>();
+        //Geofences created only for route are filtered by default.
+        //We need to disable filtering in order to get them from the store.
         gfs.setEnableFilters(false);
         for(GeoFence gf : gfs.getAll()) {
             if(!gf.isDeleted() && gf.getType() != GeoFenceType.LINE && !gfMap.containsKey(gf.getName())

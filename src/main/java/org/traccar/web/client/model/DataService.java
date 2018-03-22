@@ -27,7 +27,6 @@ import org.traccar.web.shared.model.*;
 
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
-import pl.datamatica.traccar.model.Route;
 
 @RemoteServiceRelativePath("dataService")
 public interface DataService extends RemoteService {
@@ -40,12 +39,6 @@ public interface DataService extends RemoteService {
     List<Device> getDevices();
     List<Position> getPositions(Device device, Date from, Date to, boolean filter) throws AccessDeniedException;
     List<GeoFence> getGeoFences();
-    
-    List<Route> getRoutes();
-    List<Route> getArchivedRoutes();
-    Route addRoute(Route route, boolean connect) throws TraccarException;
-    Route updateRoute(Route updated) throws TraccarException;
-    Route removeRoute(Route route);
     
     ApplicationSettings getApplicationSettings();
 }
