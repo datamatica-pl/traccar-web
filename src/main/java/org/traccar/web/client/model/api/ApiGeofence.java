@@ -39,6 +39,7 @@ public class ApiGeofence {
     public Set<Long> deviceIds;
     public String lastUpdate;
     public String address;
+    public boolean isRouteOnly;
     
     public ApiGeofence(){}
     
@@ -59,10 +60,12 @@ public class ApiGeofence {
         if(gf.getDevices() != null)
             for(Device d : gf.getDevices())
                 this.deviceIds.add(d.getId());
+        this.address = gf.getAddress();
     }
     
     public GeoFence toGeofence(List<Device> devices) {
         GeoFence gf = new GeoFence(id, geofenceName);
+        gf.setRouteOnly(isRouteOnly);
         gf.setDescription(description);
         gf.setColor(color);
         
@@ -87,24 +90,5 @@ public class ApiGeofence {
             }
         }
         return gf;
-    }
-    
-    public static class ApiPoint {
-        public double latitude;
-        public double longitude;
-        
-        public ApiPoint() {}
-        
-        public static ApiPoint parsePoint(String pt) {
-            String[] lonLat = pt.split(" ");
-            if(lonLat.length != 2)
-                throw new RuntimeException("Invalid string");
-            double longitude = Double.parseDouble(lonLat[0]);
-            double latitude = Double.parseDouble(lonLat[1]);
-            ApiPoint point = new ApiPoint();
-            point.latitude = latitude;
-            point.longitude = longitude;
-            return point;
-        }
     }
 }

@@ -725,7 +725,7 @@ public class DeviceView implements RowMouseDownEvent.RowMouseDownHandler, CellDo
         
         toggleManagementButtons(null);
     }
-
+    
     private void prepareDeviceGrid(final ListStore<Device> globalDeviceStore,
             final GroupStore groupStore,
             final DeviceVisibilityHandler deviceVisibilityHandler,
