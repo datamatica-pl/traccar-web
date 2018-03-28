@@ -157,16 +157,18 @@ public class Application {
                         public void run() {
                             if(user.hasPermission(UserPermission.REPORTS))
                                 reportsController.run();
+                            if(user.hasPermission(UserPermission.TRACK_READ))
+                                routeController.run();
+                            updatesController.run();
                         }
                     });
+                else
+                    updatesController.run();
                 if(user.hasPermission(UserPermission.COMMAND_TCP))
                     commandController.run();
                 if(user.hasPermission(UserPermission.DEVICE_GROUP_MANAGEMENT))
                     groupsController.run();
                 visibilityController.run();
-                updatesController.run();
-                if(user.hasPermission(UserPermission.TRACK_READ))
-                    routeController.run();
                 setupTimeZone();
                 updatesController.devicesLoaded(deviceController.getDeviceStore().getAll());
             }

@@ -24,7 +24,6 @@ import pl.datamatica.traccar.model.ApplicationSettings;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.Position;
-import pl.datamatica.traccar.model.Route;
 
 public interface DataServiceAsync {
 
@@ -36,12 +35,6 @@ public interface DataServiceAsync {
     void getDevices(AsyncCallback<List<Device>> callback);
     void getPositions(Device device, Date from, Date to, boolean filter, AsyncCallback<List<Position>> callback);
     void getGeoFences(AsyncCallback<List<GeoFence>> async);
-    
-    public void getRoutes(AsyncCallback<List<Route>> asyncCallback);
-    void getArchivedRoutes(AsyncCallback<List<Route>> async);
-    void addRoute(Route route, boolean connect, AsyncCallback<Route> async);
-    public void updateRoute(Route updated, AsyncCallback<Route> asyncCallback);
-    public void removeRoute(Route route, AsyncCallback<Route> asyncCallback);
     
     void getApplicationSettings(AsyncCallback<ApplicationSettings> async);
 }

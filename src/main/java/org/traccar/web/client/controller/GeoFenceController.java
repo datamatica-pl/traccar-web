@@ -21,6 +21,7 @@ import com.google.gwt.json.client.JSONValue;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store;
+import com.sencha.gxt.data.shared.Store.StoreFilter;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.ListView;
@@ -64,6 +65,12 @@ public class GeoFenceController implements DeviceView.GeoFenceHandler {
         GeoFenceProperties geoFenceProperties = GWT.create(GeoFenceProperties.class);
         this.geoFenceStore = new ListStore<>(geoFenceProperties.id());
         this.geoFenceStore.addSortInfo(new Store.StoreSortInfo<>(geoFenceProperties.name(), SortDir.ASC));
+        this.geoFenceStore.addFilter(new StoreFilter<GeoFence>() {
+            @Override
+            public boolean select(Store<GeoFence> store, GeoFence parent, GeoFence item) {
+                return !item.isRouteOnly();
+            }
+        });
         this.deviceGeoFences = new HashMap<>();
     }
 
@@ -211,10 +218,13 @@ public class GeoFenceController implements DeviceView.GeoFenceHandler {
             @Override
             public void onSuccess(Method method, List<ApiGeofence> response) {
                 List<GeoFence> gfs = new ArrayList<>();
-                for(ApiGeofence agf : response)
-                    gfs.add(agf.toGeofence(deviceStore.getAll()));
+                for(ApiGeofence agf : response) {
+                    GeoFence gf = agf.toGeofence(deviceStore.getAll());
+                    gfs.add(gf);
+                }
                 geoFenceStore.addAll(gfs);
                 geoFenceStore.applySort(false);
+                geoFenceStore.setEnableFilters(true);
                 after.run();
             }
         });

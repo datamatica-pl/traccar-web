@@ -44,10 +44,7 @@ import org.traccar.web.client.model.DataService;
 import org.traccar.web.server.utils.JsonXmlParser;
 import org.traccar.web.server.utils.StopsDetector;
 import org.traccar.web.shared.model.*;
-import pl.datamatica.traccar.model.DbRoute;
 import pl.datamatica.traccar.model.Position;
-import pl.datamatica.traccar.model.Route;
-import pl.datamatica.traccar.model.RoutePoint;
 import pl.datamatica.traccar.model.UserDeviceStatus;
 import pl.datamatica.traccar.model.UserPermission;
 import pl.datamatica.traccar.model.UserSettings;
@@ -202,96 +199,6 @@ public class DataServiceImpl extends RemoteServiceServlet implements DataService
         }
         return entity;
     }
-    
-    @Override
-    public List<Route> getRoutes() {
-        EntityManager em = getSessionEntityManager();
-        TypedQuery<DbRoute> tq = em.createQuery("from DbRoute r where owner = :user and archive = :false", 
-                DbRoute.class).setParameter("user", getSessionUser())
-                .setParameter("false", false);
-        List<Route> copy = new ArrayList<>();
-        for(DbRoute r : tq.getResultList())
-            copy.add(r.toRoute());
-        return copy;
-    }
-    
-    @Override
-    public List<Route> getArchivedRoutes() {
-        EntityManager em = getSessionEntityManager();
-        TypedQuery<DbRoute> tq = em.createQuery("from DbRoute r where owner = :user and archive = :true", 
-                DbRoute.class).setParameter("user", getSessionUser())
-                .setParameter("true", true);
-        List<Route> copy = new ArrayList<>();
-        for(DbRoute r : tq.getResultList())
-            copy.add(r.toRoute());
-        return copy;
-    }
-    
-    @Transactional
-    @RequireUser
-    @Override
-    public Route addRoute(Route route, boolean connect) throws TraccarException {
-        EntityManager em = getSessionEntityManager();
-        addRouteGeofences(route);
-        route.setCreated(new Date());
-        route.setOwner(getSessionUser());
-        DbRoute dbr = new DbRoute(route);
-        if(route.getCorridor() != null)
-            em.persist(route.getCorridor());
-        if(connect)
-            em.persist(dbr);
-        return dbr.toRoute();
-    }
-    
-    @Transactional
-    @RequireUser
-    @Override
-    public Route updateRoute(Route updated) throws TraccarException {
-        EntityManager em = getSessionEntityManager();
-        DbRoute existing = em.find(DbRoute.class, updated.getId());
-        existing.update(updated);
-        addRouteGeofences(existing);
-        //attach routepoints
-        em.merge(existing);
-        return existing.toRoute();
-    }
-    
-    private void addRouteGeofences(Route route) throws TraccarException {
-        for(RoutePoint pt : route.getRoutePoints()) {
-            GeoFence gf = pt.getGeofence();
-            if(gf.getId() == 0)
-                addGeoFence(gf);
-            else
-                pt.setGeofence(getSessionEntityManager().find(GeoFence.class, gf.getId()));
-        }
-    }
-    
-    private GeoFence addGeoFence(GeoFence geoFence) throws TraccarException {
-        User user = getSessionUser();
-        if (geoFence.getName() == null || geoFence.getName().trim().isEmpty()) {
-            throw new ValidationException();
-        }
-
-        geoFence.setUsers(new HashSet<User>());
-        geoFence.getUsers().add(user);
-        geoFence.setDevices(geoFence.getTransferDevices());
-        getSessionEntityManager().persist(geoFence);
-        logger.info("{} created geofence {} ({})", 
-                user.getLogin(), geoFence.getName(), geoFence.getId());
-        
-        return geoFence;
-    }
-
-    @Transactional
-    @RequireUser
-    @Override
-    public Route removeRoute(Route route) {
-        EntityManager em = getSessionEntityManager();
-        DbRoute dbRoute = em.find(DbRoute.class, route.getId());
-        em.remove(dbRoute);
-        return dbRoute.toRoute();
-    }
-    
     
     //REPORTS!
     @Transactional

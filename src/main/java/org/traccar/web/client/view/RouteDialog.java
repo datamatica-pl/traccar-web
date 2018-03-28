@@ -109,6 +109,7 @@ import org.traccar.web.client.GeoFenceDrawing;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.utils.Geocoder;
 import org.traccar.web.client.utils.Geocoder.SearchCallback;
+import org.traccar.web.client.utils.PolylineDecoder;
 import org.traccar.web.client.utils.RoutePolylineFinder;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.GeoFence;
@@ -173,14 +174,14 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     StringComboBox cbName;
     private VectorFeature modifiedFeature;
     private RoutePointWrapper modifiedPt;
-    LonLat[] lineString;
+    String lineString;
     RoutePolylineFinder.Callback routeDrawer = new RoutePolylineFinder.Callback() {
         @Override
-        public void onResult(LonLat[] points, double[] distances) {
+        public void onResult(String points, double[] distances) {
             lineString = points;
             Style st = new Style();
             st.setStrokeWidth(4);
-            LineString ls = toLineString(points);
+            LineString ls = PolylineDecoder.decode(RouteDialog.this, points);
 
             polyline = new VectorFeature(ls, st);
             gfLayer.addFeature(polyline);
@@ -420,6 +421,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         });
         
         List<String> gfNames = new ArrayList<>();
+        //Geofences created only for route are filtered by default.
+        //We need to disable filtering in order to get them from the store.
+        gfs.setEnableFilters(false);
         for(GeoFence gf : gfs.getAll()) {
             if(!gf.isDeleted() && gf.getType() != GeoFenceType.LINE && !gfMap.containsKey(gf.getName())
                     && gf.getName() != null && !"".equals(gf.getName())) {
@@ -427,6 +431,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                gfMap.put(gf.getName(), gf);
             }
         }
+        gfs.setEnableFilters(true);
         cbName = new StringComboBox(gfNames);
         cbName.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
         cbName.setForceSelection(false);
@@ -648,31 +653,23 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 }
             }
         });
-        pl.datamatica.traccar.model.GeoFence.LonLat[] pts = route.getLinePoints();
-        if(pts == null)
+        lineString = route.getLinePoints();
+        if(lineString == null)
             return;
-        lineString = new LonLat[pts.length];
-        for(int i=0;i<pts.length;++i)
-            lineString[i] = new LonLat(pts[i].lon, pts[i].lat);
         for(RoutePointWrapper pt : store.getAll()) {
             GeoFence gf = pt.getRoutePoint().getGeofence();
+            if(gf == null)
+                continue;
             if(!gf.points().isEmpty())
                 gfRenderer.drawGeoFence(gf, true);
         }
         if(route.getCorridor() != null)
             gfRenderer.drawGeoFence(route.getCorridor(), false);
         routeDrawer.onResult(lineString, null);
-        LineString ls = toLineString(lineString);
+        LineString ls = PolylineDecoder.decode(this, lineString);
         map.zoomToExtent(ls.getBounds());
     }
     
-    public LineString toLineString(LonLat[] points) {
-        ArrayList<Point> linePoints = new ArrayList<>();
-        for(LonLat pt : points) {
-            linePoints.add(createPoint(pt.lon(), pt.lat()));
-        }
-        return new LineString(linePoints.toArray(new Point[0]));
-    }
     
     private void prepareDND() {
         GridDragSource<RoutePointWrapper> dragSource = new GridDragSource<>(grid);
@@ -812,12 +809,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
 
         route.setName(name.getValue());
         route.setDevice(selectDevice.getCurrentValue());
-        pl.datamatica.traccar.model.GeoFence.LonLat[] gll = 
-                new pl.datamatica.traccar.model.GeoFence.LonLat[lineString.length];
-        for(int i=0;i<lineString.length;++i)
-            gll[i] = new pl.datamatica.traccar.model.GeoFence.LonLat(lineString[i].lon(),
-                lineString[i].lat());
-        route.setLinePoints(gll);
+        route.setLinePoints(lineString);
         
         route.setTolerance(tolerance.getValue());
         route.setArchiveAfter(archiveAfter.getValue());
@@ -832,6 +824,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             corridor.setName(name.getValue()+"_c");
             corridor.setDescription(i18n.corridorOfRoute(name.getValue()));
             corridor.setType(GeoFenceType.LINE);
+            GeoFence.LonLat[] gll = PolylineDecoder.decodeToLonLat(lineString);
             corridor.points(gll);
             corridor.setRadius(corridorWidth.getValue().floatValue()*1000);
             corridor.setTransferDevices(new HashSet<Device>());
@@ -841,7 +834,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 corridor.getDevices().add(route.getDevice());
             }
             route.setCorridor(corridor);
-        }
+        } else
+            route.setCorridor(null);
         
         routeHandler.onSave(route, true);
         window.hide();
