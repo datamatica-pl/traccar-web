@@ -107,6 +107,7 @@ import org.gwtopenmaps.openlayers.client.event.EventHandler;
 import org.gwtopenmaps.openlayers.client.event.EventObject;
 import org.traccar.web.client.GeoFenceDrawing;
 import org.traccar.web.client.i18n.Messages;
+import org.traccar.web.client.model.DeviceProperties;
 import org.traccar.web.client.utils.Geocoder;
 import org.traccar.web.client.utils.Geocoder.SearchCallback;
 import org.traccar.web.client.utils.PolylineDecoder;
@@ -234,13 +235,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         store = new ListStore<>(pointsAccessor.id());
         
         prepareGrid(gfs);
-        selectDevice = new ComboBox(devs, new LabelProvider<Device>() {
-            @Override
-            public String getLabel(Device item) {
-                return item.getName();
-            }
-        });
-        selectDevice.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
+        prepareDeviceCBox(devs);
         uiBinder.createAndBindUi(this);
         
         //editing!
@@ -301,6 +296,25 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         bindStoreWithMap(route);
         
         prepareDND();
+    }
+
+    private void prepareDeviceCBox(ListStore<Device> devs) {
+        DeviceProperties deviceProperties = GWT.create(DeviceProperties.class);
+        final ListStore<Device> devs2 = new ListStore<>(deviceProperties.id());
+        for(Device d : devs.getAll()) {
+            if(d.getSubscriptionDaysLeft(new Date()) > 0)
+                devs2.add(d);
+        }
+        selectDevice = new ComboBox(devs2, new LabelProvider<Device>() {
+            @Override
+            public String getLabel(Device item) {
+                return item.getName();
+            }
+        });
+        selectDevice.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
+        if(devs2.getAll().isEmpty()) {
+            selectDevice.setEnabled(false);
+        }
     }
     
     private void prepareGrid(ListStore<GeoFence> gfs) {
@@ -821,18 +835,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             } else {
                 corridor = new GeoFence();
             }
-            corridor.setName(name.getValue()+"_c");
-            corridor.setDescription(i18n.corridorOfRoute(name.getValue()));
-            corridor.setType(GeoFenceType.LINE);
-            GeoFence.LonLat[] gll = PolylineDecoder.decodeToLonLat(lineString);
-            corridor.points(gll);
             corridor.setRadius(corridorWidth.getValue().floatValue()*1000);
-            corridor.setTransferDevices(new HashSet<Device>());
-            corridor.setDevices(new HashSet<Device>());
-            if(route.getDevice() != null) {
-                corridor.getTransferDevices().add(route.getDevice());
-                corridor.getDevices().add(route.getDevice());
-            }
             route.setCorridor(corridor);
         } else
             route.setCorridor(null);
