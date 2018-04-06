@@ -145,6 +145,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     
     @UiField
     TextButton addButton;
+    @UiField
+    TextButton saveButton;
     
     @UiField
     NumberField<Integer> tolerance;
@@ -180,12 +182,14 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         @Override
         public void onResult(String points, double[] distances) {
             lineString = points;
-            Style st = new Style();
-            st.setStrokeWidth(4);
-            LineString ls = PolylineDecoder.decode(RouteDialog.this, points);
+            if(points != null) {
+                Style st = new Style();
+                st.setStrokeWidth(4);
+                LineString ls = PolylineDecoder.decode(RouteDialog.this, points);
 
-            polyline = new VectorFeature(ls, st);
-            gfLayer.addFeature(polyline);
+                polyline = new VectorFeature(ls, st);
+                gfLayer.addFeature(polyline);
+            }
             
             List<RoutePointWrapper> rpws = new ArrayList<>(store.getAll());
             if(!rpws.get(0).getForced())
@@ -751,6 +755,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     
     private void endComputingPath() {
         recomputingPath = false;
+        saveButton.setEnabled(polyline != null);
         if(pathInvalid) {
             pathInvalid = false;
             drawPolyline();
