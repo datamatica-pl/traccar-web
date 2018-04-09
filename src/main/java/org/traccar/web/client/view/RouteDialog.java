@@ -845,7 +845,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         } else
             route.setCorridor(null);
         
-        routeHandler.onSave(route, true);
+        routeHandler.onSave(route);
         window.hide();
     }
     
@@ -879,7 +879,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     
     
     public static interface RouteHandler {
-        void onSave(Route route, boolean connect);
+        void onSave(Route route);
     }
     
     static class RoutePointWrapper {        
