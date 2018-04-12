@@ -272,7 +272,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             pts.add(rpw);
         }
         store.addAll(pts);
-        if(route.getDevice() != null)
+        if(route.getDevice() != null && route.getDevice().getSubscriptionDaysLeft(new Date()) > 0)
             selectDevice.setValue(route.getDevice());
         
         corridorWidth.addValidator(new MinNumberValidator<>(1));
