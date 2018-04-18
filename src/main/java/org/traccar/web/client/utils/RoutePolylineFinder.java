@@ -43,12 +43,10 @@ public class RoutePolylineFinder {
                 @Override
                 public void onResponseReceived(Request request, Response response) {
                     Result r = JsonUtils.safeEval(response.getText());
-                    if(r.geometry(0) == null)
-                        GWT.log("null!");
-                    if(r.geometry(1) != null)
-                        GWT.log("has second geometry");
-                    r.geometry(0);
-                    callback.onResult(r.geometry(0), r.legDistances());
+                    if(r == null)
+                        callback.onResult(null, null);
+                    else
+                        callback.onResult(r.geometry(0), r.legDistances());
                 }
                 
                 @Override

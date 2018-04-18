@@ -723,6 +723,7 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String newPoint();
     String routeStatus(@Select Route.Status status);
     String routeLength(double length);
+    String lblOnlyPremiumDevices();
     
     String accept();
     String rulesDialogHeader();

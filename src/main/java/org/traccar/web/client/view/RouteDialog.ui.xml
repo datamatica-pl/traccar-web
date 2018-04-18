@@ -180,6 +180,12 @@
             </container:HorizontalLayoutContainer>
         </container:child>
         
+        <container:child layoutData="{v24px}">
+            <container:HorizontalLayoutContainer>
+                <g:Label ui:text="{i18n.lblOnlyPremiumDevices}" />
+            </container:HorizontalLayoutContainer>
+        </container:child>
+        
         <container:child layoutData="{gridLayoutData}">
           <container:HorizontalLayoutContainer>
             

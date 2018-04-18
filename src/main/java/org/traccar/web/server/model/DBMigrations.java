@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import pl.datamatica.traccar.model.AppVersions;
 import pl.datamatica.traccar.model.UserGroup;
 import pl.datamatica.traccar.model.UserPermission;
 
@@ -44,6 +45,7 @@ public class DBMigrations {
     public void migrate(EntityManager em) throws Exception {
         for (Migration migration : new Migration[] {
                 new CreateApplicationSettings(),
+                new CreateAppVersions(),
                 new SetUpdateInterval(),
                 new SetTimePrintInterval(),
                 new SetDefaultFilteringSettings(),
@@ -164,6 +166,22 @@ public class DBMigrations {
             if (results.isEmpty()) {
                 ApplicationSettings as = new ApplicationSettings();
                 // another migrations will prepare this object
+                em.persist(as);
+            }
+        }
+    }
+    
+    /**
+     * Create appVersions if non exists
+     */
+    static class CreateAppVersions implements Migration {
+        @Override
+        public void migrate(EntityManager em) throws Exception {
+            TypedQuery<AppVersions> query = em.createQuery("SELECT x FROM AppVersions x", AppVersions.class);
+            List<AppVersions> results = query.getResultList();
+            if (results.isEmpty()) {
+                AppVersions as = new AppVersions();
+                // constructor creates default values
                 em.persist(as);
             }
         }

@@ -107,6 +107,7 @@ import org.gwtopenmaps.openlayers.client.event.EventHandler;
 import org.gwtopenmaps.openlayers.client.event.EventObject;
 import org.traccar.web.client.GeoFenceDrawing;
 import org.traccar.web.client.i18n.Messages;
+import org.traccar.web.client.model.DeviceProperties;
 import org.traccar.web.client.utils.Geocoder;
 import org.traccar.web.client.utils.Geocoder.SearchCallback;
 import org.traccar.web.client.utils.PolylineDecoder;
@@ -144,6 +145,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     
     @UiField
     TextButton addButton;
+    @UiField
+    TextButton saveButton;
     
     @UiField
     NumberField<Integer> tolerance;
@@ -179,12 +182,14 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         @Override
         public void onResult(String points, double[] distances) {
             lineString = points;
-            Style st = new Style();
-            st.setStrokeWidth(4);
-            LineString ls = PolylineDecoder.decode(RouteDialog.this, points);
+            if(points != null) {
+                Style st = new Style();
+                st.setStrokeWidth(4);
+                LineString ls = PolylineDecoder.decode(RouteDialog.this, points);
 
-            polyline = new VectorFeature(ls, st);
-            gfLayer.addFeature(polyline);
+                polyline = new VectorFeature(ls, st);
+                gfLayer.addFeature(polyline);
+            }
             
             List<RoutePointWrapper> rpws = new ArrayList<>(store.getAll());
             if(!rpws.get(0).getForced())
@@ -234,13 +239,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         store = new ListStore<>(pointsAccessor.id());
         
         prepareGrid(gfs);
-        selectDevice = new ComboBox(devs, new LabelProvider<Device>() {
-            @Override
-            public String getLabel(Device item) {
-                return item.getName();
-            }
-        });
-        selectDevice.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
+        prepareDeviceCBox(devs);
         uiBinder.createAndBindUi(this);
         
         //editing!
@@ -273,7 +272,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             pts.add(rpw);
         }
         store.addAll(pts);
-        if(route.getDevice() != null)
+        if(route.getDevice() != null && route.getDevice().getSubscriptionDaysLeft(new Date()) > 0)
             selectDevice.setValue(route.getDevice());
         
         corridorWidth.addValidator(new MinNumberValidator<>(1));
@@ -301,6 +300,25 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         bindStoreWithMap(route);
         
         prepareDND();
+    }
+
+    private void prepareDeviceCBox(ListStore<Device> devs) {
+        DeviceProperties deviceProperties = GWT.create(DeviceProperties.class);
+        final ListStore<Device> devs2 = new ListStore<>(deviceProperties.id());
+        for(Device d : devs.getAll()) {
+            if(d.getSubscriptionDaysLeft(new Date()) > 0)
+                devs2.add(d);
+        }
+        selectDevice = new ComboBox(devs2, new LabelProvider<Device>() {
+            @Override
+            public String getLabel(Device item) {
+                return item.getName();
+            }
+        });
+        selectDevice.setTriggerAction(ComboBoxCell.TriggerAction.ALL);
+        if(devs2.getAll().isEmpty()) {
+            selectDevice.setEnabled(false);
+        }
     }
     
     private void prepareGrid(ListStore<GeoFence> gfs) {
@@ -737,6 +755,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     
     private void endComputingPath() {
         recomputingPath = false;
+        saveButton.setEnabled(polyline != null);
         if(pathInvalid) {
             pathInvalid = false;
             drawPolyline();
@@ -821,23 +840,12 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             } else {
                 corridor = new GeoFence();
             }
-            corridor.setName(name.getValue()+"_c");
-            corridor.setDescription(i18n.corridorOfRoute(name.getValue()));
-            corridor.setType(GeoFenceType.LINE);
-            GeoFence.LonLat[] gll = PolylineDecoder.decodeToLonLat(lineString);
-            corridor.points(gll);
             corridor.setRadius(corridorWidth.getValue().floatValue()*1000);
-            corridor.setTransferDevices(new HashSet<Device>());
-            corridor.setDevices(new HashSet<Device>());
-            if(route.getDevice() != null) {
-                corridor.getTransferDevices().add(route.getDevice());
-                corridor.getDevices().add(route.getDevice());
-            }
             route.setCorridor(corridor);
         } else
             route.setCorridor(null);
         
-        routeHandler.onSave(route, true);
+        routeHandler.onSave(route);
         window.hide();
     }
     
@@ -871,7 +879,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     
     
     public static interface RouteHandler {
-        void onSave(Route route, boolean connect);
+        void onSave(Route route);
     }
     
     static class RoutePointWrapper {        

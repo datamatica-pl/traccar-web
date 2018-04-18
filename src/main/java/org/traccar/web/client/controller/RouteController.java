@@ -96,15 +96,14 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     public void onAdd() {
         new RouteDialog(new Route(), new RouteDialog.RouteHandler() {
             @Override
-            public void onSave(final Route route, final boolean connect) {
+            public void onSave(final Route route) {
                 service.createRoute(new ApiEditRoute(route), new ApiJsonCallback(i18n) {
                     @Override
                     public void onSuccess(Method method, JSONValue response) {
                         ApiRoute r = mapper.read(response.toString());
                         updateRoute(route, r);
                         updateGeofences(route);
-                        if(connect)
-                            routeStore.add(route);
+                        routeStore.add(route);
                     }
                 });
             }
@@ -116,7 +115,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     public void onEdit(final Route selectedItem) {
         new RouteDialog(selectedItem, new RouteDialog.RouteHandler() {
             @Override
-            public void onSave(final Route route, boolean connect) {
+            public void onSave(final Route route) {
                 service.updateRoute(route.getId(), new ApiEditRoute(route),
                         new ApiJsonCallback(i18n) {
                     @Override
@@ -176,15 +175,14 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
         
         new RouteDialog(r, new RouteDialog.RouteHandler() {
             @Override
-            public void onSave(final Route route, final boolean connect) {
+            public void onSave(final Route route) {
                 service.createRoute(new ApiEditRoute(route), new ApiJsonCallback(i18n) {
                     @Override
                     public void onSuccess(Method method, JSONValue response) {
                         ApiRoute r = mapper.read(response.toString());
                         updateRoute(route, r);
                         updateGeofences(route);
-                        if(connect)
-                            routeStore.add(route);
+                        routeStore.add(route);
                     }
                 });
             }
@@ -201,11 +199,6 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
             if(geoFenceStore.findModelWithKey(key) == null) {
                 geoFenceStore.add(pt.getGeofence());
             }
-        }
-        if(addedRoute.getCorridor() != null) {
-            addedRoute.getCorridor().setDevices(new HashSet<Device>(
-                    addedRoute.getCorridor().getTransferDevices()));
-            geoFenceStore.add(addedRoute.getCorridor());
         }
         geoFenceStore.applySort(false);
     }
@@ -278,6 +271,9 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     @Override
     public void onArchivedChanged(final Route selectedItem, boolean archive) {
         selectedItem.setArchived(archive);
+        if(selectedItem.getStatus() == Route.Status.NEW
+                && selectedItem.getDevice().getSubscriptionDaysLeft(new Date()) == 0)
+            selectedItem.setDevice(null);
         service.updateRoute(selectedItem.getId(), new ApiEditRoute(selectedItem),
                 new ApiJsonCallback(i18n) {
             @Override
