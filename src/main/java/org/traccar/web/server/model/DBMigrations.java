@@ -84,8 +84,7 @@ public class DBMigrations {
                 new SetDefaultExpiredFlagForEvents(),
                 new SetDefaultMatchServiceURL(),
                 new SetDefaultAllowCommandsOnlyForAdmins(),
-                new SetDefaultUserGroups(),
-                new SetFuelLevel()
+                new SetDefaultUserGroups()
         }) {
             em.getTransaction().begin();
             try {
