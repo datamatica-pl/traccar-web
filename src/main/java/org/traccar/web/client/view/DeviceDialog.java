@@ -75,6 +75,12 @@ public class DeviceDialog implements Editor<Device> {
 
     @UiField
     TabPanel tabs;
+    
+    @UiField
+    FieldLabel idLbl;
+    
+    @UiField
+    Field<Long> id;
 
     @UiField
     TextField name;
@@ -102,6 +108,9 @@ public class DeviceDialog implements Editor<Device> {
 
     @UiField(provided = true)
     NumberPropertyEditor<Integer> integerPropertyEditor = new NumberPropertyEditor.IntegerPropertyEditor();
+    
+    @UiField(provided = true)
+    NumberPropertyEditor<Long> longPropertyEditor = new NumberPropertyEditor.LongPropertyEditor();
 
     @UiField
     NumberField<Integer> timeout;
@@ -225,13 +234,10 @@ public class DeviceDialog implements Editor<Device> {
         fuelCapacity.addValidator(new MinNumberValidator<>(1.));
 
         User currentUser = ApplicationContext.getInstance().getUser();
-        if (currentUser.hasPermission(UserPermission.ALL_DEVICES)) {
-            validTo.setEnabled(true);
-            historyLength.setEnabled(true);
-        } else {
-            validTo.setEnabled(false);
-            historyLength.setEnabled(false);
-        }
+        boolean isAdmin = currentUser.hasPermission(UserPermission.ALL_DEVICES);
+        validTo.setEnabled(isAdmin);
+        historyLength.setEnabled(isAdmin);
+        idLbl.setVisible(isAdmin);
 
         sensorsEditor = new SensorsEditor(device, deviceStore);
         //sensorsTab.add(sensorsEditor.getPanel(), new VerticalLayoutContainer.VerticalLayoutData(1, 1));
