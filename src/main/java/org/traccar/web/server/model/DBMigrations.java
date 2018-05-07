@@ -15,6 +15,7 @@
  */
 package org.traccar.web.server.model;
 
+import java.util.Date;
 import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UIStateEntry;
 import pl.datamatica.traccar.model.UserSettings;
@@ -82,7 +83,8 @@ public class DBMigrations {
                 new SetDefaultExpiredFlagForEvents(),
                 new SetDefaultMatchServiceURL(),
                 new SetDefaultAllowCommandsOnlyForAdmins(),
-                new SetDefaultUserGroups()
+                new SetDefaultUserGroups(),
+                new SetLastRequestTime()
         }) {
             em.getTransaction().begin();
             try {
@@ -588,5 +590,16 @@ public class DBMigrations {
                     .setParameter("false", false)
                     .executeUpdate();
         }
+    }
+    
+    static class SetLastRequestTime implements Migration {
+
+        @Override
+        public void migrate(EntityManager em) throws Exception {
+            em.createQuery("UPDATE "+User.class.getName()+" u SET u.lastRequestTime = :now WHERE u.lastRequestTime IS NULL")
+                    .setParameter("now", new Date())
+                    .executeUpdate();
+        }
+        
     }
 }
