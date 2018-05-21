@@ -593,41 +593,13 @@ public class DBMigrations {
                     .executeUpdate();
         }
     }
-    
-    static class SetLastRequestTime implements Migration {
 
+    static class SetLastRequestTime implements Migration {
         @Override
         public void migrate(EntityManager em) throws Exception {
             em.createQuery("UPDATE "+User.class.getName()+" u SET u.lastRequestTime = :now WHERE u.lastRequestTime IS NULL")
                     .setParameter("now", new Date())
                     .executeUpdate();
-        }
-    }
-        
-    static class SetFuelLevel implements Migration {
-        private static final String FUEL_LEVEL_KEY="io84";
-        private static final String FUEL_USED_KEY = "io83";
-        
-        @Override
-        public void migrate(EntityManager em) throws Exception {
-            List<Position> positions = em.createQuery("FROM Position p JOIN FETCH p.device ORDER BY p.time", 
-                    Position.class).getResultList();
-            for(Position p : positions) {
-                Map<String, Object> other = JsonXmlParser.parse(p.getOther());
-                Long fuel = (Long)other.get(FUEL_LEVEL_KEY);
-                if(fuel != null) {
-                    p.setFuelLevel(fuel.doubleValue());
-                    p.getDevice().setFuelLevel(fuel);
-                }
-                Long fuelUsed = (Long)other.get(FUEL_USED_KEY);
-                if(fuelUsed != null) {
-                    double val = fuelUsed.doubleValue()/10;
-                    p.setFuelUsed(val);
-                    p.getDevice().setFuelUsed(val);
-                }
-                em.persist(p);
-                em.persist(p.getDevice());
-            }
         }
     }
 }
