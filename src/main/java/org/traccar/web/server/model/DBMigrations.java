@@ -84,7 +84,8 @@ public class DBMigrations {
                 new SetDefaultMatchServiceURL(),
                 new SetDefaultAllowCommandsOnlyForAdmins(),
                 new SetDefaultUserGroups(),
-                new SetLastRequestTime()
+                new SetLastRequestTime(),
+                new SetRegistrationTime()
         }) {
             em.getTransaction().begin();
             try {
@@ -593,13 +594,20 @@ public class DBMigrations {
     }
     
     static class SetLastRequestTime implements Migration {
-
         @Override
         public void migrate(EntityManager em) throws Exception {
             em.createQuery("UPDATE "+User.class.getName()+" u SET u.lastRequestTime = :now WHERE u.lastRequestTime IS NULL")
                     .setParameter("now", new Date())
                     .executeUpdate();
         }
-        
+    }
+    
+    static class SetRegistrationTime implements Migration {
+        @Override
+        public void migrate(EntityManager em) throws Exception {
+            em.createQuery("UPDATE "+User.class.getName()+" u SET u.registrationTime = :now WHERE u.registrationTime IS NULL")
+                    .setParameter("now", new Date())
+                    .executeUpdate();
+        }
     }
 }
