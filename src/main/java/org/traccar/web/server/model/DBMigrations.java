@@ -597,7 +597,7 @@ public class DBMigrations {
     static class SetGeofencesOwner implements Migration {
         @Override
         public void migrate(EntityManager em) throws Exception {
-            List<GeoFence> geofences = em.createQuery("SELECT g FROM GeoFence g WHERE g.owner IS NULL AND deleted = 0", GeoFence.class).getResultList();
+            List<GeoFence> geofences = em.createQuery("SELECT g FROM GeoFence g WHERE g.owner IS NULL", GeoFence.class).getResultList();
             for (GeoFence g : geofences) {
                 Set<User> users = new HashSet(g.getUsers());
                 
@@ -627,6 +627,8 @@ public class DBMigrations {
                     // we have to remove geofence - we don't know who should get it
                     // here we have 0 users or more than one (and they not in relation)
                     g.setUsers(new HashSet());
+                    g.setOwner(adminUser);
+                    em.flush();
                     em.remove(g);
                     em.flush();
                 }
