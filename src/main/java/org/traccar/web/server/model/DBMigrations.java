@@ -605,8 +605,11 @@ public class DBMigrations {
     static class SetRegistrationTime implements Migration {
         @Override
         public void migrate(EntityManager em) throws Exception {
-            em.createQuery("UPDATE "+User.class.getName()+" u SET u.registrationTime = :now WHERE u.registrationTime IS NULL")
+            em.createQuery("UPDATE "+User.class.getName()+" u "
+                    + "SET u.registrationTime = :now, u.hadAnyDevice = :true "
+                    + "WHERE u.registrationTime IS NULL")
                     .setParameter("now", new Date())
+                    .setParameter("true", true)
                     .executeUpdate();
         }
     }
