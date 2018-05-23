@@ -27,6 +27,7 @@ import pl.datamatica.traccar.model.DeviceIconType;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.DeviceIconMode;
 import pl.datamatica.traccar.model.PasswordHashMethod;
+import pl.datamatica.traccar.model.GeoFence;
 import static pl.datamatica.traccar.model.Device.DEFAULT_MOVING_ARROW_COLOR;
 import static pl.datamatica.traccar.model.Device.DEFAULT_PAUSED_ARROW_COLOR;
 import static pl.datamatica.traccar.model.Device.DEFAULT_STOPPED_ARROW_COLOR;
@@ -37,6 +38,8 @@ import javax.persistence.TypedQuery;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 import org.traccar.web.server.utils.JsonXmlParser;
 import pl.datamatica.traccar.model.AppVersions;
@@ -87,7 +90,8 @@ public class DBMigrations {
                 new SetDefaultAllowCommandsOnlyForAdmins(),
                 new SetDefaultUserGroups(),
                 new SetLastRequestTime(),
-                new SetRegistrationTime()
+                new SetRegistrationTime(),
+                new SetGeofencesOwner()
         }) {
             em.getTransaction().begin();
             try {
@@ -613,6 +617,48 @@ public class DBMigrations {
                     .setParameter("now", new Date())
                     .setParameter("true", true)
                     .executeUpdate();
+        }
+    }
+
+    static class SetGeofencesOwner implements Migration {
+        @Override
+        public void migrate(EntityManager em) throws Exception {
+            List<GeoFence> geofences = em.createQuery("SELECT g FROM GeoFence g WHERE g.owner IS NULL", GeoFence.class).getResultList();
+            for (GeoFence g : geofences) {
+                Set<User> users = new HashSet(g.getUsers());
+                
+                // when there is more than one user, we can remove "admin" (id = 1)
+                User adminUser = em.createQuery("SELECT x FROM User x WHERE id = 1", User.class).getResultList().get(0);
+                if (users.size() > 1 && users.contains(adminUser)) {
+                    users.remove(adminUser);    
+                }
+                
+                // Now find the highest user in hierarchy. If A manages B and both has access to geofence,
+                // then A should be owner. We should be able to choose one user and compare him with the rest of users. 
+                Set<User> managedUsers = new HashSet<>(); // users managed by others, can't become owners
+                for (User userA : users) {
+                    for (User userB : users) {
+                        if (!userA.equals(userB) && userA.getManagedUsers().contains(userB)) {
+                            managedUsers.add(userB);
+                        }
+                    }
+                }
+                users.removeAll(managedUsers);
+                
+                // when there is only one user for geofence.
+                if (users.size() == 1) {
+                   g.setOwner((User)(users.toArray()[0]));
+                }
+                else {
+                    // we have to remove geofence - we don't know who should get it
+                    // here we have 0 users or more than one (and they not in relation)
+                    g.setUsers(new HashSet());
+                    g.setOwner(adminUser);
+                    em.flush();
+                    em.remove(g);
+                    em.flush();
+                }
+            }
         }
     }
 }

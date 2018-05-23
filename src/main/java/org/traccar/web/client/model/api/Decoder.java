@@ -79,7 +79,7 @@ public class Decoder {
         d.setSpeedLimit(aDouble(v, "speedLimit"));
         d.setIdleSpeedThreshold(aDouble(v, "idleSpeedThreshold"));
         d.setStatus(string(v, "status"));
-        d.setOwner(ApplicationContext.getInstance().getUser());
+        d.setOwner(ApplicationContext.getInstance().getUser(aLong(v, "accountId")));
         
         d.setIgnition(bool(v, "ignition"));
         d.setIgnitionTime(date(v, "ignitionTime"));

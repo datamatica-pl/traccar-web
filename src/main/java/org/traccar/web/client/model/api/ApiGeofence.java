@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.traccar.web.client.Application;
+import org.traccar.web.client.ApplicationContext;
 import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.GeoFenceType;
@@ -40,6 +42,7 @@ public class ApiGeofence {
     public String lastUpdate;
     public String address;
     public boolean isRouteOnly;
+    public long accountId;
     
     public ApiGeofence(){}
     
@@ -61,6 +64,7 @@ public class ApiGeofence {
             for(Device d : gf.getDevices())
                 this.deviceIds.add(d.getId());
         this.address = gf.getAddress();
+        this.accountId = gf.getOwner().getId();
     }
     
     public GeoFence toGeofence(List<Device> devices) {
@@ -89,6 +93,7 @@ public class ApiGeofence {
                 gf.getTransferDevices().add(d);
             }
         }
+        gf.setOwner(ApplicationContext.getInstance().getUser(accountId));
         return gf;
     }
 }
