@@ -727,4 +727,10 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String rulesStartDate();
     String rulesType();
     String belongsToGroup();
+    
+    String loginAsDemoUser();
+    String lblContinue();
+    String acceptDemoRules();
+    String demoRulesExplanation();
+    String demoRulesHeader();
 }

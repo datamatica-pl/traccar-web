@@ -27,7 +27,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BodyElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -43,11 +42,7 @@ import org.traccar.web.client.widget.LanguageComboBox;
 
 import java.util.List;
 import java.util.Map;
-import org.fusesource.restygwt.client.JsonCallback;
-import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.i18n.Messages;
-import org.traccar.web.client.model.api.IUsersService.ResetPasswordDto;
-import org.traccar.web.client.model.api.IUsersService;
 
 public class LoginDialog {
 
@@ -83,7 +78,7 @@ public class LoginDialog {
     
     private Messages i18n = GWT.create(Messages.class);
 
-    public LoginDialog(LoginHandler loginHandler) {
+    public LoginDialog(final LoginHandler loginHandler) {
         this.loginHandler = loginHandler;
         // language selector
         language = new LanguageComboBox();
@@ -97,7 +92,7 @@ public class LoginDialog {
         moreButton.addClickHandler(new ClickHandler() { 
             @Override
             public void onClick(ClickEvent event) {
-                new LoginMoreDialog().show();
+                new LoginMoreDialog(loginHandler).show();
             }
         });
     }
@@ -135,7 +130,10 @@ public class LoginDialog {
         if("default".equals(lang))
             lang = "en";
         ApplicationContext.getInstance().setLang(lang);
-        loginHandler.onLogin(login.getText(), password.getText());
+        if("testowy".equals(login.getText()))
+            new DemoRulesDialog(loginHandler).show();
+        else
+            loginHandler.onLogin(login.getText(), password.getText());
     }
 
     @UiHandler("loginButton")

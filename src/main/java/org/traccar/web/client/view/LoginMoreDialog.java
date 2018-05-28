@@ -30,6 +30,7 @@ import org.fusesource.restygwt.client.Method;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.api.IUsersService;
 import org.traccar.web.client.widget.InfoMessageBox;
+import org.traccar.web.client.view.LoginDialog.LoginHandler;
 
 public class LoginMoreDialog {
     private static _UiBinder uiBinder = GWT.create(_UiBinder.class);
@@ -47,9 +48,11 @@ public class LoginMoreDialog {
     Messages i18n = GWT.create(Messages.class);
     
     IUsersService us = GWT.create(IUsersService.class);
+    private LoginDialog.LoginHandler handler;
     
-    public LoginMoreDialog() {
+    public LoginMoreDialog(LoginHandler handler) {
         uiBinder.createAndBindUi(this);
+        this.handler = handler;
     }
     
     public void show() {
@@ -87,6 +90,12 @@ public class LoginMoreDialog {
                 window.hide();
             }
         });
+    }
+    
+    @UiHandler("demoButton")
+    public void onDemoClicked(SelectEvent event) {
+        new DemoRulesDialog(handler).show();
+        window.hide();
     }
     
     @UiHandler("cancelButton")
