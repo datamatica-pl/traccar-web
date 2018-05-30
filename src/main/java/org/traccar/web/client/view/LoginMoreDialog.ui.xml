@@ -37,6 +37,11 @@
                 </form:widget>
             </form:FieldLabel>
         </container:VerticalLayoutContainer>
+        
+        <gxt:button>
+            <button:TextButton ui:field="demoButton" text="{i18n.loginAsDemoUser}" />
+        </gxt:button>
+        
         <gxt:button>
             <button:TextButton ui:field="resetButton" text="{i18n.resetPassword}" />
         </gxt:button>

@@ -28,6 +28,7 @@
   </ui:with>
 
   <ui:with type="com.sencha.gxt.widget.core.client.form.NumberPropertyEditor" field="integerPropertyEditor" />
+  <ui:with type="com.sencha.gxt.widget.core.client.form.NumberPropertyEditor" field="longPropertyEditor" />
   <ui:with type="com.sencha.gxt.widget.core.client.form.NumberPropertyEditor" field="doublePropertyEditor" />
   
     <ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig" field="settingsTabConfig">
@@ -63,10 +64,20 @@
 
   <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
 
-  <gxt:Window ui:field="window" pixelSize="690, 570" modal="true" headingText="{i18n.device}" focusWidget="{saveButton}">
+  <gxt:Window ui:field="window" pixelSize="690, 590" modal="true" headingText="{i18n.device}" focusWidget="{saveButton}">
       <gxt:PlainTabPanel ui:field="tabs">
           <gxt:child config="{settingsTabConfig}">
               <container:VerticalLayoutContainer addStyleNames="{style.tabBody}">
+                  <container:child layoutData="{verticalLayoutData}">
+                      <form:FieldLabel text="{i18n.deviceId}" labelWidth="180"
+                                       ui:field="idLbl">
+                          <form:widget>
+                              <form:NumberField ui:field="id" 
+                                                editor="{longPropertyEditor}"
+                                                enabled="false" />
+                          </form:widget>
+                      </form:FieldLabel>
+                  </container:child>
                   <container:child layoutData="{verticalLayoutData}">
                       <form:FieldLabel text="{i18n.name}" labelWidth="180">
                           <form:widget>

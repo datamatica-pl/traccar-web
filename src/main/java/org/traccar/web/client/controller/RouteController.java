@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import org.fusesource.restygwt.client.Method;
+import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.controller.UpdatesController.RoutesListener;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.api.ApiEditRoute;
@@ -108,7 +109,8 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                 });
             }
             
-        }, deviceStore, geoFenceStore, mapController.getCenter()).show();
+        }, deviceStore, geoFenceStore, ApplicationContext.getInstance().getUser(),
+                mapController.getCenter()).show();
     }
     
     @Override
@@ -130,7 +132,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                         });
             }
             
-        }, deviceStore, geoFenceStore).show();
+        }, deviceStore, geoFenceStore, ApplicationContext.getInstance().getUser()).show();
     }
     
     private void updateRoute(Route route, ApiRoute r) {
@@ -187,7 +189,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                 });
             }
             
-        }, deviceStore, geoFenceStore).show();
+        }, deviceStore, geoFenceStore, ApplicationContext.getInstance().getUser()).show();
     }
     
     private void updateGeofences(final Route addedRoute) {

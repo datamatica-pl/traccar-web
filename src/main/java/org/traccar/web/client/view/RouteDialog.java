@@ -117,6 +117,7 @@ import pl.datamatica.traccar.model.GeoFence;
 import pl.datamatica.traccar.model.GeoFenceType;
 import pl.datamatica.traccar.model.Route;
 import pl.datamatica.traccar.model.RoutePoint;
+import pl.datamatica.traccar.model.User;
 import pl.datamatica.traccar.model.UserSettings;
 
 public class RouteDialog implements GeoFenceRenderer.IMapView {
@@ -163,6 +164,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     Messages i18n = GWT.create(Messages.class);
     
     private final Route route;
+    private User loggedUser;
     ListStore<RoutePointWrapper> store;
     GridEditing<RoutePointWrapper> edit;
     final RouteHandler routeHandler;
@@ -228,15 +230,17 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     private final Map<String, GeoFence> gfMap= new HashMap<>();
     
     public RouteDialog(Route route, final RouteHandler routeHandler,
-            ListStore<Device> devs, ListStore<GeoFence> gfs) {
-        this(route, routeHandler, devs, gfs, null);
+            ListStore<Device> devs, ListStore<GeoFence> gfs, User loggedUser) {
+        this(route, routeHandler, devs, gfs, loggedUser, null);
     }
     
     public RouteDialog(Route route, final RouteHandler routeHandler, 
-            ListStore<Device> devs, ListStore<GeoFence> gfs, LonLat center) {
+            ListStore<Device> devs, ListStore<GeoFence> gfs, User loggedUser, LonLat center) {
         this.route = route;
         this.routeHandler = routeHandler;
         store = new ListStore<>(pointsAccessor.id());
+        
+        this.loggedUser = loggedUser;
         
         prepareGrid(gfs);
         prepareDeviceCBox(devs);
@@ -443,6 +447,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         //We need to disable filtering in order to get them from the store.
         gfs.setEnableFilters(false);
         for(GeoFence gf : gfs.getAll()) {
+            if (gf.getOwner() == null || loggedUser.getId() != gf.getOwner().getId())
+                continue;
             if(!gf.isDeleted() && gf.getType() != GeoFenceType.LINE && !gfMap.containsKey(gf.getName())
                     && gf.getName() != null && !"".equals(gf.getName())) {
                gfNames.add(gf.getName());
