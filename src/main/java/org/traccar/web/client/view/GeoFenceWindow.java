@@ -64,6 +64,7 @@ import org.traccar.web.client.model.EnumKeyProvider;
 import org.traccar.web.client.model.GeoFenceProperties;
 
 import java.util.*;
+import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.model.DeviceProperties;
 
 public class GeoFenceWindow implements Editor<GeoFence> {
@@ -341,6 +342,7 @@ public class GeoFenceWindow implements Editor<GeoFence> {
         // sometimes it's not flushed correctly
         updated.setType(type.getCurrentValue());
         updated.setRadius(radius.getCurrentValue());
+        updated.setOwner(ApplicationContext.getInstance().getUser());
         Geometry geometry = geoFenceDrawing.getShape().getGeometry();
         Projection mapProjection = new Projection(map.getProjection());
         Projection epsg4326 = new Projection("EPSG:4326");
