@@ -42,6 +42,9 @@ public class RoutePolylineFinder {
             builder.sendRequest(null, new RequestCallback() {
                 @Override
                 public void onResponseReceived(Request request, Response response) {
+                    if(response.getStatusCode() >= 299) {
+                        callback.onError(response.getStatusCode());
+                    }
                     Result r = JsonUtils.safeEval(response.getText());
                     if(r == null)
                         callback.onResult(null, null);
@@ -51,7 +54,7 @@ public class RoutePolylineFinder {
                 
                 @Override
                 public void onError(Request request, Throwable exception) {
-                    //todo
+                    callback.onError(-1);
                 }
                 
             });
@@ -62,6 +65,7 @@ public class RoutePolylineFinder {
     
     public interface Callback {
         void onResult(String points, double[] distances);
+        void onError(int code);
     }
     
     static class Result extends JavaScriptObject {

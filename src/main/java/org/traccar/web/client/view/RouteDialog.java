@@ -224,6 +224,11 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             }
             endComputingPath();
         }
+
+        @Override
+        public void onError(int code) {
+            new AlertMessageBox(i18n.error(), i18n.osrmError(code)).show();
+        }
     };
     
     private org.gwtopenmaps.openlayers.client.Map map;
@@ -246,6 +251,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         prepareGrid(gfs);
         prepareDeviceCBox(devs);
         uiBinder.createAndBindUi(this);
+        routeLength.setText(i18n.routeLength(0));
         
         //editing!
         createCorridor.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
@@ -883,6 +889,11 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     @UiHandler("cancelButton")
     public void cancel(SelectEvent selectEvent) {
        window.hide(); 
+    }
+    
+    @UiHandler("recalculate")
+    public void recalculate(SelectEvent selectEvent) {
+        drawPolyline();
     }
     
     
