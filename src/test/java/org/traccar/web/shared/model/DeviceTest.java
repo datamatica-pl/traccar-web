@@ -129,7 +129,7 @@ public class DeviceTest {
     public void testLastAvailableDateDeviceExpired() throws ParseException {
         Date validTo = dateTimeFormat.parse("2016-09-28 23:45:00");
         device.setValidTo(validTo);
-        Date expectedLastAvailableDate = dateTimeFormat.parse("2016-09-27 00:00:00");
+        Date expectedLastAvailableDate = dateTimeFormat.parse("2016-09-15 00:00:00");
 
         assertEquals(expectedLastAvailableDate, device.getLastAvailablePositionDate(from));
     }
