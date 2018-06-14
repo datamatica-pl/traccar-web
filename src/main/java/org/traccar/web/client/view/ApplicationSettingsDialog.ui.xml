@@ -110,6 +110,19 @@
                 </form:widget>
             </form:FieldLabel>
         </container:child>
+        
+        <container:child layoutData="{verticalLayoutData}">
+            <form:FieldLabel text="{i18n.freeHistory}" labelWidth="230">
+                <form:widget>
+                    <form:NumberField editor="{integerPropertyEditor}"
+                                    ui:field="freeHistory"
+                                    allowNegative="false"
+                                    allowDecimals="false"
+                                    allowBlank="false"
+                                    width="4" />
+                </form:widget>
+            </form:FieldLabel>
+        </container:child>
 
     </container:VerticalLayoutContainer>
       
