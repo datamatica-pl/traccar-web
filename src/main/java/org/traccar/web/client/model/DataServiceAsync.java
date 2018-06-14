@@ -32,9 +32,6 @@ public interface DataServiceAsync {
     void login(String login, String password, AsyncCallback<User> callback);
     void logout(AsyncCallback<Boolean> callback);
     
-    void getDevices(AsyncCallback<List<Device>> callback);
-    void getPositions(Device device, Date from, Date to, boolean filter, AsyncCallback<List<Position>> callback);
-    void getGeoFences(AsyncCallback<List<GeoFence>> async);
     
     void getApplicationSettings(AsyncCallback<ApplicationSettings> async);
 }

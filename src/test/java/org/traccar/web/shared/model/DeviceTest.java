@@ -21,6 +21,7 @@ import java.util.Date;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import pl.datamatica.traccar.model.ApplicationSettings;
 import pl.datamatica.traccar.model.Device;
 
 /**
@@ -131,7 +132,16 @@ public class DeviceTest {
         device.setValidTo(validTo);
         Date expectedLastAvailableDate = dateTimeFormat.parse("2016-09-27 00:00:00");
 
-        assertEquals(expectedLastAvailableDate, device.getLastAvailablePositionDate(from));
+        assertEquals(expectedLastAvailableDate, device.getLastAvailablePositionDate(from, 2));
+    }
+    
+    @Test
+    public void testLastAvailableDateDeviceExpiredDefault14() throws ParseException {
+        Date validTo = dateTimeFormat.parse("2016-09-28 23:45:00");
+        device.setValidTo(validTo);
+        Date expectedLastAvailableDate = dateTimeFormat.parse("2016-09-15 00:00:00");
+        
+        assertEquals(expectedLastAvailableDate, device.getLastAvailablePositionDate(from, 14));
     }
 
     @Test
@@ -141,7 +151,7 @@ public class DeviceTest {
         device.setHistoryLength(5);
         Date expectedLastAvailableDate = dateTimeFormat.parse("2016-09-24 00:00:00");
 
-        assertEquals(expectedLastAvailableDate, device.getLastAvailablePositionDate(from));
+        assertEquals(expectedLastAvailableDate, device.getLastAvailablePositionDate(from, 2));
     }
 
     @Test
@@ -152,7 +162,7 @@ public class DeviceTest {
         Date fromDate = dateTimeFormat.parse("2016-12-01 00:15:00");
         Date expectedLastAvailableDate = dateTimeFormat.parse("2016-10-02 00:00:00");
 
-        assertEquals(expectedLastAvailableDate, device.getLastAvailablePositionDate(fromDate));
+        assertEquals(expectedLastAvailableDate, device.getLastAvailablePositionDate(fromDate, 2));
     }
 
     @Test
