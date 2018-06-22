@@ -86,7 +86,7 @@ public class LoginMoreDialog {
 
             @Override
             public void onSuccess(Method method, JSONValue response) {
-                new AlertMessageBox(i18n.success(), i18n.emailResent()).show();
+                new InfoMessageBox(i18n.success(), i18n.emailResent()).show();
                 window.hide();
             }
         });
