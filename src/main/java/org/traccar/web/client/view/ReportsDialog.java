@@ -339,7 +339,8 @@ public class ReportsDialog implements Editor<Report> {
             report.setDevices(Collections.singleton(report.getRoute().getDevice()));
         }
         
-        int maxHistory = 2;
+        int maxHistory = ApplicationContext.getInstance().getApplicationSettings().getFreeHistory();
+        
         for(Device d: report.getDevices()) {
             if(d.getValidTo() == null || d.getValidTo().before(new Date()))
                 continue;
