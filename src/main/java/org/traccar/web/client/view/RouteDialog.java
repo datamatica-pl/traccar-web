@@ -85,7 +85,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -598,7 +597,6 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                     ignoreUpdate = true;
                     store.update(modifiedPt);
                     ignoreUpdate = false;
-                    drawPolyline();
                 }
             }
         });
@@ -623,7 +621,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         store.addStoreHandlers(new StoreHandlers<RoutePointWrapper>() {            
             @Override
             public void onAdd(StoreAddEvent<RoutePointWrapper> event) {
-                drawPolyline();
+                if(event.getItems().isEmpty())
+                    return;
+                gfRenderer.drawGeoFence(event.getItems().get(0).getRoutePoint().getGeofence(), true);
                 selectFirst(event.getItems());
                 if(!event.getItems().isEmpty()) {
                     updateGfMap(event.getItems().get(0));
@@ -632,8 +632,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
 
             @Override
             public void onRemove(StoreRemoveEvent<RoutePointWrapper> event) {
-                drawPolyline();
                 GeoFence gf = event.getItem().getRoutePoint().getGeofence();
+                gfRenderer.removeGeoFence(gf);
                 if(gfMap.containsKey(gf.getName())) {
                     gfMap.remove(gf.getName());
                     cbName.remove(gf.getName());
@@ -653,9 +653,16 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                 if(ignoreUpdate)
                     return;
                 if(!event.getItems().isEmpty()) {
-                    drawPolyline();
+                    gfRenderer.clear();
+                    for(RoutePointWrapper pt : store.getAll()) {
+                        LonLat center = pt.getCenter();
+                        if(center == null)
+                            continue;
+                        
+                        gfRenderer.drawGeoFence(pt.getRoutePoint().getGeofence(), true);
+                    }
+                    selectFirst(event.getItems());
                 }
-                selectFirst(event.getItems());
             }
 
             @Override

@@ -15,46 +15,40 @@
  */
 package org.traccar.web.client.utils;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsonUtils;
+import com.google.gwt.core.shared.GWT;
 import com.google.gwt.http.client.Request;
 import com.google.gwt.http.client.RequestBuilder;
-import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
-import com.google.gwt.http.client.Response;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.gwtopenmaps.openlayers.client.LonLat;
+import org.traccar.web.client.i18n.Messages;
+import org.traccar.web.client.model.api.ApiRequestCallback;
 
 public class RoutePolylineFinder {
     public static void find(List<LonLat> pts, final Callback callback) {
+        Messages i18n = GWT.create(Messages.class);
         StringBuilder rp = new StringBuilder();
         for(LonLat p : pts)
-            rp.append(p.lon()).append(",").append(p.lat()).append(";");
+            rp.append(p.lon()).append(",").append(p.lat()).append("|");
         if(rp.length() > 0)
             rp.replace(rp.length()-1, rp.length(), "");
         try {
-            RequestBuilder builder = new RequestBuilder(RequestBuilder.GET,
-                    "https://router.project-osrm.org/route/v1/driving/"
-                    +rp.toString()+"?geometries=polyline&overview=full&alternatives=true");
-            builder.sendRequest(null, new RequestCallback() {
+            RequestBuilder builder = new RequestBuilder(RequestBuilder.POST,
+                    "api/v1/routes/findPolyline?coordinates="
+                    +rp.toString()+"&geometry=true&geometry_format=encodedpolyline"
+                    +"&profile=driving-car&units=m");
+            builder.sendRequest(null, new ApiRequestCallback(i18n) {
                 @Override
-                public void onResponseReceived(Request request, Response response) {
-                    if(response.getStatusCode() >= 299) {
-                        callback.onError(response.getStatusCode());
-                    }
-                    Result r = JsonUtils.safeEval(response.getText());
+                public void onSuccess(String response) {
+                    Result r = JsonUtils.safeEval(response);
                     if(r == null)
                         callback.onResult(null, null);
                     else
                         callback.onResult(r.geometry(0), r.legDistances());
-                }
-                
-                @Override
-                public void onError(Request request, Throwable exception) {
-                    callback.onError(-1);
                 }
                 
             });
@@ -79,10 +73,10 @@ public class RoutePolylineFinder {
         
         public final native double[] legDistances() /*-{
             var dists = null;
-            if(this.routes && this.routes.length > 0 && this.routes[0].legs) {
+            if(this.routes && this.routes.length > 0 && this.routes[0].segments) {
                 dists = [];
-                for(var i=0;i < this.routes[0].legs.length;++i)
-                    dists.push(this.routes[0].legs[i].distance);
+                for(var i=0;i < this.routes[0].segments.length;++i)
+                    dists.push(this.routes[0].segments[i].distance);
             }
             return dists;
         }-*/;

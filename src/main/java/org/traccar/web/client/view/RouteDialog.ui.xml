@@ -231,7 +231,7 @@
     </container:VerticalLayoutContainer>
       
     <gxt:button>
-      <button:TextButton ui:field="saveButton" text="{i18n.save}" />
+      <button:TextButton ui:field="saveButton" text="{i18n.save}" ui:enabled="false" />
     </gxt:button>
     <gxt:button>
       <button:TextButton ui:field="cancelButton" text="{i18n.cancel}" />
