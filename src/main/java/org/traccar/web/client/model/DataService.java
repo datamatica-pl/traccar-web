@@ -36,9 +36,5 @@ public interface DataService extends RemoteService {
     User login(String login, String password) throws TraccarException;
     boolean logout();
     
-    List<Device> getDevices();
-    List<Position> getPositions(Device device, Date from, Date to, boolean filter) throws AccessDeniedException;
-    List<GeoFence> getGeoFences();
-    
     ApplicationSettings getApplicationSettings();
 }

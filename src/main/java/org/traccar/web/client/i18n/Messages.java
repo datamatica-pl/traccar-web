@@ -739,4 +739,9 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String acceptDemoRules();
     String demoRulesExplanation();
     String demoRulesHeader();
+
+    public String osrmError(@Select int code);
+    String recalculate();
+    
+    String freeHistory();
 }

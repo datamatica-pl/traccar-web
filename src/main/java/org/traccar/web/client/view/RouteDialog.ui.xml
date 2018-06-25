@@ -16,10 +16,24 @@
   <ui:with type="com.sencha.gxt.core.client.util.Margins" field="buttonDataMargins">
     <ui:attributes top="4" right="0" bottom="4" left="0" />
   </ui:with>
+  
+  <ui:with type="com.sencha.gxt.core.client.util.Margins" field="recalculateMargins">
+    <ui:attributes top="0" right="0" bottom="0" left="50" />
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="recalculateLayoutData">
+      <ui:attributes width="-1" height="-1" margins="{recalculateMargins}"/>
+  </ui:with>
 
   <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" 
            field="verticalLayoutDataWithButtons">
       <ui:attributes width="1" height="-1" margins="{buttonDataMargins}"/>
+  </ui:with>
+  
+  <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" 
+           field="v35px">
+      <ui:attributes width="1" height="35"/>
   </ui:with>
   
   <ui:with type="com.sencha.gxt.core.client.util.Margins" field="gridMargins">
@@ -194,8 +208,15 @@
                 <container:child layoutData="{gridLayoutData}">
                   <grid:Grid ui:field="grid" />
                 </container:child>
-                <container:child layoutData="{verticalLayoutData}">
-                  <g:Label ui:field="routeLength" />
+                <container:child layoutData="{v35px}">
+                  <container:HorizontalLayoutContainer>
+                    <container:child layoutData="{hlWrapContent}">
+                      <g:Label ui:field="routeLength" />
+                    </container:child>
+                    <container:child layoutData="{recalculateLayoutData}">
+                      <button:TextButton ui:field="recalculate" text="{i18n.recalculate}" />
+                    </container:child>
+                  </container:HorizontalLayoutContainer>
                 </container:child>
               </container:VerticalLayoutContainer>
             </container:child>

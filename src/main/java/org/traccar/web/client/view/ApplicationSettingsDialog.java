@@ -105,6 +105,9 @@ public class ApplicationSettingsDialog implements Editor<ApplicationSettings> {
     
     @UiField
     NumberField<Integer> defaultIconId;
+    
+    @UiField
+    NumberField<Integer> freeHistory;
 
     public ApplicationSettingsDialog(ApplicationSettings applicationSettings, 
             ApplicationSettingsHandler applicationSettingsHandler, 
