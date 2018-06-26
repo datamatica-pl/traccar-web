@@ -623,7 +623,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             public void onAdd(StoreAddEvent<RoutePointWrapper> event) {
                 if(event.getItems().isEmpty())
                     return;
-                gfRenderer.drawGeoFence(event.getItems().get(0).getRoutePoint().getGeofence(), true);
+                RoutePointWrapper pt = event.getItems().get(0);
+                if(pt.getCenter() != null)
+                    gfRenderer.drawGeoFence(pt.getRoutePoint().getGeofence(), true);
                 selectFirst(event.getItems());
                 if(!event.getItems().isEmpty()) {
                     updateGfMap(event.getItems().get(0));
