@@ -713,12 +713,14 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     String deadline();
     String archiveAfter();
     String tolerance();
-    String errInvalidRoutePoint(int i);
+    String errInvalidRoutePoint(String name);
     String confirmRouteRemoval();
     String newPoint();
     String routeStatus(@Select Route.Status status);
     String routeLength(double length);
     String lblOnlyPremiumDevices();
+    String errInvalidStartPoint();
+    String errInvalidEndPoint();
     
     String accept();
     String rulesDialogHeader();

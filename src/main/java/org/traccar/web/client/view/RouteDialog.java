@@ -899,7 +899,13 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         for (int i = 0; i < r.getRoutePoints().size(); ++i) {
             GeoFence gf = r.getRoutePoints().get(i).getGeofence();
             if (gf.points().isEmpty() || gf.getName() == null || gf.getName().isEmpty()) {
-                new AlertMessageBox(i18n.error(), i18n.errInvalidRoutePoint(i)).show();
+                if(i == 0) {
+                    new AlertMessageBox(i18n.error(), i18n.errInvalidStartPoint()).show();
+                } else if(i == r.getRoutePoints().size()-1) {
+                    new AlertMessageBox(i18n.error(), i18n.errInvalidEndPoint()).show();
+                } else {
+                    new AlertMessageBox(i18n.error(), i18n.errInvalidRoutePoint(gf.getName())).show();
+                }
                 return false;
             }
         }
