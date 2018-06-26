@@ -192,7 +192,7 @@
             <container:child layoutData="{halfWindow}">
                 <container:VerticalLayoutContainer>
                     <container:child layoutData="{verticalLayoutData}">
-                        <g:Label ui:text="{i18n.lblOnlyPremiumDevices}" />
+                        <g:Label ui:text="{i18n.lblRouteDialogPointSelectionHint}" />
                     </container:child>
                     <container:child layoutData="{gridLayoutData}">
                         <container:SimpleContainer ui:field="theMap" />
