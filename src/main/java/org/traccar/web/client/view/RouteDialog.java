@@ -820,14 +820,10 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     public void onPointSelected(LonLat lonLat) {
         RoutePointWrapper pt = grid.getSelectionModel().getSelectedItem();
         edit.cancelEditing();
-        boolean isNew = pt == null || !pt.isEditable();
-        if(isNew)
-            pt = new RoutePointWrapper();
+        if(pt == null || !pt.isEditable())
+            return;
         pt.setLonLat(lonLat.lon(), lonLat.lat());
-        if(isNew)
-            store.add(store.size()-1, pt);
-        else
-            store.update(pt);
+        store.update(pt);
     }
     
     @UiHandler("saveButton")
