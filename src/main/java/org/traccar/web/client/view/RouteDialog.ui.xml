@@ -33,7 +33,7 @@
   
   <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" 
            field="v35px">
-      <ui:attributes width="1" height="35"/>
+      <ui:attributes width="1" height="20"/>
   </ui:with>
   
   <ui:with type="com.sencha.gxt.core.client.util.Margins" field="gridMargins">
@@ -82,6 +82,11 @@
       <ui:attributes width="1" height="24" />
   </ui:with>
   
+  <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+           field="vlt24px">
+      <ui:attributes width="1" height="24" margins="{ltMargin}" />
+  </ui:with>
+  
   <ui:with type="com.sencha.gxt.core.client.util.Margins" field="m1">
       <ui:attributes left="20" top="0" right="0" bottom="0" />
   </ui:with>
@@ -96,6 +101,14 @@
   <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
            field="hlWrapContent">
       <ui:attributes width="-1" height="1" margins="{ml6px}"/>
+  </ui:with>
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="hMatchParent">
+      <ui:attributes width="1" height="1" />
+  </ui:with>
+  <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+           field="h105px2">
+      <ui:attributes width="125" height="1" />
   </ui:with>
   
   <ui:with type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
@@ -128,25 +141,77 @@
         </g:HTMLPanel>
       </gxt:tool>
       
-    <container:VerticalLayoutContainer addStyleNames="{style.tabBody}">
-        
-        <container:child layoutData="{v24px}">
-            <container:HorizontalLayoutContainer>
-                <container:child layoutData="{h510px}">
+    <container:VerticalLayoutContainer addStyleNames="{style.tabBody}">        
+        <container:child layoutData="{gridLayoutData}">
+          <container:HorizontalLayoutContainer>
+            
+            <container:child layoutData="{halfWindow}">            
+              <container:VerticalLayoutContainer>
+              
+                  <container:child layoutData="{v24px}">
                     <form:FieldLabel text="{i18n.trackName}" 
-                                     ui:field="trackNameLabel">
+                               ui:field="trackNameLabel">
                         <form:widget>
                             <form:TextField ui:field="name" allowBlank="false" />
                         </form:widget>
                     </form:FieldLabel>
+                  </container:child>
+                  
+                  <container:child layoutData="{v24px}">
+                      <form:FieldLabel ui:field="selectDeviceLabel" ui:text="{i18n.selectDevice}">
+                        <form:widget>
+                            <form:ComboBox ui:field="selectDevice" />
+                        </form:widget>
+                    </form:FieldLabel>
+                  </container:child>
+                  
+                  <container:child layoutData="{v24px}">
+                      <g:Label ui:text="{i18n.lblOnlyPremiumDevices}" />
+                  </container:child>
+                  
+                <container:child layoutData="{gridLayoutData}">
+                  <grid:Grid ui:field="grid" />
                 </container:child>
-                             
-                <container:child layoutData="{h105px}">
+                <container:child layoutData="{v35px}">
+                  <container:HorizontalLayoutContainer>
+                    <container:child layoutData="{hMatchParent}">
+                      <g:Label ui:field="routeLength" />
+                    </container:child>
+                    <container:child layoutData="{hlWrapContent}">
+                      <button:TextButton ui:field="addButton" ui:text="{i18n.newPoint}" />
+                    </container:child>
+                    <container:child layoutData="{hlWrapContent}">
+                      <button:TextButton ui:field="recalculate" text="{i18n.recalculate}" />
+                    </container:child>
+                  </container:HorizontalLayoutContainer>
+                </container:child>
+                
+              </container:VerticalLayoutContainer>
+            </container:child>
+          
+            <container:child layoutData="{halfWindow}">
+                <container:VerticalLayoutContainer>
+                    <container:child layoutData="{verticalLayoutData}">
+                        <g:Label ui:text="{i18n.lblOnlyPremiumDevices}" />
+                    </container:child>
+                    <container:child layoutData="{gridLayoutData}">
+                        <container:SimpleContainer ui:field="theMap" />
+                    </container:child>
+                </container:VerticalLayoutContainer>
+            </container:child>
+          
+          </container:HorizontalLayoutContainer>
+        </container:child>
+        
+        <container:child layoutData="{vlt24px}">
+            <container:HorizontalLayoutContainer>
+                                             
+                <container:child layoutData="{h105px2}">
                     <form:FieldLabel ui:text="{i18n.tolerance}" labelWidth="70">
-                      <form:widget>
-                        <form:NumberField ui:field="tolerance"
-                                          editor="{integerPropertyEditor}"/>
-                      </form:widget>
+                        <form:widget>
+                            <form:NumberField ui:field="tolerance"
+                                              editor="{integerPropertyEditor}"/>
+                        </form:widget>
                     </form:FieldLabel>
                 </container:child>
                 <container:child layoutData="{hltWrapContent}">
@@ -155,10 +220,10 @@
                 
                 <container:child layoutData="{h144px}">
                     <form:FieldLabel ui:text="{i18n.archiveAfter}" labelWidth="90">
-                      <form:widget>
-                        <form:NumberField ui:field="archiveAfter" 
-                                          editor="{integerPropertyEditor}"/>
-                      </form:widget>
+                        <form:widget>
+                            <form:NumberField ui:field="archiveAfter" 
+                                              editor="{integerPropertyEditor}"/>
+                        </form:widget>
                     </form:FieldLabel>
                 </container:child>
                 <container:child layoutData="{hltWrapContent}">
@@ -168,64 +233,14 @@
                 <container:child layoutData="{hltrWrapContent}">
                     <form:CheckBox ui:field="createCorridor" boxLabel="{i18n.createCorridor}" />
                 </container:child>
-                <container:child layoutData="{hWrapContent}">
+                <container:child layoutData="{h105px2}">
                     <form:NumberField ui:field="corridorWidth" enabled="false"
-                                      editor="{integerPropertyEditor}"/>
+                                          editor="{integerPropertyEditor}"/>
                 </container:child>
                 <container:child layoutData="{hltWrapContent}">
                     <g:Label text="{i18n.km}" />
                 </container:child>
             </container:HorizontalLayoutContainer>
-        </container:child>
-        
-        <container:child layoutData="{v24px}">
-            <container:HorizontalLayoutContainer>
-                <container:child layoutData="{h510px}">
-                    <form:FieldLabel ui:field="selectDeviceLabel" ui:text="{i18n.selectDevice}">
-                        <form:widget>
-                            <form:ComboBox ui:field="selectDevice" />
-                        </form:widget>
-                    </form:FieldLabel>
-                </container:child>
-                
-                <container:child layoutData="{hlWrapContent}">
-                    <button:TextButton ui:field="addButton" ui:text="{i18n.newPoint}" />
-                </container:child>
-            </container:HorizontalLayoutContainer>
-        </container:child>
-        
-        <container:child layoutData="{v24px}">
-            <container:HorizontalLayoutContainer>
-                <g:Label ui:text="{i18n.lblOnlyPremiumDevices}" />
-            </container:HorizontalLayoutContainer>
-        </container:child>
-        
-        <container:child layoutData="{gridLayoutData}">
-          <container:HorizontalLayoutContainer>
-            
-            <container:child layoutData="{halfWindow}">
-              <container:VerticalLayoutContainer>
-                <container:child layoutData="{gridLayoutData}">
-                  <grid:Grid ui:field="grid" />
-                </container:child>
-                <container:child layoutData="{v35px}">
-                  <container:HorizontalLayoutContainer>
-                    <container:child layoutData="{hlWrapContent}">
-                      <g:Label ui:field="routeLength" />
-                    </container:child>
-                    <container:child layoutData="{recalculateLayoutData}">
-                      <button:TextButton ui:field="recalculate" text="{i18n.recalculate}" />
-                    </container:child>
-                  </container:HorizontalLayoutContainer>
-                </container:child>
-              </container:VerticalLayoutContainer>
-            </container:child>
-          
-            <container:child layoutData="{halfWindow}">
-              <container:SimpleContainer ui:field="theMap" />
-            </container:child>
-          
-          </container:HorizontalLayoutContainer>
         </container:child>
         
     </container:VerticalLayoutContainer>
