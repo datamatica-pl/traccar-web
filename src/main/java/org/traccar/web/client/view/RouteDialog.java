@@ -180,6 +180,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     private VectorFeature modifiedFeature;
     private RoutePointWrapper modifiedPt;
     String lineString;
+    private int distance;
     RoutePolylineFinder.Callback routeDrawer = new RoutePolylineFinder.Callback() {
         @Override
         public void onResult(String points, double[] distances) {
@@ -219,8 +220,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                     store.update(rpws.get(i));
                     ignoreUpdate = false;
                 }
-                routeLength.setText(i18n.routeLength(totalDistance));
+                distance = (int)(totalDistance*1000);
             }
+            routeLength.setText(i18n.routeLength(distance/1000.));
             endComputingPath();
         }
 
@@ -250,7 +252,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         prepareGrid(gfs);
         prepareDeviceCBox(devs);
         uiBinder.createAndBindUi(this);
-        routeLength.setText(i18n.routeLength(0));
+        distance = route.getLength();
         
         //editing!
         createCorridor.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
@@ -876,6 +878,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             route.setForceLast(false);
             route.getRoutePoints().remove(route.getRoutePoints().size()-1);
         }
+        route.setLength(distance);
     }
     
     private boolean validate(Route r) {

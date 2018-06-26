@@ -45,6 +45,7 @@ public class ApiRoute {
     public boolean forceLast;
     public List<ApiRoutePoint> points;
     public String polyline;
+    public int length;
     
     public ApiRoute() {}
     
@@ -63,6 +64,7 @@ public class ApiRoute {
         r.setForceFirst(forceFirst);
         r.setForceLast(forceLast);
         r.setName(name);
+        r.setLength(length);
         
         for(ApiRoutePoint rp : points)
             r.getRoutePoints().add(rp.toRoutePoint(gfMap));
