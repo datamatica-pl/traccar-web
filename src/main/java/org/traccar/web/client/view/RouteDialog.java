@@ -428,6 +428,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         
         ColumnModel<RoutePointWrapper> cm = new ColumnModel<>(ccList);
         grid = new Grid<>(store, cm);
+        grid.getView().setSortingEnabled(false);
         edit = new GridInlineEditing<>(grid);
         
         cDelete.setCell(new DeleteCell(store, edit));
@@ -621,8 +622,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         store.addStoreHandlers(new StoreHandlers<RoutePointWrapper>() {            
             @Override
             public void onAdd(StoreAddEvent<RoutePointWrapper> event) {
-                if(event.getItems().isEmpty())
-                    return;
+                saveButton.setEnabled(false);
                 RoutePointWrapper pt = event.getItems().get(0);
                 if(pt.getCenter() != null)
                     gfRenderer.drawGeoFence(pt.getRoutePoint().getGeofence(), true);
@@ -634,6 +634,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
 
             @Override
             public void onRemove(StoreRemoveEvent<RoutePointWrapper> event) {
+                saveButton.setEnabled(false);
                 GeoFence gf = event.getItem().getRoutePoint().getGeofence();
                 gfRenderer.removeGeoFence(gf);
                 if(gfMap.containsKey(gf.getName())) {
@@ -654,6 +655,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             public void onUpdate(StoreUpdateEvent<RoutePointWrapper> event) {
                 if(ignoreUpdate)
                     return;
+                saveButton.setEnabled(false);
                 if(!event.getItems().isEmpty()) {
                     gfRenderer.clear();
                     for(RoutePointWrapper pt : store.getAll()) {
@@ -828,23 +830,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     
     @UiHandler("saveButton")
     public void save(SelectEvent selectEvent) {
-        store.commitChanges();
-        
-        route.getRoutePoints().clear();
-        for(RoutePointWrapper rp : store.getAll())
-            route.getRoutePoints().add(rp.getRoutePoint());
-        if(store.get(0).getForced()) {
-            route.setForceFirst(true);
-        } else {
-            route.setForceFirst(false);
-            route.getRoutePoints().remove(0);
-        }
-        if(store.get(store.size()-1).getForced()) {
-            route.setForceLast(true);
-        } else {
-            route.setForceLast(false);
-            route.getRoutePoints().remove(route.getRoutePoints().size()-1);
-        }
+        flush();
         if(!validate(route))
             return;
 
@@ -871,26 +857,51 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         routeHandler.onSave(route);
         window.hide();
     }
+
+    private void flush() {
+        store.commitChanges();
+        
+        route.getRoutePoints().clear();
+        for(RoutePointWrapper rp : store.getAll())
+            route.getRoutePoints().add(rp.getRoutePoint());
+        if(store.get(0).getForced()) {
+            route.setForceFirst(true);
+        } else {
+            route.setForceFirst(false);
+            route.getRoutePoints().remove(0);
+        }
+        if(store.get(store.size()-1).getForced()) {
+            route.setForceLast(true);
+        } else {
+            route.setForceLast(false);
+            route.getRoutePoints().remove(route.getRoutePoints().size()-1);
+        }
+    }
     
     private boolean validate(Route r) {
         if(name.getValue() == null || name.getValue().isEmpty()) {
             new AlertMessageBox(i18n.error(), i18n.errNoRouteName()).show();
             return false;
         }
-        if(r.getRoutePoints().size() < 2) {
-            new AlertMessageBox(i18n.error(), i18n.errNotEnoughRoutePoints()).show();
-            return false;
-        }
-        for(int i=0;i < r.getRoutePoints().size();++i) {
-            GeoFence gf = r.getRoutePoints().get(i).getGeofence();
-            if(gf.points().isEmpty() || gf.getName() == null || gf.getName().isEmpty()) {
-                new AlertMessageBox(i18n.error(), i18n.errInvalidRoutePoint(i)).show();
-                return false;
-            }
-        }
+        if(!validatePoints(r)) return false;
         if(createCorridor.getValue() && 
                 (corridorWidth.getValue() == null || !corridorWidth.validate())) {
             new AlertMessageBox(i18n.error(), i18n.errNoCorridorRadius()).show();
+        }
+        return true;
+    }
+
+    private boolean validatePoints(Route r) {
+        if (r.getRoutePoints().size() < 2) {
+            new AlertMessageBox(i18n.error(), i18n.errNotEnoughRoutePoints()).show();
+            return false;
+        }
+        for (int i = 0; i < r.getRoutePoints().size(); ++i) {
+            GeoFence gf = r.getRoutePoints().get(i).getGeofence();
+            if (gf.points().isEmpty() || gf.getName() == null || gf.getName().isEmpty()) {
+                new AlertMessageBox(i18n.error(), i18n.errInvalidRoutePoint(i)).show();
+                return false;
+            }
         }
         return true;
     }
@@ -902,6 +913,9 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     
     @UiHandler("recalculate")
     public void recalculate(SelectEvent selectEvent) {
+        flush();
+        if(!validatePoints(route))
+            return;
         drawPolyline();
     }
     
