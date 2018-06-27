@@ -518,6 +518,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             }
             
             public void onNameEdited(RoutePointWrapper p) {
+                if(previousName.equals(p.getName()))
+                    return;
                 store.commitChanges();
                 if(gfMap.containsKey(previousName)) {
                     gfMap.remove(previousName);
