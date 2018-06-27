@@ -126,6 +126,10 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
     private static Resources R = GWT.create(Resources.class);
     private static RoutePointAccessor pointsAccessor = GWT.create(RoutePointAccessor.class);
     public static final String GF_PROJECTION = "EPSG:4326";
+    private static final RegExp LAT_LON_PATTERN = RegExp.compile(
+                "(\\d+(\\.\\d+)?)([NS])\\s*(\\d+(\\.\\d+)?)([WE])");
+    private static final RegExp NAME_LAT_LON_PATTERN = RegExp.compile(
+            "pkt_\\d{3}_\\d{3}");
     
     @UiField
     Window window;
@@ -492,8 +496,6 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         });
         
         
-        final RegExp latLonPatt = RegExp.compile(
-                "(\\d+(\\.\\d+)?)([NS])\\s*(\\d+(\\.\\d+)?)([WE])");
         edit.addCompleteEditHandler(new CompleteEditHandler<RoutePointWrapper>() {
             @Override
             public void onCompleteEdit(CompleteEditEvent<RoutePointWrapper> event) {
@@ -537,7 +539,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             }
             
             public void onAddressEdited(final RoutePointWrapper p) {
-                MatchResult m = latLonPatt.exec(p.getAddress());
+                MatchResult m = LAT_LON_PATTERN.exec(p.getAddress());
                 if(m == null) {
                     Geocoder.search(p.getAddress(), new SearchCallback() {
                         @Override
@@ -1015,14 +1017,18 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         public void setLonLat(double lon, double lat) {
             GeoFence geofence = pt.getGeofence();
             geofence.setPoints(lon+" "+lat);
-            if(geofence.getAddress() == null || geofence.getAddress().isEmpty()) {
+            String addr = geofence.getAddress();
+            String name = geofence.getName();
+            if(addr == null || addr.isEmpty() 
+                    || LAT_LON_PATTERN.exec(addr) != null) {
                 String latDir = lat < 0 ? "S" : "N";
                 String lonDir = lon < 0 ? "W" : "E";
                 geofence.setAddress(i18n.latLonFormat(
                         Math.round(Math.abs(lat)*1e3)/1e3, latDir, 
                         Math.round(Math.abs(lon)*1e3)/1e3, lonDir));
             }
-            if(geofence.getName() == null || geofence.getName().isEmpty())
+            if(name == null || name.isEmpty()
+                    || NAME_LAT_LON_PATTERN.exec(name) != null)
                 geofence.setName("pkt_"+(int)Math.abs(lon*10)+"_"+(int)Math.abs(lat*10));
         }
         
@@ -1060,6 +1066,7 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         public static GeoFence createGF(String name, float radius) {
             GeoFence gf = new GeoFence();
             gf.setName(name);
+            gf.setRouteOnly(true);
             gf.setTransferDevices(Collections.EMPTY_SET);
             gf.setType(GeoFenceType.CIRCLE);
             gf.setRadius(radius);
