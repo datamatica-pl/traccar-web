@@ -32,8 +32,8 @@ import pl.datamatica.traccar.model.Device;
 import pl.datamatica.traccar.model.Maintenance;
 import pl.datamatica.traccar.model.RegistrationMaintenance;
 
-//@Path("https://localhost/api/v1/devices")
-@Path("../api/v1/devices")
+@Path("https://localhost/api/v1/devices")
+//@Path("../api/v1/devices") // This will request to the port the same as GWT debug (I think 8888)
 public interface IDevicesService extends RestService {
     @GET
     void getDevices(JsonCallback callback);
