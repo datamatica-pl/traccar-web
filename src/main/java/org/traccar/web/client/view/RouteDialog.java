@@ -67,6 +67,8 @@ import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent.BeforeStartE
 import com.sencha.gxt.widget.core.client.event.CompleteEditEvent;
 import com.sencha.gxt.widget.core.client.event.CompleteEditEvent.CompleteEditHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.event.StartEditEvent;
+import com.sencha.gxt.widget.core.client.event.StartEditEvent.StartEditHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
@@ -81,6 +83,8 @@ import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.editing.GridEditing;
 import com.sencha.gxt.widget.core.client.grid.editing.GridInlineEditing;
+import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
+import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.SelectionChangedHandler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -477,6 +481,16 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
         final DateTimeField deadline = new DateTimeField();
         edit.addEditor(cDeadline, deadline);
         
+        grid.getSelectionModel().addSelectionChangedHandler(new SelectionChangedHandler<RoutePointWrapper>() {
+            @Override
+            public void onSelectionChanged(SelectionChangedEvent<RoutePointWrapper> se) {
+                if(!se.getSelection().isEmpty()) {
+                    RoutePointWrapper rpw = se.getSelection().get(0);
+                    gfRenderer.selectGeoFence(rpw.getRoutePoint().getGeofence(), 2);
+                }
+            }
+        });
+        
         edit.addBeforeStartEditHandler(new BeforeStartEditHandler<RoutePointWrapper>() {
             @Override
             public void onBeforeStartEdit(BeforeStartEditEvent<RoutePointWrapper> event) {
@@ -494,7 +508,6 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
                     previousDeadline = pt.getDeadline();
             }
         });
-        
         
         edit.addCompleteEditHandler(new CompleteEditHandler<RoutePointWrapper>() {
             @Override
