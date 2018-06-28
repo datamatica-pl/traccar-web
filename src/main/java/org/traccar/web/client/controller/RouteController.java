@@ -63,6 +63,7 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     private ListStore<Device> deviceStore;
     private ListStore<GeoFence> geoFenceStore;
     private MapController mapController;
+    private GeoFenceController gfController;
     private ReportsController reportHandler;
     private final ListStore<Route> routeStore;
     private Messages i18n = GWT.create(Messages.class);
@@ -70,11 +71,12 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
     private LRouteMapper lMapper = GWT.create(LRouteMapper.class);
     private RouteMapper mapper = GWT.create(RouteMapper.class);
     
-    public RouteController(ListStore<Device> devStore, ListStore<GeoFence> gfStore,
+    public RouteController(ListStore<Device> devStore, GeoFenceController gfController,
             MapController mapController) {
         this.deviceStore = devStore;
-        this.geoFenceStore = gfStore;
+        this.geoFenceStore = gfController.getGeoFenceStore();
         this.mapController = mapController;
+        this.gfController = gfController;
         routeStore = new ListStore<>(new ModelKeyProvider<Route>() {
             @Override
             public String getKey(Route item) {
@@ -128,12 +130,20 @@ public class RouteController implements DeviceView.RouteHandler, ContentControll
                         updateRoute(route, r);
                         updateGeofences(route);
                         routeStore.update(route);
+                        gfController.geoFenceRemoved(selectedItem.getCorridor());
+                        gfController.geoFenceAdded(selectedItem.getCorridor());
+                        Device d = selectedItem.getCorridor().getDevices().iterator().next();
+                        log(d.getId()+":"+gfController.getDeviceGeoFences().get(d.getId()).size());
                     } 
                         });
             }
             
         }, deviceStore, geoFenceStore, ApplicationContext.getInstance().getUser()).show();
     }
+    
+    public static native void log(String msg) /*-{
+        console.log(msg);
+    }-*/;
     
     private void updateRoute(Route route, ApiRoute r) {
         if(route.getId() == 0)

@@ -283,6 +283,7 @@
         <executions>
           <execution>
             <configuration>
+              <style>PRETTY</style>
               <module>org.traccar.web.Traccar</module>
             </configuration>
             <goals>

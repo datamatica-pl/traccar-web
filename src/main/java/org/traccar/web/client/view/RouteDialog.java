@@ -110,6 +110,7 @@ import org.gwtopenmaps.openlayers.client.event.EventHandler;
 import org.gwtopenmaps.openlayers.client.event.EventObject;
 import org.traccar.web.client.ApplicationContext;
 import org.traccar.web.client.GeoFenceDrawing;
+import org.traccar.web.client.controller.RouteController;
 import org.traccar.web.client.i18n.Messages;
 import org.traccar.web.client.model.DeviceProperties;
 import org.traccar.web.client.utils.Geocoder;
@@ -724,8 +725,10 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             if(!gf.points().isEmpty())
                 gfRenderer.drawGeoFence(gf, true);
         }
-        if(route.getCorridor() != null)
-            gfRenderer.drawGeoFence(route.getCorridor(), false);
+        if(route.getCorridor() != null) {
+            RouteController.log("drawing corridor in dialog");
+            gfRenderer.drawGeoFence(route.getCorridor(), false); 
+        }
         routeDrawer.onResult(lineString, null);
         LineString ls = PolylineDecoder.decode(this, lineString);
         map.zoomToExtent(ls.getBounds());
@@ -865,6 +868,8 @@ public class RouteDialog implements GeoFenceRenderer.IMapView {
             }
             corridor.setRadius(corridorWidth.getValue().floatValue()*1000);
             corridor.setOwner(ApplicationContext.getInstance().getUser());
+            if(route.getDevice() != null)
+                corridor.setDevices(Collections.singleton(route.getDevice()));
             route.setCorridor(corridor);
         } else
             route.setCorridor(null);
