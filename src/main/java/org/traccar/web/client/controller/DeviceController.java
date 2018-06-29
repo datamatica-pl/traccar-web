@@ -157,7 +157,7 @@ public class DeviceController implements ContentController, DeviceView.DeviceHan
 
         new ImeiDialog(new ImeiDialog.ImeiHandler() {
             @Override
-            public void onImei(String imei, Boolean notUsedHereMarketingCheck) {
+            public void onImei(String imei) {
                 AddDeviceDto dto = new AddDeviceDto(imei);
                 Application.getDevicesService().addDevice(dto, new ApiJsonCallback(i18n){
                     @Override

@@ -1,0 +1,57 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder
+    xmlns:ui="urn:ui:com.google.gwt.uibinder"
+    xmlns:g="urn:import:com.google.gwt.user.client.ui"
+    xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
+  	xmlns:container="urn:import:com.sencha.gxt.widget.core.client.container"
+  	xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
+  	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button">
+
+  <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" field="verticalLayoutData">
+    <ui:attributes width="1" height="-1" />
+  </ui:with>
+  
+    <ui:style>
+        .registerContainer > div {
+            margin-bottom: 10px;
+        }
+    </ui:style>
+
+    <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
+
+    <gxt:Window pixelSize="300, -1" focusWidget="{okButton}" 
+                resizable="false" draggable="false" modal="true"
+                ui:field="window">
+    
+    <container:VerticalLayoutContainer addStyleNames="{style.registerContainer}">
+        <container:child layoutData="{verticalLayoutData}">
+            <g:Label text="{i18n.enterImeiToRegister}" />
+        </container:child>
+        <container:child layoutData="{verticalLayoutData}">
+            <form:FieldLabel text="{i18n.imei}" labelWidth="75">
+              <form:widget>
+                <form:TextField ui:field="imei" />
+              </form:widget>
+            </form:FieldLabel>
+        </container:child>
+        <container:child>
+            <form:CheckBox ui:field="marketingCheck" boxLabel="{i18n.marketingCheckText}" />
+        </container:child>
+        <container:child layoutData="{verticalLayoutData}">
+          <g:HTMLPanel>
+            <a href="https://trackman.pl/zgody-marketingowe/">
+                <g:Label text="{i18n.marketingDetailsText}" />
+            </a>
+          </g:HTMLPanel>
+        </container:child>
+    </container:VerticalLayoutContainer>
+      
+    <gxt:button>
+      <button:TextButton ui:field="okButton" text="{i18n.ok}" />
+    </gxt:button>
+    <gxt:button>
+      <button:TextButton ui:field="cancelButton" text="{i18n.cancel}" />
+    </gxt:button>
+  </gxt:Window>
+
+</ui:UiBinder>

@@ -10,40 +10,21 @@
   <ui:with type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData" field="verticalLayoutData">
     <ui:attributes width="1" height="-1" />
   </ui:with>
-  
-    <ui:style>
-        .registerContainer > div {
-            margin-bottom: 10px;
-        }
-    </ui:style>
 
-    <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
+  <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
 
     <gxt:Window pixelSize="300, -1" focusWidget="{okButton}" 
                 resizable="false" draggable="false" modal="true"
                 ui:field="window">
     
-    <container:VerticalLayoutContainer addStyleNames="{style.registerContainer}">
-        <container:child layoutData="{verticalLayoutData}">
-            <g:Label text="{i18n.enterImeiToRegister}" />
-        </container:child>
-        <container:child layoutData="{verticalLayoutData}">
-            <form:FieldLabel text="{i18n.imei}" labelWidth="75">
-              <form:widget>
-                <form:TextField ui:field="imei" />
-              </form:widget>
-            </form:FieldLabel>
-        </container:child>
-        <container:child>
-            <form:CheckBox ui:field="marketingCheck" boxLabel="{i18n.marketingCheckText}" />
-        </container:child>
-        <container:child layoutData="{verticalLayoutData}">
-          <g:HTMLPanel>
-            <a href="https://trackman.pl/zgody-marketingowe/">
-                <g:Label text="{i18n.marketingDetailsText}" />
-            </a>
-          </g:HTMLPanel>
-        </container:child>
+    <container:VerticalLayoutContainer>
+    <container:child layoutData="{verticalLayoutData}">
+          <form:FieldLabel text="{i18n.imei}" labelWidth="75">
+          <form:widget>
+            <form:TextField ui:field="imei" />
+          </form:widget>
+        </form:FieldLabel>
+      </container:child>
     </container:VerticalLayoutContainer>
       
     <gxt:button>

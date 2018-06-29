@@ -148,7 +148,7 @@ public class LoginDialog {
             new AlertMessageBox(i18n.error(), i18n.invalidEmail()).show();
             return;
         }
-        ImeiDialog dialog = new ImeiDialog(new ImeiDialog.ImeiHandler() {
+        RegistrationDialog dialog = new RegistrationDialog(new RegistrationDialog.ImeiHandler() {
                 @Override
                 public void onImei(String imei, Boolean marketingCheckState) {
                     loginHandler.onRegister(login.getText(), imei, password.getText(), marketingCheckState);
