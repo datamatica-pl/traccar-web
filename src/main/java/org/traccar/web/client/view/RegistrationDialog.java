@@ -16,7 +16,7 @@ import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.TextField;
 
 public class RegistrationDialog {
-    public interface ImeiHandler {
+    public interface RegitrationHandler {
         void onImei(String imei, Boolean marketingCheck);
     }
     
@@ -34,9 +34,9 @@ public class RegistrationDialog {
     @UiField
     CheckBox marketingCheck;
     
-    private ImeiHandler handler;
+    private RegitrationHandler handler;
     
-    public RegistrationDialog(ImeiHandler handler) {
+    public RegistrationDialog(RegitrationHandler handler) {
         this.handler = handler;
         uiBinder.createAndBindUi(this);
     }
