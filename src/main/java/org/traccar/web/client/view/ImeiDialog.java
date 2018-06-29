@@ -12,11 +12,12 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.sencha.gxt.widget.core.client.Window;
+import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.TextField;
 
 public class ImeiDialog {
     public interface ImeiHandler {
-        void onImei(String imei);
+        void onImei(String imei, Boolean marketingCheck);
     }
     
     private static ImeiDialogUiBinder uiBinder = GWT.create(ImeiDialogUiBinder.class);
@@ -29,6 +30,9 @@ public class ImeiDialog {
     
     @UiField
     TextField imei;
+    
+    @UiField
+    CheckBox marketingCheck;
     
     private ImeiHandler handler;
     
@@ -44,7 +48,7 @@ public class ImeiDialog {
     @UiHandler("okButton")
     public void onOkClicked(SelectEvent event) {
         window.hide();
-        handler.onImei(imei.getText());
+        handler.onImei(imei.getText(), this.marketingCheck.getValue());
     }
     
     @UiHandler("cancelButton")

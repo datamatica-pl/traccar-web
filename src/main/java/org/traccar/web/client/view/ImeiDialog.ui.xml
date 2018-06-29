@@ -18,13 +18,22 @@
                 ui:field="window">
     
     <container:VerticalLayoutContainer>
-    <container:child layoutData="{verticalLayoutData}">
-          <form:FieldLabel text="{i18n.imei}" labelWidth="75">
-          <form:widget>
-            <form:TextField ui:field="imei" />
-          </form:widget>
-        </form:FieldLabel>
-      </container:child>
+        <container:child layoutData="{verticalLayoutData}">
+            <form:FieldLabel text="{i18n.imei}" labelWidth="75">
+              <form:widget>
+                <form:TextField ui:field="imei" />
+              </form:widget>
+            </form:FieldLabel>
+        </container:child>
+        <container:child>
+            <form:FieldLabel>
+              <form:widget>
+                <form:CheckBox ui:field="marketingCheck" boxLabel="{i18n.marketingCheckText}" />
+              </form:widget>
+            </form:FieldLabel>
+        </container:child>
+        <!-- TODO: Add links to marketing details description, privacy plicy and TOS -->
+      
     </container:VerticalLayoutContainer>
       
     <gxt:button>

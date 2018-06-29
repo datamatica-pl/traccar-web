@@ -43,10 +43,11 @@ public interface IUsersService extends RestService{
         
         public RegisterUserDto() {}
         
-        public RegisterUserDto(String email, String imei, String password) {
+        public RegisterUserDto(String email, String imei, String password, Boolean checkMarketingState) {
             this.email = email;
             this.imei = imei;
             this.password = password;
+            this.checkMarketing = checkMarketingState;
         }
     }
     
