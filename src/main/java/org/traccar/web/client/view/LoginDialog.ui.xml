@@ -50,13 +50,6 @@
       <container:child layoutData="{verticalLayoutData}">
           <g:Label text="{i18n.acceptTerms}" />
       </container:child>
-      <container:child layoutData="{verticalLayoutData}">
-          <g:HTMLPanel>
-            <a href="https://trackman.pl/regulamin-korzystania-z-systemu-trackman/">
-                <g:Label text="{i18n.termsLabel}" />
-            </a>
-          </g:HTMLPanel>
-      </container:child>
       <container:child>
           <g:HTMLPanel>
               <hr />

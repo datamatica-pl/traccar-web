@@ -19,13 +19,16 @@
 
     <ui:with field='i18n' type='org.traccar.web.client.i18n.Messages' />
 
-    <gxt:Window pixelSize="300, -1" focusWidget="{okButton}" 
+    <gxt:Window pixelSize="450, -1" focusWidget="{okButton}" 
                 resizable="false" draggable="false" modal="true"
                 ui:field="window">
     
     <container:VerticalLayoutContainer addStyleNames="{style.registerContainer}">
         <container:child layoutData="{verticalLayoutData}">
-            <g:Label text="{i18n.enterImeiToRegister}" />
+            <g:HTMLPanel>
+                <g:InlineLabel text="{i18n.enterImeiToRegister}" />
+                <g:Anchor text="{i18n.termsLabel}" href="https://trackman.pl/regulamin-korzystania-z-systemu-trackman/" />.
+            </g:HTMLPanel>
         </container:child>
         <container:child layoutData="{verticalLayoutData}">
             <form:FieldLabel text="{i18n.imei}" labelWidth="75">
