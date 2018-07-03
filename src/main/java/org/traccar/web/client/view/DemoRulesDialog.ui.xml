@@ -33,7 +33,7 @@ Uncomment this for XHTML entities
             
             <container:child layoutData="{layoutData}">
                 <g:HTMLPanel>
-                  <a href="https://trackman.pl/regulamin-korzystania-z-systemu-trackman/">
+                  <a href="https://petio.eu/regulamin-korzystania-z-systemu-petio/">
                       <g:Label text="{i18n.termsLabel}" />
                   </a>
                 </g:HTMLPanel>
