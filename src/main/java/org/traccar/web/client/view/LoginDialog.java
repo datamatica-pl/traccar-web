@@ -53,7 +53,7 @@ public class LoginDialog {
 
     public interface LoginHandler {
         void onLogin(String login, String password);
-        void onRegister(String login, String imei, String password);
+        void onRegister(String login, String imei, String password, Boolean marketingCheckState);
     }
 
     private LoginHandler loginHandler;
@@ -148,10 +148,10 @@ public class LoginDialog {
             new AlertMessageBox(i18n.error(), i18n.invalidEmail()).show();
             return;
         }
-        ImeiDialog dialog = new ImeiDialog(new ImeiDialog.ImeiHandler() {
+        RegistrationDialog dialog = new RegistrationDialog(new RegistrationDialog.RegitrationHandler() {
                 @Override
-                public void onImei(String imei) {
-                    loginHandler.onRegister(login.getText(), imei, password.getText());
+                public void onImei(String imei, Boolean marketingCheckState) {
+                    loginHandler.onRegister(login.getText(), imei, password.getText(), marketingCheckState);
                 }
             });
         dialog.show();

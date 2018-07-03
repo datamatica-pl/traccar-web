@@ -200,6 +200,14 @@ public class GeoFenceRenderer {
         }
     }
     
+    public void selectGeoFence(GeoFence geoFence, int zoomOut) {
+        if(getDrawing(geoFence) == null)
+            return;
+        selectGeoFence(geoFence);
+        for(int i=0;i<zoomOut;++i)
+            mapView.getMap().zoomOut();
+    }
+    
     public void selectRoute(Route r) {
         if(selectedRoute != null)
             for(RoutePoint rp : selectedRoute.getRoutePoints())

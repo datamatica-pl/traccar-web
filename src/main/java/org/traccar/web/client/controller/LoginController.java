@@ -176,10 +176,10 @@ public class LoginController implements LoginDialog.LoginHandler, RulesDialog.Ru
     }
 
     @Override
-    public void onRegister(String email, String imei, String password) {
+    public void onRegister(String email, String imei, String password, Boolean marketingCheckState) {
         if (validate(email, imei, password)) {
             IUsersService users = GWT.create(IUsersService.class);
-            IUsersService.RegisterUserDto dto = new IUsersService.RegisterUserDto(email, imei, password);
+            IUsersService.RegisterUserDto dto = new IUsersService.RegisterUserDto(email, imei, password, marketingCheckState);
             users.register(dto, new JsonCallback() {
                 @Override
                 public void onSuccess(Method method, JSONValue response) {

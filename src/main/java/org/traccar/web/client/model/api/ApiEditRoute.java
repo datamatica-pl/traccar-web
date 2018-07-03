@@ -49,5 +49,6 @@ public class ApiEditRoute extends ApiRoute{
         }
         this.polyline = r.getLinePoints();
         this.tolerance = r.getTolerance();
+        this.length = r.getLength();
     }
 }
