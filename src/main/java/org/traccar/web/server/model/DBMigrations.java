@@ -625,10 +625,13 @@ public class DBMigrations {
         public void migrate(EntityManager em) throws Exception {
             List<GeoFence> geofences = em.createQuery("SELECT g FROM GeoFence g WHERE g.owner IS NULL", GeoFence.class).getResultList();
             for (GeoFence g : geofences) {
-                Set<User> users = new HashSet(g.getUsers());                
+                final String ADMIN_LOGIN = "admin";
+                Set<User> users = new HashSet(g.getUsers());
                 
                 User adminUser = null;
-                List<User> adminResult = em.createQuery("SELECT x FROM User x WHERE id = 1", User.class).getResultList();
+                List<User> adminResult = em.createQuery("SELECT x FROM User x WHERE login = :adminLogin", User.class)
+                        .setParameter("adminLogin", ADMIN_LOGIN)
+                        .getResultList();
                 if (adminResult.size() > 0) {
                     adminUser = adminResult.get(0);
                 }
