@@ -625,12 +625,20 @@ public class DBMigrations {
         public void migrate(EntityManager em) throws Exception {
             List<GeoFence> geofences = em.createQuery("SELECT g FROM GeoFence g WHERE g.owner IS NULL", GeoFence.class).getResultList();
             for (GeoFence g : geofences) {
+                final String ADMIN_LOGIN = "admin";
                 Set<User> users = new HashSet(g.getUsers());
                 
+                User adminUser = null;
+                List<User> adminResult = em.createQuery("SELECT x FROM User x WHERE login = :adminLogin", User.class)
+                        .setParameter("adminLogin", ADMIN_LOGIN)
+                        .getResultList();
+                if (adminResult.size() > 0) {
+                    adminUser = adminResult.get(0);
+                }
+                
                 // when there is more than one user, we can remove "admin" (id = 1)
-                User adminUser = em.createQuery("SELECT x FROM User x WHERE id = 1", User.class).getResultList().get(0);
-                if (users.size() > 1 && users.contains(adminUser)) {
-                    users.remove(adminUser);    
+                if (users.size() > 1 && adminUser != null && users.contains(adminUser)) {
+                    users.remove(adminUser);
                 }
                 
                 // Now find the highest user in hierarchy. If A manages B and both has access to geofence,
@@ -653,7 +661,9 @@ public class DBMigrations {
                     // we have to remove geofence - we don't know who should get it
                     // here we have 0 users or more than one (and they not in relation)
                     g.setUsers(new HashSet());
-                    g.setOwner(adminUser);
+                    if (adminUser != null) {
+                        g.setOwner(adminUser);
+                    }
                     em.flush();
                     em.remove(g);
                     em.flush();
