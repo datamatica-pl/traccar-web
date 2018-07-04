@@ -27,7 +27,7 @@
         <container:child layoutData="{verticalLayoutData}">
             <g:HTMLPanel>
                 <g:InlineLabel text="{i18n.enterImeiToRegister}" />
-                <g:Anchor text="{i18n.termsLabel}" href="https://petio.eu/regulamin-korzystania-z-systemu-petio/" />.
+                <g:Anchor text="{i18n.termsLabelInText}" href="https://petio.eu/regulamin-korzystania-z-systemu-petio/" />.
             </g:HTMLPanel>
         </container:child>
         <container:child layoutData="{verticalLayoutData}">
