@@ -27,7 +27,7 @@
         <container:child layoutData="{verticalLayoutData}">
             <g:HTMLPanel>
                 <g:InlineLabel text="{i18n.enterImeiToRegister}" />
-                <g:Anchor text="{i18n.termsLabel}" href="https://trackman.pl/regulamin-korzystania-z-systemu-trackman/" />.
+                <g:Anchor text="{i18n.termsLabelInText}" href="https://trackman.pl/regulamin-korzystania-z-systemu-trackman/" />.
             </g:HTMLPanel>
         </container:child>
         <container:child layoutData="{verticalLayoutData}">
