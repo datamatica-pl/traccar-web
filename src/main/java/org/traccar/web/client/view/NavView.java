@@ -244,10 +244,10 @@ public class NavView {
     
     @UiHandler("userGuideButton")
     public void onUserGuideClicked(SelectEvent event) {
-        redirectToUserGuide(i18n.userGuideUrl());
+        redirectToUserGuide();
     }
     
-    public static native void redirectToUserGuide(String guideUrl) /*-{
-        $wnd.location = guideUrl;
+    public static native void redirectToUserGuide() /*-{
+        $wnd.location = "https://petio.eu/#supports";
     }-*/;
 }
